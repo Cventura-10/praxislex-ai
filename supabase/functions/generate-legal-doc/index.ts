@@ -28,25 +28,73 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY no configurada');
     }
 
-    // Sistema prompt especializado en derecho dominicano
-    const systemPrompt = `Eres un asistente jurídico especializado en República Dominicana. 
+    // Sistema prompt especializado en derecho dominicano con estructura profesional
+    const systemPrompt = `Eres un asistente jurídico experto especializado en República Dominicana.
 
-REGLAS CRÍTICAS:
-1. NUNCA generes texto sin citas verificables de fuentes jurídicas
-2. Cada afirmación legal DEBE tener una cita con: órgano, número, fecha y extracto
-3. Si no puedes citar fuentes verificables, responde: "Información insuficiente para generar documento con citas verificables"
-4. Usa lenguaje jurídico formal dominicano
-5. Estructura: Encabezado, Hechos, Fundamentos de Derecho (con citas), Petitorio
+ESTRUCTURA OBLIGATORIA DEL DOCUMENTO:
 
-FORMATO DE CITAS REQUERIDO:
-- Sentencias: "SCJ-3ra-2020-123, de fecha 12 de marzo de 2020..."
-- Leyes: "Artículo X de la Ley No. XXX-XX..."
-- Códigos: "Artículo XXX del Código Civil..."
+1. PRESENTACIÓN
+   1.1. Designación Protocolar del Alguacil
+   1.2. Acto No. ______, Folios ______ y ______ año ______
+   1.3. Ciudad de la Actuación
+   1.5. Demandante (datos completos: nombre, nacionalidad, estado civil, cédula, domicilio)
+   1.6. Abogado apoderado (firma, RNC, gerente, abogados con matrículas, dirección, teléfonos, email)
+   1.8. Elección de Domicilio
+   1.10. Declaración de mandato y Proceso Verbal Traslados
+   1.12. Proceso verbal de Traslado (PRIMERO, SEGUNDO, TERCERO según corresponda)
+   1.14. Declaración Emplazamiento Y Designación Tribunal
+   1.15. Citación y Emplazamiento (plazo de octava franca)
+   1.17. Tribunal apoderado (designación completa del tribunal)
+   1.19. Propósitos de la Demanda Y Relato
 
-Genera documentos jurídicos profesionales con citas verificables.`;
+2. RELATO FACTICO
+   2.1. Sucesos motivadores
+   2.2. - 2.N. Narración cronológica detallada de los hechos
+
+3. ASPECTOS REGULATORIOS
+   3.1. Normativa del Bloque Constitucional
+   3.2. Artículo 51 de la Constitución (derecho de propiedad)
+   3.3. Artículo 26 (relaciones internacionales)
+   3.4. Artículo 68 (garantías de derechos fundamentales)
+   3.5. Artículo 69 (tutela judicial efectiva y debido proceso)
+   3.6. Pacto Internacional de Derechos Civiles y Políticos, Artículo 2
+   3.7. Artículo 14 del Pacto (garantías procesales)
+   3.8. Artículo 8 de la Convención Americana sobre Derechos Humanos
+   3.9-3.22. Normativa del Código Civil (Arts. 1134, 1135, 1136, 1138, 1139, 1142, 1146, 1382, 1383)
+
+4. TESIS DE DERECHO
+   4.1. Introducción a la subsunción jurídica
+   4.2-4.N. Análisis jurídico detallado subsumiendo hechos en normas
+
+5. DISPOSITIVOS
+   5.1. Motivación general
+   5.2. Declaratoria de validez procesal
+   5.4. Petición de contenido
+   5.5. Propuestas de comprobación
+   5.6-5.N. COMPROBAR Y DECLARAR / ORDENAR / CONDENAR específicos
+   5.14. Declaración Verbal De Recibo Y Costo
+   5.15-5.19. Certificaciones finales del alguacil
+
+REGLAS CRÍTICAS DE CONTENIDO:
+1. Citar SIEMPRE artículos constitucionales, tratados internacionales y códigos relevantes
+2. Incluir texto COMPLETO de artículos clave (no solo referencias)
+3. Estructura numerada rigurosa (1., 1.1., 1.2., etc.)
+4. Lenguaje formal jurídico dominicano
+5. Adaptar legislación específica según materia (Civil, Penal, Laboral, etc.)
+6. Petitorio con montos en RD$ o US$ según corresponda
+7. Referencias a tribunales dominicanos específicos
+8. Uso de mayúsculas en términos jurídicos clave (COMPROBAR, DECLARAR, ORDENAR, CONDENAR)
+
+CITAS VERIFICABLES:
+- Constitución: "Artículo XX de la Constitución Dominicana..."
+- Código Civil: "Artículo XXXX del Código Civil..."
+- Leyes especiales según materia
+- Tratados internacionales ratificados
+
+Genera documentos COMPLETOS, PROFESIONALES y EXHAUSTIVOS siguiendo EXACTAMENTE esta estructura.`;
 
     // Construir el prompt del usuario con toda la información
-    const userPrompt = `Genera ${tipo_documento} para la materia ${materia}.
+    const userPrompt = `Genera ${tipo_documento} COMPLETO para la materia ${materia} siguiendo EXACTAMENTE la estructura de 5 secciones.
 
 INFORMACIÓN DEL CASO:
 Hechos: ${hechos || 'No especificados'}
@@ -57,17 +105,21 @@ Juzgado: ${juzgado || 'No especificado'}
 ${legislacion ? `LEGISLACIÓN APLICABLE: ${legislacion}` : ''}
 ${jurisprudencia ? `JURISPRUDENCIA APLICABLE: ${jurisprudencia}` : ''}
 
-INSTRUCCIONES:
-1. Genera el documento completo con estructura formal
-2. Incluye MÍNIMO 2 citas verificables en Fundamentos de Derecho
-3. Usa formato: 
-   - I. HECHOS
-   - II. FUNDAMENTOS DE DERECHO (con citas)
-   - III. PETITORIO
+INSTRUCCIONES OBLIGATORIAS:
+1. Sigue EXACTAMENTE la estructura de 5 secciones con numeración
+2. PRESENTACIÓN completa (1.1 a 1.19)
+3. RELATO FACTICO detallado (2.1 a 2.N)
+4. ASPECTOS REGULATORIOS con artículos COMPLETOS de:
+   - Constitución Dominicana (Arts. 51, 26, 68, 69)
+   - Pacto Internacional Derechos Civiles y Políticos
+   - Convención Americana Derechos Humanos
+   - Código Civil (Arts. 1134, 1135, 1136, 1138, 1139, 1142, 1146, 1382, 1383)
+   - Legislación especial según materia ${materia}
+5. TESIS DE DERECHO con análisis jurídico (4.1 a 4.N)
+6. DISPOSITIVOS completos (5.1 a 5.19) con peticiones específicas
 
-4. Cada cita debe tener: órgano, número/artículo, fecha, extracto relevante
-
-Genera el documento ahora:`;
+Adapta legislación específica para materia ${materia}.
+Genera documento PROFESIONAL y EXHAUSTIVO ahora:`;
 
     console.log('Generando documento jurídico con IA...');
 
