@@ -141,62 +141,68 @@ serve(async (req) => {
 
     Genera documentos COMPLETOS y PROFESIONALES.`;
 
-    // Construir el prompt del usuario con toda la información
-    const userPrompt = `Genera ${tipo_documento} COMPLETO para la materia ${materia} siguiendo EXACTAMENTE la estructura y jerarquía normativa.
-    
-    DATOS DEL ACTO:
-    No. Acto: ${acto?.numero || 'N/D'}
-    Folios: ${acto?.folios || 'N/D'}
-    Año: ${acto?.año || new Date().getFullYear()}
-    Ciudad: ${ciudad_actuacion || 'N/D'}
-    
-    ALGUACIL:
-    ${alguacil_designacion || 'N/D'}
-    
-    DEMANDANTE/REQUERIENTE:
-    Nombre: ${demandante?.nombre || 'N/D'}
-    Nacionalidad: ${demandante?.nacionalidad || 'dominicano'}
-    Estado Civil: ${demandante?.estado_civil || 'N/D'}
-    Cédula: ${demandante?.cedula || 'N/D'}
-    Domicilio: ${demandante?.domicilio || 'N/D'}
-    
-    FIRMA APODERADA:
-    Nombre: ${firma_apoderada?.nombre || 'N/D'}
-    RNC: ${firma_apoderada?.rnc || 'N/D'}
-    
-    ABOGADO APODERADO:
-    Nombre: ${abogado?.nombre || 'N/D'}
-    Cédula: ${abogado?.cedula || 'N/D'}
-    Matrícula: ${abogado?.matricula || 'N/D'}
-    Dirección: ${abogado?.direccion || 'N/D'}
-    Teléfono: ${abogado?.telefono || 'N/D'}
-    Email: ${abogado?.email || 'N/D'}
-    
-    DEMANDADO/PARTE CONTRARIA:
-    Nombre: ${demandado?.nombre || 'N/D'}
-    Domicilio: ${demandado?.domicilio || 'N/D'}
-    
-    TRIBUNAL:
-    ${juzgado || 'N/D'}
-    
-    HECHOS DEL CASO:
-    ${hechos || 'N/D'}
-    
-    PRETENSIÓN:
-    ${pretension || 'N/D'}
-    
-    ${legislacion ? `LEGISLACIÓN ADICIONAL: ${legislacion}` : ''}
-    ${jurisprudencia ? `JURISPRUDENCIA APLICABLE: ${jurisprudencia}` : ''}
-    
-    INSTRUCCIONES OBLIGATORIAS:
-    1. Usa TODOS los datos provistos (no dejar N/D si hay datos reales)
-    2. PRESENTACIÓN completa siguiendo el formato del ejemplo (1.1 a 4.1)
-    3. ASPECTOS REGULATORIOS en ORDEN JERÁRQUICO según la materia ${materia}
-    4. Citar artículos con TEXTO ÍNTEGRO cuando sea clave para el argumento
-    5. DISPOSITIVOS específicos con montos en RD$ o US$ según corresponda
-    6. Formato para Word: texto plano, sin Markdown, justificado
-    
-    Genera el documento COMPLETO ahora:`;
+    const userPrompt = `Genera una ${tipo_documento} COMPLETA en materia ${materia}, siguiendo EXACTAMENTE la estructura del modelo proporcionado desde el punto 1.1 hasta el 5.19.
+
+DATOS PROCESALES:
+- Tipo de documento: ${tipo_documento}
+- Materia: ${materia}
+- Número de Acto: ${acto?.numero || '______, Folios ______ y ______ año ______'}
+- Ciudad de Actuación: ${ciudad_actuacion || 'Santo Domingo, Distrito Nacional'}
+- Fecha: ${acto?.fecha || '[a completar]'}
+- Tribunal: ${juzgado || 'N/D'}
+
+DEMANDANTE/REQUERIENTE:
+- Nombre completo: ${demandante?.nombre || 'N/D'}
+- Nacionalidad: ${demandante?.nacionalidad || 'dominicano'}
+- Estado Civil: ${demandante?.estado_civil || 'N/D'}
+- Cédula: ${demandante?.cedula || 'N/D'}
+- Domicilio: ${demandante?.domicilio || 'N/D'}
+
+FIRMA APODERADA:
+- Razón social: ${firma_apoderada?.nombre || 'N/D'}
+- RNC: ${firma_apoderada?.rnc || 'N/D'}
+- Representante legal: ${firma_apoderada?.representante || 'N/D'}
+- Cédula representante: ${firma_apoderada?.cedula_representante || 'N/D'}
+- Domicilio: ${firma_apoderada?.domicilio || 'N/D'}
+
+ABOGADO APODERADO:
+- Nombre completo: ${abogado?.nombre || 'N/D'}
+- Cédula: ${abogado?.cedula || 'N/D'}
+- Matrícula(s): ${abogado?.matricula || 'N/D'}
+- Dirección del estudio: ${abogado?.direccion || 'N/D'}
+- Teléfonos: ${abogado?.telefono || 'N/D'}
+- Email: ${abogado?.email || 'N/D'}
+
+DEMANDADO(S):
+- Nombre/Razón social: ${demandado?.nombre || 'N/D'}
+- Domicilio: ${demandado?.domicilio || 'N/D'}
+- Cargo/Calidad: ${demandado?.cargo || 'N/D'}
+
+ALGUACIL:
+${alguacil_designacion || '[a completar por el alguacil]'}
+
+HECHOS DEL CASO (para el RELATO FACTICO):
+${hechos}
+
+PRETENSIÓN (para los DISPOSITIVOS):
+${pretension}
+
+${legislacion ? `LEGISLACIÓN ADICIONAL: ${legislacion}` : ''}
+${jurisprudencia ? `JURISPRUDENCIA: ${jurisprudencia}` : ''}
+
+INSTRUCCIONES IMPERATIVAS:
+1. Genera TODO el documento desde 1.1 hasta 5.19
+2. En la sección 1 (PRESENTACIÓN): incluye todos los datos formales del acto
+3. En la sección 2 (RELATO FACTICO): desarrolla los hechos proporcionados de forma cronológica y detallada con numeración 2.1, 2.2, etc.
+4. En la sección 3 (ASPECTOS REGULATORIOS): incluye TODOS los artículos con TEXTO COMPLETO según la jerarquía normativa de ${materia}
+5. En la sección 4 (TESIS DE DERECHO): realiza la subsunción jurídica vinculando los hechos con las normas citadas
+6. En la sección 5 (DISPOSITIVOS): incluye todas las peticiones (declarar válida, comprobar, ordenar, condenar, costas, astreinte)
+7. Usa lenguaje jurídico formal dominicano
+8. NO dejes "N/D" si hay datos reales proporcionados
+9. La elección de domicilio es en la dirección del estudio del abogado
+10. El proceso verbal de traslado debe incluir PRIMERO, SEGUNDO, etc., para cada demandado
+
+Genera ahora el documento COMPLETO y PROFESIONAL:`;
 
     console.log('Generando documento jurídico con IA...');
 
