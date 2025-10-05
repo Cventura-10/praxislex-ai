@@ -57,10 +57,45 @@ const AILegalDrafting = () => {
   // Grabación de audio
   const startRecording = async () => {
     try {
+      if (typeof window === 'undefined' || typeof navigator === 'undefined') {
+        throw new Error('Entorno no soportado');
+      }
+      if (typeof MediaRecorder === 'undefined') {
+        toast({
+          title: 'Dictado no soportado',
+          description: 'Tu navegador no soporta grabación de audio.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      const getBestMimeType = () => {
+        const candidates = [
+          'audio/webm;codecs=opus',
+          'audio/webm',
+          'audio/ogg;codecs=opus',
+          'audio/mp4',
+          'audio/mpeg'
+        ];
+        for (const t of candidates) {
+          try { if ((MediaRecorder as any).isTypeSupported?.(t)) return t; } catch {}
+        }
+        return '';
+      };
+
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'audio/webm',
-      });
+      const chosenType = getBestMimeType();
+      if (!chosenType) {
+        toast({
+          title: 'Dictado no soportado',
+          description: 'No se encontró un formato de audio compatible en este navegador.',
+          variant: 'destructive',
+        });
+        stream.getTracks().forEach(t => t.stop());
+        return;
+      }
+
+      const mediaRecorder = new MediaRecorder(stream, { mimeType: chosenType });
 
       audioChunksRef.current = [];
 
@@ -71,7 +106,7 @@ const AILegalDrafting = () => {
       };
 
       mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const audioBlob = new Blob(audioChunksRef.current, { type: mediaRecorder.mimeType || chosenType });
         await transcribeAudio(audioBlob);
         
         stream.getTracks().forEach(track => track.stop());
@@ -82,15 +117,15 @@ const AILegalDrafting = () => {
       setIsRecording(true);
 
       toast({
-        title: "Grabando",
-        description: "Dicta la información del caso...",
+        title: 'Grabando',
+        description: 'Dicta la información del caso...',
       });
     } catch (error) {
       console.error('Error al acceder al micrófono:', error);
       toast({
-        title: "Error",
-        description: "No se pudo acceder al micrófono",
-        variant: "destructive",
+        title: 'Error',
+        description: 'No se pudo acceder al micrófono',
+        variant: 'destructive',
       });
     }
   };
@@ -114,7 +149,7 @@ const AILegalDrafting = () => {
           const base64Audio = (reader.result as string).split(',')[1];
 
           const { data, error } = await supabase.functions.invoke('transcribe-audio', {
-            body: { audio: base64Audio },
+            body: { audio: base64Audio, mimeType: (audioBlob as any)?.type || 'audio/webm' },
           });
 
           if (error) {

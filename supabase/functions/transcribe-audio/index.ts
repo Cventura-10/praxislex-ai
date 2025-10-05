@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { audio } = await req.json();
+    const { audio, mimeType } = await req.json();
 
     if (!audio) {
       throw new Error('No se proporcionó audio');
@@ -34,8 +34,20 @@ serve(async (req) => {
 
     // Crear FormData
     const formData = new FormData();
-    const blob = new Blob([bytes], { type: 'audio/webm' });
-    formData.append('file', blob, 'audio.webm');
+    // Usar el tipo MIME recibido o por defecto webm
+    const type = typeof mimeType === 'string' && mimeType ? mimeType : 'audio/webm';
+    const extMap: Record<string, string> = {
+      'audio/webm': 'webm',
+      'audio/webm;codecs=opus': 'webm',
+      'audio/ogg': 'ogg',
+      'audio/ogg;codecs=opus': 'ogg',
+      'audio/mp4': 'mp4',
+      'audio/mpeg': 'mp3',
+      'audio/wav': 'wav',
+    };
+    const ext = extMap[type] || 'webm';
+    const blob = new Blob([bytes], { type });
+    formData.append('file', blob, `audio.${ext}`);
     formData.append('model', 'whisper-1');
     formData.append('language', 'es');
 

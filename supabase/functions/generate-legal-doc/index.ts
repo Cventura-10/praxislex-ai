@@ -31,95 +31,82 @@ serve(async (req) => {
     // Sistema prompt especializado en derecho dominicano con estructura profesional
     const systemPrompt = `Eres un asistente jurídico experto especializado en República Dominicana.
 
-ESTRUCTURA OBLIGATORIA DEL DOCUMENTO:
+    ESTRUCTURA OBLIGATORIA DEL DOCUMENTO (TEXTO PLANO, SIN MARKDOWN):
+    
+    1. PRESENTACIÓN
+    1.1. Designación protocolar del alguacil: <texto>
+    1.2. Acto: No.: <valor o N/D>; Folios: <valor o N/D>; Año: <valor o N/D>
+    1.3. Ciudad de la actuación: <valor o N/D>
+    1.5. Demandante: nombre completo, nacionalidad, estado civil, cédula, domicilio
+    1.6. Abogado apoderado: firma, RNC, datos del despacho (dirección, teléfonos, email)
+    1.8. Elección de domicilio: <valor o N/D>
+    1.10. Declaración de mandato y proceso verbal de traslados
+    1.12. Proceso verbal de traslado (PRIMERO/SEGUNDO/TERCERO según corresponda)
+    1.14. Emplazamiento y designación del tribunal
+    1.15. Citación y emplazamiento (plazo de octava franca)
+    1.17. Tribunal apoderado: designación completa
+    1.19. Propósitos de la demanda y relato
+    
+    2. RELATO FÁCTICO
+    2.1. Sucesos motivadores
+    2.2. Hechos narrados cronológicamente (2.2, 2.3, ...)
+    
+    3. ASPECTOS REGULATORIOS
+    3.1. Bloque de constitucionalidad
+    3.2. Constitución (arts. 51, 26, 68, 69) con texto pertinente e íntegro cuando sea clave
+    3.3. Tratados: PIDCP (arts. 2 y 14), CADH (art. 8)
+    3.4. Código Civil (arts. 1134, 1135, 1136, 1138, 1139, 1142, 1146, 1382, 1383)
+    3.5. Leyes especiales aplicables a la materia
+    
+    4. TESIS DE DERECHO
+    4.1. Metodología de subsunción
+    4.2. Desarrollo analítico vinculando hechos y normas (4.2, 4.3, ...)
+    
+    5. DISPOSITIVOS
+    5.1. Motivación
+    5.2. Declaratoria de validez procesal
+    5.4. Peticiones de fondo
+    5.5. Pruebas y propuestas de comprobación
+    5.6-5.N. COMPROBAR/DECLARAR/ORDENAR/CONDENAR específicos (con montos en RD$ o US$)
+    5.14. Declaración verbal de recibo y costos
+    5.15-5.19. Certificaciones del alguacil
+    
+    REGLAS CRÍTICAS DE CONTENIDO:
+    1) Nunca uses líneas de subrayado o rellenos (____). Si falta un dato, escribe "N/D".
+    2) Mantén la estructura numerada estricta (1., 1.1., 1.2., etc.).
+    3) Lenguaje formal jurídico dominicano.
+    4) Citas verificables: incluye referencia exacta y, cuando sea necesario, el texto íntegro del artículo citado.
+    5) Adapta normativa y jurisprudencia a la materia concreta del caso.
 
-1. PRESENTACIÓN
-   1.1. Designación Protocolar del Alguacil
-   1.2. Acto No. ______, Folios ______ y ______ año ______
-   1.3. Ciudad de la Actuación
-   1.5. Demandante (datos completos: nombre, nacionalidad, estado civil, cédula, domicilio)
-   1.6. Abogado apoderado (firma, RNC, gerente, abogados con matrículas, dirección, teléfonos, email)
-   1.8. Elección de Domicilio
-   1.10. Declaración de mandato y Proceso Verbal Traslados
-   1.12. Proceso verbal de Traslado (PRIMERO, SEGUNDO, TERCERO según corresponda)
-   1.14. Declaración Emplazamiento Y Designación Tribunal
-   1.15. Citación y Emplazamiento (plazo de octava franca)
-   1.17. Tribunal apoderado (designación completa del tribunal)
-   1.19. Propósitos de la Demanda Y Relato
+    NOTAS DE FORMATO:
+    - Salida en TEXTO PLANO (sin encabezados Markdown ni símbolos como # o **).
+    - Párrafos claros y legibles; evita listas con guiones si no son necesarias.
+    - No dejes campos en blanco; usa "N/D" cuando proceda.
 
-2. RELATO FACTICO
-   2.1. Sucesos motivadores
-   2.2. - 2.N. Narración cronológica detallada de los hechos
-
-3. ASPECTOS REGULATORIOS
-   3.1. Normativa del Bloque Constitucional
-   3.2. Artículo 51 de la Constitución (derecho de propiedad)
-   3.3. Artículo 26 (relaciones internacionales)
-   3.4. Artículo 68 (garantías de derechos fundamentales)
-   3.5. Artículo 69 (tutela judicial efectiva y debido proceso)
-   3.6. Pacto Internacional de Derechos Civiles y Políticos, Artículo 2
-   3.7. Artículo 14 del Pacto (garantías procesales)
-   3.8. Artículo 8 de la Convención Americana sobre Derechos Humanos
-   3.9-3.22. Normativa del Código Civil (Arts. 1134, 1135, 1136, 1138, 1139, 1142, 1146, 1382, 1383)
-
-4. TESIS DE DERECHO
-   4.1. Introducción a la subsunción jurídica
-   4.2-4.N. Análisis jurídico detallado subsumiendo hechos en normas
-
-5. DISPOSITIVOS
-   5.1. Motivación general
-   5.2. Declaratoria de validez procesal
-   5.4. Petición de contenido
-   5.5. Propuestas de comprobación
-   5.6-5.N. COMPROBAR Y DECLARAR / ORDENAR / CONDENAR específicos
-   5.14. Declaración Verbal De Recibo Y Costo
-   5.15-5.19. Certificaciones finales del alguacil
-
-REGLAS CRÍTICAS DE CONTENIDO:
-1. Citar SIEMPRE artículos constitucionales, tratados internacionales y códigos relevantes
-2. Incluir texto COMPLETO de artículos clave (no solo referencias)
-3. Estructura numerada rigurosa (1., 1.1., 1.2., etc.)
-4. Lenguaje formal jurídico dominicano
-5. Adaptar legislación específica según materia (Civil, Penal, Laboral, etc.)
-6. Petitorio con montos en RD$ o US$ según corresponda
-7. Referencias a tribunales dominicanos específicos
-8. Uso de mayúsculas en términos jurídicos clave (COMPROBAR, DECLARAR, ORDENAR, CONDENAR)
-
-CITAS VERIFICABLES:
-- Constitución: "Artículo XX de la Constitución Dominicana..."
-- Código Civil: "Artículo XXXX del Código Civil..."
-- Leyes especiales según materia
-- Tratados internacionales ratificados
-
-Genera documentos COMPLETOS, PROFESIONALES y EXHAUSTIVOS siguiendo EXACTAMENTE esta estructura.`;
+    Genera documentos COMPLETOS, PROFESIONALES y EXHAUSTIVOS siguiendo EXACTAMENTE esta estructura.`;
 
     // Construir el prompt del usuario con toda la información
-    const userPrompt = `Genera ${tipo_documento} COMPLETO para la materia ${materia} siguiendo EXACTAMENTE la estructura de 5 secciones.
-
-INFORMACIÓN DEL CASO:
-Hechos: ${hechos || 'No especificados'}
-Pretensión: ${pretension || 'No especificada'}
-Partes: ${partes ? JSON.stringify(partes) : 'No especificadas'}
-Juzgado: ${juzgado || 'No especificado'}
-
-${legislacion ? `LEGISLACIÓN APLICABLE: ${legislacion}` : ''}
-${jurisprudencia ? `JURISPRUDENCIA APLICABLE: ${jurisprudencia}` : ''}
-
-INSTRUCCIONES OBLIGATORIAS:
-1. Sigue EXACTAMENTE la estructura de 5 secciones con numeración
-2. PRESENTACIÓN completa (1.1 a 1.19)
-3. RELATO FACTICO detallado (2.1 a 2.N)
-4. ASPECTOS REGULATORIOS con artículos COMPLETOS de:
-   - Constitución Dominicana (Arts. 51, 26, 68, 69)
-   - Pacto Internacional Derechos Civiles y Políticos
-   - Convención Americana Derechos Humanos
-   - Código Civil (Arts. 1134, 1135, 1136, 1138, 1139, 1142, 1146, 1382, 1383)
-   - Legislación especial según materia ${materia}
-5. TESIS DE DERECHO con análisis jurídico (4.1 a 4.N)
-6. DISPOSITIVOS completos (5.1 a 5.19) con peticiones específicas
-
-Adapta legislación específica para materia ${materia}.
-Genera documento PROFESIONAL y EXHAUSTIVO ahora:`;
+    const userPrompt = `Genera ${tipo_documento} COMPLETO para la materia ${materia} siguiendo EXACTAMENTE la estructura de 5 secciones y las REGLAS y NOTAS DE FORMATO dadas por el sistema.
+    
+    INFORMACIÓN DEL CASO:
+    Hechos: ${hechos || 'N/D'}
+    Pretensión: ${pretension || 'N/D'}
+    Partes: ${partes ? JSON.stringify(partes) : 'N/D'}
+    Juzgado: ${juzgado || 'N/D'}
+    
+    ${legislacion ? `LEGISLACIÓN APLICABLE: ${legislacion}` : ''}
+    ${jurisprudencia ? `JURISPRUDENCIA APLICABLE: ${jurisprudencia}` : ''}
+    
+    INSTRUCCIONES OBLIGATORIAS:
+    - Salida en TEXTO PLANO (sin Markdown, sin subrayados). Usa "N/D" cuando falte un dato.
+    - PRESENTACIÓN completa (1.1 a 1.19) rellenando los campos con datos del caso o "N/D".
+    - RELATO FÁCTICO cronológico y claro (2.1 a 2.N).
+    - ASPECTOS REGULATORIOS con citas verificables y, cuando sea clave, texto íntegro de los artículos.
+    - TESIS DE DERECHO con subsunción rigurosa (4.1 a 4.N).
+    - DISPOSITIVOS (5.1 a 5.19) con pretensiones concretas y montos en RD$ o US$ cuando corresponda.
+    
+    Adapta la legislación y jurisprudencia a la materia ${materia} y a los hechos provistos.
+    Genera el documento ahora:`;
 
     console.log('Generando documento jurídico con IA...');
 
