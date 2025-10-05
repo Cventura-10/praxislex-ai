@@ -3,13 +3,16 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
-const LogoHorizontal = ({ size = 360 }: { size?: number }) => (
+const LogoHorizontal = ({ className = "" }: { className?: string }) => (
   <svg
-    width={size}
     viewBox="0 0 1600 560"
     xmlns="http://www.w3.org/2000/svg"
     role="img"
     aria-label="PraxisLex — Donde la teoría se hace práctica"
+    preserveAspectRatio="xMidYMid meet"
+    shapeRendering="geometricPrecision"
+    textRendering="geometricPrecision"
+    className={`w-full h-auto block ${className}`}
   >
     <defs>
       <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
@@ -17,7 +20,7 @@ const LogoHorizontal = ({ size = 360 }: { size?: number }) => (
         <stop offset="100%" stopColor="#1E293B" />
       </linearGradient>
     </defs>
-    <g transform="translate(40,40) scale(0.45)">
+    <g transform="translate(32,32) scale(0.5)">
       <rect x="64" y="64" width="896" height="896" rx="128" fill="url(#g1)" />
       <circle cx="300" cy="280" r="28" fill="#D4AF37" opacity="0.95" />
       <circle cx="248" cy="356" r="24" fill="#D4AF37" opacity="0.9" />
@@ -31,13 +34,13 @@ const LogoHorizontal = ({ size = 360 }: { size?: number }) => (
       <rect x="240" y="776" width="496" height="16" rx="8" fill="#D4AF37" opacity="0.6" />
     </g>
     <g transform="translate(520,120)">
-      <text x="0" y="120" fontFamily="Georgia, serif" fontWeight="700" fontSize="140" fill="#1E293B">
+      <text x="0" y="120" fontFamily="Georgia, serif" fontWeight="800" fontSize="152" fill="#1E293B">
         Praxis
       </text>
-      <text x="520" y="120" fontFamily="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" fontWeight="700" fontSize="140" fill="#0E6B4E">
+      <text x="560" y="120" fontFamily="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" fontWeight="900" fontSize="152" fill="#0E6B4E">
         Lex
       </text>
-      <text x="0" y="220" fontFamily="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" fontWeight="400" fontSize="44" fill="#64748B">
+      <text x="0" y="230" fontFamily="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" fontWeight="500" fontSize="48" fill="#64748B">
         Donde la teoría se hace práctica.
       </text>
     </g>
@@ -157,39 +160,49 @@ export default function Auth() {
 
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-6 py-10 lg:grid-cols-2 lg:py-16">
         {/* Columna izquierda: marca y valor */}
-        <div className="flex flex-col items-start justify-center gap-6">
-          <LogoHorizontal size={360} />
-          <p className="max-w-xl text-lg text-slate-600">
-            Plataforma de gestión jurídica de última generación: expedientes claros, plazos bajo control y redacción asistida con IA que <strong>cita sus fuentes</strong>.
+        <div className="flex flex-col items-start justify-center gap-7">
+          <div className="w-full max-w-[1200px] sm:max-w-[900px] lg:max-w-[1100px] xl:max-w-[1280px] drop-shadow-[0_6px_24px_rgba(0,0,0,0.08)]">
+            <LogoHorizontal />
+          </div>
+
+          <span className="inline-flex items-center gap-2 rounded-full bg-[#0E6B4E]/10 px-3 py-1 text-xs font-semibold text-[#0E6B4E] ring-1 ring-[#0E6B4E]/20">
+            NUEVA GENERACIÓN LEGALTECH
+          </span>
+
+          <h1 className="max-w-3xl text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight tracking-tight text-slate-900">
+            El despacho <span className="text-[#0E6B4E]">en la nube</span> con IA que <span className="text-[#D4AF37]">cita sus fuentes</span>.
+          </h1>
+
+          <p className="max-w-2xl text-lg sm:text-xl text-slate-600">
+            Gestiona expedientes, plazos y documentos en un solo lugar. Redacta con respaldo en jurisprudencia oficial y ofrece a tus clientes un portal claro y profesional.
           </p>
-          <ul className="mt-2 grid w-full max-w-xl grid-cols-1 gap-3 text-sm text-slate-700 sm:grid-cols-2">
-            <li className="flex items-start gap-2 rounded-xl bg-white/70 p-3 shadow-sm ring-1 ring-slate-200">
-              <span className="mt-1 inline-block h-2.5 w-2.5 rounded-full bg-[#0E6B4E]"></span>
-              IA con "citar‑primero"
-            </li>
-            <li className="flex items-start gap-2 rounded-xl bg-white/70 p-3 shadow-sm ring-1 ring-slate-200">
-              <span className="mt-1 inline-block h-2.5 w-2.5 rounded-full bg-[#0E6B4E]"></span>
-              Casos, audiencias y plazos
-            </li>
-            <li className="flex items-start gap-2 rounded-xl bg-white/70 p-3 shadow-sm ring-1 ring-slate-200">
-              <span className="mt-1 inline-block h-2.5 w-2.5 rounded-full bg-[#0E6B4E]"></span>
-              Documentos y plantillas DOCX/PDF
-            </li>
-            <li className="flex items-start gap-2 rounded-xl bg-white/70 p-3 shadow-sm ring-1 ring-slate-200">
-              <span className="mt-1 inline-block h-2.5 w-2.5 rounded-full bg-[#0E6B4E]"></span>
-              Portal del cliente y pagos por paquete
-            </li>
+
+          <ul className="mt-2 grid w-full max-w-2xl grid-cols-1 gap-3 text-[15px] text-slate-700 sm:grid-cols-2">
+            {[
+              "Borradores con jurisprudencia del Poder Judicial",
+              "Alertas de vencimientos y audiencias",
+              "Plantillas DOCX/PDF con variables",
+              "Suscripciones por paquetes y portal del cliente"
+            ].map((txt) => (
+              <li key={txt} className="flex items-start gap-3 rounded-xl bg-white/80 p-3 shadow-sm ring-1 ring-slate-200">
+                <svg width="18" height="18" viewBox="0 0 20 20" aria-hidden className="mt-1 flex-shrink-0">
+                  <circle cx="10" cy="10" r="10" fill="#0E6B4E"/>
+                  <path d="M5 10.5 L8.2 13.5 L15 7" stroke="#F7F5EF" strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                <span>{txt}</span>
+              </li>
+            ))}
           </ul>
         </div>
 
         {/* Columna derecha: formulario */}
         <div className="flex items-center justify-center">
           <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl ring-1 ring-slate-200/70">
-            <h2 className="text-2xl font-semibold text-slate-900">
-              {isSignUp ? "Crear despacho" : "Iniciar sesión"}
+            <h2 className="text-3xl font-extrabold text-slate-900">
+              {isSignUp ? "Crear despacho" : "Entrar a PraxisLex"}
             </h2>
             <p className="mt-1 text-sm text-slate-600">
-              {isSignUp ? "Comienza gratis hoy mismo" : "Accede a tu escritorio jurídico"}
+              {isSignUp ? "Comienza tu prueba gratuita hoy" : "Accede a tu escritorio jurídico en la nube"}
             </p>
 
             {errors.form && (
@@ -267,16 +280,6 @@ export default function Auth() {
                 {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
               </div>
 
-              {isSignUp && (
-                <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
-                  <p className="font-medium mb-1">Plan Gratuito incluye:</p>
-                  <ul className="list-disc list-inside space-y-1 text-xs">
-                    <li>Gestión básica de casos</li>
-                    <li>5 documentos IA por mes</li>
-                    <li>1 usuario</li>
-                  </ul>
-                </div>
-              )}
 
               <button
                 type="submit"
@@ -289,7 +292,7 @@ export default function Auth() {
                     {isSignUp ? "Creando cuenta…" : "Ingresando…"}
                   </span>
                 ) : isSignUp ? (
-                  "Crear cuenta gratis"
+                  "Crear cuenta gratuita"
                 ) : (
                   "Entrar"
                 )}

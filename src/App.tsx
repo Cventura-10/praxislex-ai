@@ -16,6 +16,9 @@ import AILegalDrafting from "./pages/AILegalDrafting";
 import Accounting from "./pages/Accounting";
 import ClientPortal from "./pages/ClientPortal";
 import Billing from "./pages/Billing";
+import Profile from "./pages/Profile";
+import Settings from "./pages/Settings";
+import Upgrade from "./pages/Upgrade";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -40,6 +43,7 @@ const App = () => (
                     <main className="flex-1 p-6">
                       <Routes>
                         <Route path="/" element={<Dashboard />} />
+                        <Route path="/dashboard" element={<Dashboard />} />
                         <Route path="/casos" element={<Cases />} />
                         <Route path="/clientes" element={<Clients />} />
                         <Route path="/audiencias" element={<Hearings />} />
@@ -49,6 +53,9 @@ const App = () => (
                         <Route path="/contabilidad" element={<Accounting />} />
                         <Route path="/portal" element={<ClientPortal />} />
                         <Route path="/facturacion" element={<Billing />} />
+                        <Route path="/perfil" element={<Profile />} />
+                        <Route path="/configuracion" element={<Settings />} />
+                        <Route path="/upgrade" element={<Upgrade />} />
                         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                         <Route path="*" element={<NotFound />} />
                       </Routes>

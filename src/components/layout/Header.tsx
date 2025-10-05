@@ -135,11 +135,11 @@ export function Header() {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate("/")}>
+              <DropdownMenuItem onClick={() => navigate("/perfil")}>
                 <UserCircle className="mr-2 h-4 w-4" />
                 Mi perfil
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate("/")}>
+              <DropdownMenuItem onClick={() => navigate("/configuracion")}>
                 <Settings className="mr-2 h-4 w-4" />
                 Configuración
               </DropdownMenuItem>
@@ -147,11 +147,15 @@ export function Header() {
                 <CreditCard className="mr-2 h-4 w-4" />
                 Facturación
               </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/portal")}>
+                <UserCircle className="mr-2 h-4 w-4" />
+                Portal del Cliente
+              </DropdownMenuItem>
               {!isPro && !isAdmin && (
                 <>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem 
-                    onClick={() => navigate("/facturacion")}
+                    onClick={() => navigate("/upgrade")}
                     className="bg-primary/10 text-primary focus:bg-primary/20 focus:text-primary"
                   >
                     <Crown className="mr-2 h-4 w-4" />
