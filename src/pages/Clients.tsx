@@ -12,9 +12,11 @@ import {
 } from "@/components/ui/table";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Mail, Phone, Briefcase } from "lucide-react";
+import { Plus, Search, Mail, Phone, Briefcase, Eye, Edit, Trash2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const Clients = () => {
+  const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
 
   const clients = [
@@ -74,6 +76,28 @@ const Clients = () => {
       .toUpperCase();
   };
 
+  const handleViewClient = (nombre: string) => {
+    toast({
+      title: "Ver perfil",
+      description: `Abriendo perfil de: ${nombre}`,
+    });
+  };
+
+  const handleEditClient = (nombre: string) => {
+    toast({
+      title: "Editar cliente",
+      description: `Editando: ${nombre}`,
+    });
+  };
+
+  const handleDeleteClient = (nombre: string) => {
+    toast({
+      title: "Eliminar cliente",
+      description: `¿Confirmar eliminación de: ${nombre}?`,
+      variant: "destructive",
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -123,7 +147,7 @@ const Clients = () => {
               {clients.map((client) => (
                 <TableRow
                   key={client.id}
-                  className="cursor-pointer hover:bg-accent/5"
+                  className="hover:bg-accent/5"
                 >
                   <TableCell>
                     <div className="flex items-center gap-3">
@@ -162,9 +186,29 @@ const Clients = () => {
                     {client.ultimaActividad}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="sm">
-                      Ver perfil
-                    </Button>
+                    <div className="flex items-center justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleViewClient(client.nombre)}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleEditClient(client.nombre)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDeleteClient(client.nombre)}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

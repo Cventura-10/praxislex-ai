@@ -11,6 +11,7 @@ import Clients from "./pages/Clients";
 import Hearings from "./pages/Hearings";
 import Documents from "./pages/Documents";
 import Jurisprudence from "./pages/Jurisprudence";
+import Accounting from "./pages/Accounting";
 import ClientPortal from "./pages/ClientPortal";
 import Billing from "./pages/Billing";
 import NotFound from "./pages/NotFound";
@@ -35,6 +36,7 @@ const App = () => (
                 <Route path="/audiencias" element={<Hearings />} />
                 <Route path="/documentos" element={<Documents />} />
                 <Route path="/jurisprudencia" element={<Jurisprudence />} />
+                <Route path="/contabilidad" element={<Accounting />} />
                 <Route path="/portal" element={<ClientPortal />} />
                 <Route path="/facturacion" element={<Billing />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

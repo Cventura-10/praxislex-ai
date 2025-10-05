@@ -1,10 +1,13 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, MapPin, Plus, AlertTriangle } from "lucide-react";
+import { Calendar, Clock, MapPin, Plus, AlertTriangle, Edit, Trash2, CheckCircle2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const Hearings = () => {
-  const hearings = [
+  const { toast } = useToast();
+  const [hearings, setHearings] = useState([
     {
       id: "aud_01",
       caso: "Divorcio - Rodríguez",
@@ -35,9 +38,9 @@ const Hearings = () => {
       ubicacion: "Sala 2",
       estado: "confirmada" as const,
     },
-  ];
+  ]);
 
-  const deadlines = [
+  const [deadlines, setDeadlines] = useState([
     {
       id: "plz_01",
       caso: "Cobro de pesos - Pérez vs. XYZ",
@@ -62,7 +65,37 @@ const Hearings = () => {
       diasRestantes: 17,
       prioridad: "baja" as const,
     },
-  ];
+  ]);
+
+  const handleEditHearing = (caso: string) => {
+    toast({
+      title: "Editar audiencia",
+      description: `Editando audiencia: ${caso}`,
+    });
+  };
+
+  const handleDeleteHearing = (caso: string) => {
+    toast({
+      title: "Eliminar audiencia",
+      description: `¿Confirmar eliminación de: ${caso}?`,
+      variant: "destructive",
+    });
+  };
+
+  const handleMarkDeadlineComplete = (plazoId: string, caso: string) => {
+    setDeadlines(deadlines.filter(d => d.id !== plazoId));
+    toast({
+      title: "Plazo cumplido",
+      description: `${caso} marcado como cumplido`,
+    });
+  };
+
+  const handleEditDeadline = (caso: string) => {
+    toast({
+      title: "Editar plazo",
+      description: `Editando plazo: ${caso}`,
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -138,6 +171,24 @@ const Hearings = () => {
                       </span>
                     </div>
                   </div>
+                  <div className="flex gap-1 mt-3">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => handleEditHearing(hearing.caso)}
+                    >
+                      <Edit className="h-3 w-3 mr-1" />
+                      Editar
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteHearing(hearing.caso)}
+                    >
+                      <Trash2 className="h-3 w-3 text-destructive" />
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -197,9 +248,26 @@ const Hearings = () => {
                         Vence: {deadline.vence}
                       </span>
                     </div>
-                    <Button variant="ghost" size="sm">
-                      Marcar como cumplido
-                    </Button>
+                    <div className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() =>
+                          handleMarkDeadlineComplete(deadline.id, deadline.caso)
+                        }
+                      >
+                        <CheckCircle2 className="h-3 w-3 mr-1" />
+                        Cumplido
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEditDeadline(deadline.caso)}
+                      >
+                        <Edit className="h-3 w-3" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ))}

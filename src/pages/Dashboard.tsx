@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,8 +13,18 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { CaseStatusBadge } from "@/components/cases/CaseStatusBadge";
+import { useToast } from "@/hooks/use-toast";
 
 const Dashboard = () => {
+  const { toast } = useToast();
+
+  const handleViewCase = (titulo: string) => {
+    toast({
+      title: "Ver caso",
+      description: `Abriendo: ${titulo}`,
+    });
+  };
+
   const upcomingDeadlines = [
     {
       case: "Cobro de pesos - Pérez vs. XYZ",
@@ -222,12 +233,13 @@ const Dashboard = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            {recentCases.map((item) => (
-              <div
-                key={item.id}
-                className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-accent/5 transition-base cursor-pointer"
-              >
-                <div className="flex items-center gap-4 flex-1">
+              {recentCases.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-accent/5 transition-base cursor-pointer"
+                  onClick={() => handleViewCase(item.title)}
+                >
+                  <div className="flex items-center gap-4 flex-1">
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/10">
                     <Briefcase className="h-6 w-6 text-primary" />
                   </div>

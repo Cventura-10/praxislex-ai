@@ -18,9 +18,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { CaseStatusBadge } from "@/components/cases/CaseStatusBadge";
-import { Plus, Search, Filter, Download } from "lucide-react";
+import { Plus, Search, Filter, Download, Eye, Edit, Trash2 } from "lucide-react";
+import { MATERIAS_JURIDICAS, ETAPAS_PROCESALES } from "@/lib/constants";
+import { useToast } from "@/hooks/use-toast";
 
 const Cases = () => {
+  const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterMateria, setFilterMateria] = useState("all");
   const [filterEtapa, setFilterEtapa] = useState("all");
@@ -83,6 +86,28 @@ const Cases = () => {
     },
   ];
 
+  const handleViewCase = (caseId: string, titulo: string) => {
+    toast({
+      title: "Ver caso",
+      description: `Abriendo detalles de: ${titulo}`,
+    });
+  };
+
+  const handleEditCase = (caseId: string, titulo: string) => {
+    toast({
+      title: "Editar caso",
+      description: `Editando: ${titulo}`,
+    });
+  };
+
+  const handleDeleteCase = (caseId: string, titulo: string) => {
+    toast({
+      title: "Eliminar caso",
+      description: `¿Confirmar eliminación de: ${titulo}?`,
+      variant: "destructive",
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -119,11 +144,11 @@ const Cases = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todas las materias</SelectItem>
-                <SelectItem value="civil">Civil</SelectItem>
-                <SelectItem value="laboral">Laboral</SelectItem>
-                <SelectItem value="comercial">Comercial</SelectItem>
-                <SelectItem value="familia">Familia</SelectItem>
-                <SelectItem value="penal">Penal</SelectItem>
+                {MATERIAS_JURIDICAS.map((materia) => (
+                  <SelectItem key={materia.value} value={materia.value}>
+                    {materia.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <Select value={filterEtapa} onValueChange={setFilterEtapa}>
@@ -132,11 +157,11 @@ const Cases = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todas las etapas</SelectItem>
-                <SelectItem value="demanda">Demanda</SelectItem>
-                <SelectItem value="contestacion">Contestación</SelectItem>
-                <SelectItem value="pruebas">Pruebas</SelectItem>
-                <SelectItem value="sentencia">Sentencia</SelectItem>
-                <SelectItem value="apelacion">Apelación</SelectItem>
+                {ETAPAS_PROCESALES.slice(0, 6).map((etapa) => (
+                  <SelectItem key={etapa.value} value={etapa.value}>
+                    {etapa.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -165,14 +190,14 @@ const Cases = () => {
                 <TableHead>Juzgado</TableHead>
                 <TableHead>Etapa</TableHead>
                 <TableHead>Responsable</TableHead>
-                <TableHead>Fecha</TableHead>
+                <TableHead>Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {cases.map((caso) => (
                 <TableRow
                   key={caso.id}
-                  className="cursor-pointer hover:bg-accent/5"
+                  className="hover:bg-accent/5"
                 >
                   <TableCell className="font-mono text-xs">
                     {caso.numero}
@@ -191,6 +216,31 @@ const Cases = () => {
                   <TableCell className="text-sm">{caso.responsable}</TableCell>
                   <TableCell className="text-sm text-muted-foreground">
                     {caso.fecha}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleViewCase(caso.id, caso.titulo)}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleEditCase(caso.id, caso.titulo)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDeleteCase(caso.id, caso.titulo)}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

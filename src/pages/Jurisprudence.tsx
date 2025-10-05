@@ -10,10 +10,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Search, ExternalLink, BookOpen, Calendar, Scale } from "lucide-react";
+import { Search, ExternalLink, BookOpen, Calendar, Scale, Download } from "lucide-react";
+import { MATERIAS_JURIDICAS, ORGANOS_JUDICIALES } from "@/lib/constants";
+import { useToast } from "@/hooks/use-toast";
 
 const Jurisprudence = () => {
+  const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
+  const [filterOrgano, setFilterOrgano] = useState("all");
+  const [filterMateria, setFilterMateria] = useState("all");
 
   const jurisprudence = [
     {
@@ -52,7 +57,45 @@ const Jurisprudence = () => {
       materia: "Laboral",
       url: "https://poderjudicial.gob.do/consulta-sentencias/...",
     },
+    {
+      id: "jur_04",
+      numero: "TC-0256-2022",
+      organo: "Tribunal Constitucional",
+      sala: "Pleno",
+      fecha: "08 Dic 2022",
+      titulo: "Amparo - Derecho a la tutela judicial efectiva",
+      sumario:
+        "Se establece que el derecho a la tutela judicial efectiva comprende el acceso a los tribunales y el derecho a obtener una decisión motivada...",
+      materia: "Constitucional",
+      url: "https://tribunalconstitucional.gob.do/...",
+    },
+    {
+      id: "jur_05",
+      numero: "TST-2020-078",
+      organo: "Tribunal Superior de Tierras",
+      sala: "Sala Principal",
+      fecha: "18 Nov 2020",
+      titulo: "Saneamiento - Prescripción adquisitiva",
+      sumario:
+        "Criterio sobre requisitos de la posesión continuada, pública y pacífica para adquirir por prescripción en materia de tierras...",
+      materia: "Tierras",
+      url: "https://poderjudicial.gob.do/consulta-sentencias/...",
+    },
   ];
+
+  const handleCiteDoc = (numero: string, titulo: string) => {
+    toast({
+      title: "Cita agregada",
+      description: `${numero} - ${titulo} agregado al documento actual`,
+    });
+  };
+
+  const handleDownloadDoc = (numero: string) => {
+    toast({
+      title: "Descargando sentencia",
+      description: `Descargando ${numero}...`,
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -84,27 +127,30 @@ const Jurisprudence = () => {
                 className="pl-9"
               />
             </div>
-            <Select defaultValue="all">
+            <Select value={filterOrgano} onValueChange={setFilterOrgano}>
               <SelectTrigger>
                 <SelectValue placeholder="Órgano" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos los órganos</SelectItem>
-                <SelectItem value="scj">Suprema Corte</SelectItem>
-                <SelectItem value="tribunal">Tribunales</SelectItem>
-                <SelectItem value="primera">Primera Instancia</SelectItem>
+                {ORGANOS_JUDICIALES.slice(0, 10).map((organo) => (
+                  <SelectItem key={organo.value} value={organo.value}>
+                    {organo.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
-            <Select defaultValue="all">
+            <Select value={filterMateria} onValueChange={setFilterMateria}>
               <SelectTrigger>
                 <SelectValue placeholder="Materia" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todas las materias</SelectItem>
-                <SelectItem value="civil">Civil</SelectItem>
-                <SelectItem value="laboral">Laboral</SelectItem>
-                <SelectItem value="comercial">Comercial</SelectItem>
-                <SelectItem value="penal">Penal</SelectItem>
+                {MATERIAS_JURIDICAS.map((materia) => (
+                  <SelectItem key={materia.value} value={materia.value}>
+                    {materia.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -144,16 +190,32 @@ const Jurisprudence = () => {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <Button variant="default" size="sm" className="gap-2">
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="gap-2"
+                  onClick={() => handleCiteDoc(item.numero, item.titulo)}
+                >
                   <BookOpen className="h-3 w-3" />
-                  Leer sentencia completa
+                  Citar en documento
                 </Button>
-                <Button variant="outline" size="sm" className="gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  onClick={() => window.open(item.url, "_blank")}
+                >
                   <ExternalLink className="h-3 w-3" />
                   Ver en portal oficial
                 </Button>
-                <Button variant="ghost" size="sm">
-                  Citar en documento
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="gap-2"
+                  onClick={() => handleDownloadDoc(item.numero)}
+                >
+                  <Download className="h-3 w-3" />
+                  Descargar
                 </Button>
               </div>
             </CardContent>

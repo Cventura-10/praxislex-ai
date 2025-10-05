@@ -19,9 +19,13 @@ import {
   Eye,
   Share2,
   File,
+  Edit,
+  Trash2,
 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const Documents = () => {
+  const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
 
   const documents = [
@@ -110,6 +114,42 @@ const Documents = () => {
     );
   };
 
+  const handleViewDocument = (nombre: string) => {
+    toast({
+      title: "Ver documento",
+      description: `Abriendo: ${nombre}`,
+    });
+  };
+
+  const handleDownloadDocument = (nombre: string) => {
+    toast({
+      title: "Descargando",
+      description: `Descargando: ${nombre}`,
+    });
+  };
+
+  const handleShareDocument = (nombre: string) => {
+    toast({
+      title: "Compartir documento",
+      description: `Compartiendo: ${nombre}`,
+    });
+  };
+
+  const handleEditDocument = (nombre: string) => {
+    toast({
+      title: "Editar documento",
+      description: `Editando: ${nombre}`,
+    });
+  };
+
+  const handleDeleteDocument = (nombre: string) => {
+    toast({
+      title: "Eliminar documento",
+      description: `¿Confirmar eliminación de: ${nombre}?`,
+      variant: "destructive",
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -196,14 +236,40 @@ const Documents = () => {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center justify-end gap-1">
-                      <Button variant="ghost" size="icon">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleViewDocument(doc.nombre)}
+                      >
                         <Eye className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDownloadDocument(doc.nombre)}
+                      >
                         <Download className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleShareDocument(doc.nombre)}
+                      >
                         <Share2 className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleEditDocument(doc.nombre)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDeleteDocument(doc.nombre)}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
                     </div>
                   </TableCell>

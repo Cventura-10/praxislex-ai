@@ -9,6 +9,7 @@ import {
   Scale,
   CreditCard,
   UserCircle,
+  Receipt,
 } from "lucide-react";
 
 const navItems = [
@@ -18,6 +19,7 @@ const navItems = [
   { href: "/audiencias", icon: Calendar, label: "Audiencias" },
   { href: "/documentos", icon: FileText, label: "Documentos" },
   { href: "/jurisprudencia", icon: Scale, label: "Jurisprudencia" },
+  { href: "/contabilidad", icon: Receipt, label: "Contabilidad" },
   { href: "/portal", icon: UserCircle, label: "Portal Cliente" },
   { href: "/facturacion", icon: CreditCard, label: "Facturación" },
 ];
