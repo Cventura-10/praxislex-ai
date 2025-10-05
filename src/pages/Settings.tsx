@@ -1,12 +1,25 @@
-import { Settings as SettingsIcon, Bell, Lock, Globe } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Settings as SettingsIcon, Bell, Lock, Globe, ArrowLeft } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function Settings() {
+  const navigate = useNavigate();
+
   return (
     <div className="container mx-auto py-8 px-4 max-w-4xl">
+      <Button
+        variant="ghost"
+        onClick={() => navigate("/dashboard")}
+        className="mb-4 gap-2"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Volver al Dashboard
+      </Button>
+
       <div className="flex items-center gap-3 mb-6">
         <SettingsIcon className="h-8 w-8 text-[#0E6B4E]" />
         <h1 className="text-3xl font-bold text-slate-900">Configuración</h1>

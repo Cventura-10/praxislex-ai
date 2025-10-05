@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { User } from "lucide-react";
+import { User, ArrowLeft } from "lucide-react";
 
 export default function Profile() {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [fullName, setFullName] = useState("");
@@ -69,6 +71,15 @@ export default function Profile() {
 
   return (
     <div className="container mx-auto py-8 px-4 max-w-4xl">
+      <Button
+        variant="ghost"
+        onClick={() => navigate("/dashboard")}
+        className="mb-4 gap-2"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Volver al Dashboard
+      </Button>
+
       <div className="flex items-center gap-3 mb-6">
         <User className="h-8 w-8 text-[#0E6B4E]" />
         <h1 className="text-3xl font-bold text-slate-900">Mi Perfil</h1>

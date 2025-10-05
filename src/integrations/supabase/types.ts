@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      legal_documents: {
+        Row: {
+          contenido: string
+          contenido_word: string | null
+          created_at: string
+          demandado_nombre: string | null
+          demandante_nombre: string | null
+          fecha_generacion: string
+          id: string
+          juzgado: string | null
+          materia: string
+          numero_expediente: string | null
+          tipo_documento: string
+          titulo: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          contenido: string
+          contenido_word?: string | null
+          created_at?: string
+          demandado_nombre?: string | null
+          demandante_nombre?: string | null
+          fecha_generacion?: string
+          id?: string
+          juzgado?: string | null
+          materia: string
+          numero_expediente?: string | null
+          tipo_documento: string
+          titulo: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          contenido?: string
+          contenido_word?: string | null
+          created_at?: string
+          demandado_nombre?: string | null
+          demandante_nombre?: string | null
+          fecha_generacion?: string
+          id?: string
+          juzgado?: string | null
+          materia?: string
+          numero_expediente?: string | null
+          tipo_documento?: string
+          titulo?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string | null

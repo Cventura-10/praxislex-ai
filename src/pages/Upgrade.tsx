@@ -1,10 +1,12 @@
-import { Crown, Check } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Crown, Check, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useUserRole } from "@/hooks/useUserRole";
 
 export default function Upgrade() {
+  const navigate = useNavigate();
   const { isPro, isAdmin } = useUserRole();
 
   const plans = [
@@ -66,6 +68,15 @@ export default function Upgrade() {
 
   return (
     <div className="container mx-auto py-8 px-4 max-w-7xl">
+      <Button
+        variant="ghost"
+        onClick={() => navigate("/dashboard")}
+        className="mb-4 gap-2"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Volver al Dashboard
+      </Button>
+
       <div className="text-center mb-12">
         <div className="flex items-center justify-center gap-3 mb-4">
           <Crown className="h-10 w-10 text-[#D4AF37]" />

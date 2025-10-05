@@ -327,9 +327,28 @@ const AILegalDrafting = () => {
 
       if (data?.documento) {
         setGeneratedDoc(data.documento);
+        
+        // Guardar documento en Supabase
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const tipoLabel = TIPOS_DOCUMENTO.find(t => t.value === formData.tipo_documento)?.label || formData.tipo_documento;
+          const materiaLabel = MATERIAS_JURIDICAS.find(m => m.value === formData.materia)?.label || formData.materia;
+          
+          await supabase.from("legal_documents").insert({
+            user_id: user.id,
+            tipo_documento: formData.tipo_documento,
+            materia: formData.materia,
+            titulo: `${tipoLabel} - ${formData.demandante_nombre || 'Sin demandante'} vs ${formData.demandado_nombre || 'Sin demandado'}`,
+            contenido: data.documento,
+            demandante_nombre: formData.demandante_nombre,
+            demandado_nombre: formData.demandado_nombre,
+            juzgado: formData.juzgado,
+          });
+        }
+        
         toast({
           title: "✓ Documento generado",
-          description: "Tu acción jurídica ha sido redactada con IA",
+          description: "Tu acción jurídica ha sido redactada y guardada",
         });
       }
     } catch (error: any) {
