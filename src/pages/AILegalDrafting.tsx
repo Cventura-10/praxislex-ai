@@ -37,14 +37,36 @@ const AILegalDrafting = () => {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
 
-  // Formulario
+  // Formulario con datos completos de las partes
   const [formData, setFormData] = useState({
     tipo_documento: "demanda",
     materia: "civil",
     hechos: "",
     pretension: "",
-    demandante: "",
-    demandado: "",
+    // Demandante
+    demandante_nombre: "",
+    demandante_nacionalidad: "dominicano",
+    demandante_estado_civil: "",
+    demandante_cedula: "",
+    demandante_domicilio: "",
+    // Abogado Apoderado
+    abogado_nombre: "",
+    abogado_cedula: "",
+    abogado_matricula: "",
+    abogado_direccion: "",
+    abogado_telefono: "",
+    abogado_email: "",
+    firma_apoderada: "",
+    firma_rnc: "",
+    // Demandado
+    demandado_nombre: "",
+    demandado_domicilio: "",
+    // Acto y tribunal
+    acto_numero: "",
+    acto_folios: "",
+    acto_año: "",
+    ciudad_actuacion: "",
+    alguacil_designacion: "",
     juzgado: "",
     legislacion: "",
     jurisprudencia: "",
@@ -235,10 +257,36 @@ const AILegalDrafting = () => {
           materia: formData.materia,
           hechos: formData.hechos,
           pretension: formData.pretension,
-          partes: {
-            demandante: formData.demandante,
-            demandado: formData.demandado,
+          demandante: {
+            nombre: formData.demandante_nombre,
+            nacionalidad: formData.demandante_nacionalidad,
+            estado_civil: formData.demandante_estado_civil,
+            cedula: formData.demandante_cedula,
+            domicilio: formData.demandante_domicilio,
           },
+          abogado: {
+            nombre: formData.abogado_nombre,
+            cedula: formData.abogado_cedula,
+            matricula: formData.abogado_matricula,
+            direccion: formData.abogado_direccion,
+            telefono: formData.abogado_telefono,
+            email: formData.abogado_email,
+          },
+          firma_apoderada: {
+            nombre: formData.firma_apoderada,
+            rnc: formData.firma_rnc,
+          },
+          demandado: {
+            nombre: formData.demandado_nombre,
+            domicilio: formData.demandado_domicilio,
+          },
+          acto: {
+            numero: formData.acto_numero,
+            folios: formData.acto_folios,
+            año: formData.acto_año,
+          },
+          ciudad_actuacion: formData.ciudad_actuacion,
+          alguacil_designacion: formData.alguacil_designacion,
           juzgado: formData.juzgado,
           legislacion: formData.legislacion,
           jurisprudencia: formData.jurisprudencia,
@@ -312,24 +360,82 @@ const AILegalDrafting = () => {
     }
   };
 
-  const downloadDocument = () => {
-    const element = document.createElement("a");
-    const file = new Blob([generatedDoc], { type: 'text/plain' });
-    element.href = URL.createObjectURL(file);
-    
-    // Nombre descriptivo del archivo
-    const tipoDoc = TIPOS_DOCUMENTO.find(t => t.value === formData.tipo_documento)?.label || formData.tipo_documento;
-    const fecha = new Date().toLocaleDateString('es-DO').replace(/\//g, '-');
-    element.download = `${tipoDoc}_${formData.materia}_${fecha}.txt`;
-    
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
+  const downloadDocument = async () => {
+    try {
+      // Importar docx dinámicamente
+      const { Document, Packer, Paragraph, TextRun, AlignmentType, HeadingLevel } = await import('docx');
+      
+      // Dividir el documento en párrafos
+      const paragraphs = generatedDoc.split('\n').map(line => {
+        const trimmed = line.trim();
+        
+        // Detectar títulos (líneas que terminan con : o están en mayúsculas)
+        const isHeading = trimmed.endsWith(':') || (trimmed === trimmed.toUpperCase() && trimmed.length > 0 && trimmed.length < 100);
+        
+        if (trimmed.length === 0) {
+          return new Paragraph({ text: '' });
+        }
+        
+        return new Paragraph({
+          children: [
+            new TextRun({
+              text: trimmed,
+              bold: isHeading,
+              size: 24, // 12pt
+            }),
+          ],
+          alignment: AlignmentType.JUSTIFIED,
+          spacing: {
+            after: 120,
+          },
+          heading: isHeading ? HeadingLevel.HEADING_2 : undefined,
+        });
+      });
 
-    toast({
-      title: "✓ Descargado",
-      description: "Documento guardado exitosamente",
-    });
+      const doc = new Document({
+        sections: [{
+          properties: {
+            page: {
+              size: {
+                width: 12240, // Letter width in twips (8.5")
+                height: 15840, // Letter height in twips (11")
+              },
+              margin: {
+                top: 1440, // 1 inch
+                right: 1440,
+                bottom: 1440,
+                left: 1440,
+              },
+            },
+          },
+          children: paragraphs,
+        }],
+      });
+
+      const blob = await Packer.toBlob(doc);
+      const element = document.createElement("a");
+      element.href = URL.createObjectURL(blob);
+      
+      const tipoDoc = TIPOS_DOCUMENTO.find(t => t.value === formData.tipo_documento)?.label || formData.tipo_documento;
+      const fecha = new Date().toLocaleDateString('es-DO').replace(/\//g, '-');
+      element.download = `${tipoDoc}_${formData.materia}_${fecha}.docx`;
+      
+      document.body.appendChild(element);
+      element.click();
+      document.body.removeChild(element);
+
+      toast({
+        title: "✓ Descargado",
+        description: "Documento Word guardado exitosamente",
+      });
+    } catch (error) {
+      console.error('Error generando Word:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo generar el documento Word",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -419,30 +525,246 @@ const AILegalDrafting = () => {
 
             <Card className="shadow-medium">
               <CardHeader>
-                <CardTitle>Partes</CardTitle>
+                <CardTitle>Datos del Acto</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <Label htmlFor="acto_numero">No. Acto</Label>
+                    <Input
+                      id="acto_numero"
+                      placeholder="Número"
+                      value={formData.acto_numero}
+                      onChange={(e) => handleInputChange("acto_numero", e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="acto_folios">Folios</Label>
+                    <Input
+                      id="acto_folios"
+                      placeholder="Ej: 1-5"
+                      value={formData.acto_folios}
+                      onChange={(e) => handleInputChange("acto_folios", e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="acto_año">Año</Label>
+                    <Input
+                      id="acto_año"
+                      placeholder="2025"
+                      value={formData.acto_año}
+                      onChange={(e) => handleInputChange("acto_año", e.target.value)}
+                    />
+                  </div>
+                </div>
+
                 <div>
-                  <Label htmlFor="demandante">Demandante / Actor</Label>
+                  <Label htmlFor="ciudad_actuacion">Ciudad de la Actuación</Label>
                   <Input
-                    id="demandante"
-                    placeholder="Nombre del demandante"
-                    value={formData.demandante}
-                    onChange={(e) =>
-                      handleInputChange("demandante", e.target.value)
-                    }
+                    id="ciudad_actuacion"
+                    placeholder="Ej: Santo Domingo"
+                    value={formData.ciudad_actuacion}
+                    onChange={(e) => handleInputChange("ciudad_actuacion", e.target.value)}
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="demandado">Demandado / Parte Contraria</Label>
+                  <Label htmlFor="alguacil_designacion">Designación del Alguacil</Label>
+                  <Textarea
+                    id="alguacil_designacion"
+                    placeholder="Ej: Yo, Juan Pérez, Alguacil Ordinario de la Primera Sala..."
+                    rows={2}
+                    value={formData.alguacil_designacion}
+                    onChange={(e) => handleInputChange("alguacil_designacion", e.target.value)}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2">
+            <Card className="shadow-medium">
+              <CardHeader>
+                <CardTitle>Demandante / Requeriente</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="demandante_nombre">Nombre Completo</Label>
                   <Input
-                    id="demandado"
+                    id="demandante_nombre"
+                    placeholder="Ej: Dr. Carlos Manuel Ventura Mota"
+                    value={formData.demandante_nombre}
+                    onChange={(e) => handleInputChange("demandante_nombre", e.target.value)}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label htmlFor="demandante_nacionalidad">Nacionalidad</Label>
+                    <Input
+                      id="demandante_nacionalidad"
+                      placeholder="dominicano"
+                      value={formData.demandante_nacionalidad}
+                      onChange={(e) => handleInputChange("demandante_nacionalidad", e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="demandante_estado_civil">Estado Civil</Label>
+                    <Input
+                      id="demandante_estado_civil"
+                      placeholder="casado"
+                      value={formData.demandante_estado_civil}
+                      onChange={(e) => handleInputChange("demandante_estado_civil", e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="demandante_cedula">Cédula</Label>
+                  <Input
+                    id="demandante_cedula"
+                    placeholder="001-0090265-9"
+                    value={formData.demandante_cedula}
+                    onChange={(e) => handleInputChange("demandante_cedula", e.target.value)}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="demandante_domicilio">Domicilio</Label>
+                  <Textarea
+                    id="demandante_domicilio"
+                    placeholder="Ave. Lope de Vega No. 108, Apto. 203, Ens. Piantini..."
+                    rows={2}
+                    value={formData.demandante_domicilio}
+                    onChange={(e) => handleInputChange("demandante_domicilio", e.target.value)}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-medium">
+              <CardHeader>
+                <CardTitle>Firma Apoderada</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="firma_apoderada">Nombre de la Firma</Label>
+                  <Input
+                    id="firma_apoderada"
+                    placeholder="Firma Internacional de Abogados Ventura & Mota, S.A."
+                    value={formData.firma_apoderada}
+                    onChange={(e) => handleInputChange("firma_apoderada", e.target.value)}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="firma_rnc">RNC</Label>
+                  <Input
+                    id="firma_rnc"
+                    placeholder="000-00000-0"
+                    value={formData.firma_rnc}
+                    onChange={(e) => handleInputChange("firma_rnc", e.target.value)}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2">
+            <Card className="shadow-medium">
+              <CardHeader>
+                <CardTitle>Abogado Apoderado</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="abogado_nombre">Nombre Completo</Label>
+                  <Input
+                    id="abogado_nombre"
+                    placeholder="Dr. Carlos Manuel Ventura Mota"
+                    value={formData.abogado_nombre}
+                    onChange={(e) => handleInputChange("abogado_nombre", e.target.value)}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label htmlFor="abogado_cedula">Cédula</Label>
+                    <Input
+                      id="abogado_cedula"
+                      placeholder="001-0090265-9"
+                      value={formData.abogado_cedula}
+                      onChange={(e) => handleInputChange("abogado_cedula", e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="abogado_matricula">Matrícula</Label>
+                    <Input
+                      id="abogado_matricula"
+                      placeholder="7002-20-89"
+                      value={formData.abogado_matricula}
+                      onChange={(e) => handleInputChange("abogado_matricula", e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="abogado_direccion">Dirección del Despacho</Label>
+                  <Textarea
+                    id="abogado_direccion"
+                    placeholder="Ave. Lope de Vega No. 108, Apto. 203..."
+                    rows={2}
+                    value={formData.abogado_direccion}
+                    onChange={(e) => handleInputChange("abogado_direccion", e.target.value)}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label htmlFor="abogado_telefono">Teléfono</Label>
+                    <Input
+                      id="abogado_telefono"
+                      placeholder="809-000-0000"
+                      value={formData.abogado_telefono}
+                      onChange={(e) => handleInputChange("abogado_telefono", e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="abogado_email">Email</Label>
+                    <Input
+                      id="abogado_email"
+                      type="email"
+                      placeholder="abogado@firma.com"
+                      value={formData.abogado_email}
+                      onChange={(e) => handleInputChange("abogado_email", e.target.value)}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-medium">
+              <CardHeader>
+                <CardTitle>Demandado / Parte Contraria</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="demandado_nombre">Nombre Completo</Label>
+                  <Input
+                    id="demandado_nombre"
                     placeholder="Nombre del demandado"
-                    value={formData.demandado}
-                    onChange={(e) =>
-                      handleInputChange("demandado", e.target.value)
-                    }
+                    value={formData.demandado_nombre}
+                    onChange={(e) => handleInputChange("demandado_nombre", e.target.value)}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="demandado_domicilio">Domicilio</Label>
+                  <Textarea
+                    id="demandado_domicilio"
+                    placeholder="Dirección completa del demandado"
+                    rows={2}
+                    value={formData.demandado_domicilio}
+                    onChange={(e) => handleInputChange("demandado_domicilio", e.target.value)}
                   />
                 </div>
               </CardContent>
