@@ -126,8 +126,8 @@ const AILegalDrafting = () => {
           }));
 
           toast({
-            title: "Transcripción completa",
-            description: "El texto ha sido agregado a los hechos",
+            title: "✓ Transcripción completa",
+            description: `${data.text.length} caracteres agregados a los hechos`,
           });
         }
       };
@@ -173,13 +173,41 @@ const AILegalDrafting = () => {
       });
 
       if (error) {
+        // Manejo específico de errores
+        if (error.message?.includes('429') || error.message?.includes('Rate limit')) {
+          toast({
+            title: "Límite de solicitudes",
+            description: "Has excedido el límite. Intenta en unos minutos.",
+            variant: "destructive",
+          });
+          return;
+        }
+        
+        if (error.message?.includes('402') || error.message?.includes('credits')) {
+          toast({
+            title: "Créditos agotados",
+            description: "Por favor, recarga créditos en Configuración.",
+            variant: "destructive",
+          });
+          return;
+        }
+        
         throw error;
+      }
+
+      if (data?.error) {
+        toast({
+          title: "Error de IA",
+          description: data.error,
+          variant: "destructive",
+        });
+        return;
       }
 
       if (data?.documento) {
         setGeneratedDoc(data.documento);
         toast({
-          title: "Documento generado",
+          title: "✓ Documento generado",
           description: "Tu acción jurídica ha sido redactada con IA",
         });
       }
@@ -195,25 +223,38 @@ const AILegalDrafting = () => {
     }
   };
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(generatedDoc);
-    toast({
-      title: "Copiado",
-      description: "Documento copiado al portapapeles",
-    });
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(generatedDoc);
+      toast({
+        title: "✓ Copiado",
+        description: "Documento copiado al portapapeles",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "No se pudo copiar al portapapeles",
+        variant: "destructive",
+      });
+    }
   };
 
   const downloadDocument = () => {
     const element = document.createElement("a");
     const file = new Blob([generatedDoc], { type: 'text/plain' });
     element.href = URL.createObjectURL(file);
-    element.download = `${formData.tipo_documento}_${new Date().getTime()}.txt`;
+    
+    // Nombre descriptivo del archivo
+    const tipoDoc = TIPOS_DOCUMENTO.find(t => t.value === formData.tipo_documento)?.label || formData.tipo_documento;
+    const fecha = new Date().toLocaleDateString('es-DO').replace(/\//g, '-');
+    element.download = `${tipoDoc}_${formData.materia}_${fecha}.txt`;
+    
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);
 
     toast({
-      title: "Descargado",
+      title: "✓ Descargado",
       description: "Documento guardado exitosamente",
     });
   };
