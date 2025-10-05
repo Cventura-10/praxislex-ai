@@ -1,0 +1,7 @@
+project_id = "hpeyqttxzrqctrefjlfq"
+
+[functions.generate-legal-doc]
+verify_jwt = false
+
+[functions.transcribe-audio]
+verify_jwt = false
