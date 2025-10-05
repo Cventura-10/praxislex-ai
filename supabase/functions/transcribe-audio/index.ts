@@ -51,6 +51,21 @@ serve(async (req) => {
     if (!response.ok) {
       const errorText = await response.text();
       console.error('Error de OpenAI:', response.status, errorText);
+
+      // Propagar códigos específicos para mejor manejo en el cliente
+      if (response.status === 401) {
+        return new Response(
+          JSON.stringify({ error: 'API de voz no configurada o inválida. Verifica la clave.' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      if (response.status === 429) {
+        return new Response(
+          JSON.stringify({ error: 'Límite de transcripción excedido. Intenta nuevamente más tarde.' }),
+          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
       throw new Error('Error al transcribir audio');
     }
 

@@ -110,35 +110,73 @@ const AILegalDrafting = () => {
       reader.readAsDataURL(audioBlob);
       
       reader.onloadend = async () => {
-        const base64Audio = (reader.result as string).split(',')[1];
+        try {
+          const base64Audio = (reader.result as string).split(',')[1];
 
-        const { data, error } = await supabase.functions.invoke('transcribe-audio', {
-          body: { audio: base64Audio },
-        });
-
-        if (error) throw error;
-
-        if (data?.text) {
-          // Agregar texto transcrito al campo de hechos
-          setFormData((prev) => ({
-            ...prev,
-            hechos: prev.hechos + (prev.hechos ? '\n\n' : '') + data.text,
-          }));
-
-          toast({
-            title: "✓ Transcripción completa",
-            description: `${data.text.length} caracteres agregados a los hechos`,
+          const { data, error } = await supabase.functions.invoke('transcribe-audio', {
+            body: { audio: base64Audio },
           });
+
+          if (error) {
+            const msg = error.message || '';
+            if (msg.includes('401')) {
+              toast({
+                title: "Configuración requerida",
+                description: "La API de voz es inválida o no está configurada.",
+                variant: "destructive",
+              });
+              return;
+            }
+            if (msg.includes('429')) {
+              toast({
+                title: "Límite de transcripción",
+                description: "Has excedido el límite. Intenta más tarde.",
+                variant: "destructive",
+              });
+              return;
+            }
+            throw error;
+          }
+
+          if (data?.error) {
+            toast({
+              title: "Error de voz",
+              description: data.error,
+              variant: "destructive",
+            });
+            return;
+          }
+
+          if (data?.text) {
+            // Agregar texto transcrito al campo de hechos
+            setFormData((prev) => ({
+              ...prev,
+              hechos: prev.hechos + (prev.hechos ? '\n\n' : '') + data.text,
+            }));
+
+            toast({
+              title: "✓ Transcripción completa",
+              description: `${data.text.length} caracteres agregados a los hechos`,
+            });
+          }
+        } catch (err: any) {
+          console.error('Error en transcripción:', err);
+          toast({
+            title: "Error",
+            description: err?.message || "No se pudo transcribir el audio",
+            variant: "destructive",
+          });
+        } finally {
+          setIsTranscribing(false);
         }
       };
     } catch (error) {
-      console.error('Error en transcripción:', error);
+      console.error('Error preparando transcripción:', error);
       toast({
         title: "Error",
-        description: "No se pudo transcribir el audio",
+        description: "No se pudo preparar el audio para transcripción",
         variant: "destructive",
       });
-    } finally {
       setIsTranscribing(false);
     }
   };
