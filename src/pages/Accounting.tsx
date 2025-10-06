@@ -32,14 +32,19 @@ import {
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { ESTADOS_PAGO } from "@/lib/constants";
 import { useToast } from "@/hooks/use-toast";
+import { InvoiceViewer } from "@/components/InvoiceViewer";
+import { useLawFirmProfile } from "@/hooks/useLawFirmProfile";
 
 const Accounting = () => {
   const { toast } = useToast();
+  const { profile: lawFirmProfile } = useLawFirmProfile();
   const [filterEstado, setFilterEstado] = useState("all");
   const [loading, setLoading] = useState(true);
   const [invoices, setInvoices] = useState<any[]>([]);
   const [clients, setClients] = useState<any[]>([]);
   const [showNewInvoiceDialog, setShowNewInvoiceDialog] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState<any | null>(null);
+  const [showInvoiceViewer, setShowInvoiceViewer] = useState(false);
   const [newInvoice, setNewInvoice] = useState({
     numero_factura: "",
     client_id: "",
@@ -90,6 +95,11 @@ const Accounting = () => {
     }
   };
 
+  const handleViewInvoice = (invoice: any) => {
+    setSelectedInvoice(invoice);
+    setShowInvoiceViewer(true);
+  };
+
   const handleCreateInvoice = async () => {
     try {
       // Validate input data
@@ -101,10 +111,13 @@ const Accounting = () => {
       
       const validationResult = invoiceSchema.safeParse(invoiceData);
       if (!validationResult.success) {
-        const firstError = validationResult.error.issues[0];
+        const errors = validationResult.error.issues;
+        const errorMessages = errors.map(err => `• ${err.message}`).join('\n');
         toast({
-          title: "Datos inválidos",
-          description: firstError.message,
+          title: "Formulario incompleto",
+          description: errors.length > 1 
+            ? `Por favor complete los siguientes campos:\n${errorMessages}`
+            : errors[0].message,
           variant: "destructive",
         });
         return;
@@ -397,6 +410,7 @@ const Accounting = () => {
                               variant="ghost"
                               size="icon"
                               title="Ver detalles"
+                              onClick={() => handleViewInvoice(invoice)}
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
@@ -437,6 +451,19 @@ const Accounting = () => {
             </CardContent>
           </Card>
         </>
+      )}
+
+      {/* Invoice Viewer Dialog */}
+      {selectedInvoice && (
+        <InvoiceViewer
+          open={showInvoiceViewer}
+          onClose={() => {
+            setShowInvoiceViewer(false);
+            setSelectedInvoice(null);
+          }}
+          invoice={selectedInvoice}
+          lawFirm={lawFirmProfile}
+        />
       )}
     </div>
   );
