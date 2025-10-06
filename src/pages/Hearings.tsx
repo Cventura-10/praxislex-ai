@@ -344,7 +344,7 @@ const Hearings = () => {
                   <Label htmlFor="case_hearing">Caso</Label>
                   <Select value={newHearing.case_id} onValueChange={(value) => {
                     const selectedCase = cases.find(c => c.id === value);
-                    setNewHearing({ ...newHearing, case_id: value, caso: selectedCase?.titulo || "" });
+                    setNewHearing({ ...newHearing, case_id: value, caso: `${selectedCase?.numero_expediente || ''} - ${selectedCase?.titulo || ""}` });
                   }}>
                     <SelectTrigger>
                       <SelectValue placeholder="Seleccionar caso" />
@@ -352,7 +352,10 @@ const Hearings = () => {
                     <SelectContent>
                       {cases.map((caso) => (
                         <SelectItem key={caso.id} value={caso.id}>
-                          {caso.titulo}
+                          <div className="flex flex-col">
+                            <span className="font-medium">{caso.numero_expediente}</span>
+                            <span className="text-sm text-muted-foreground">{caso.titulo}</span>
+                          </div>
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -501,7 +504,7 @@ const Hearings = () => {
                       <Label htmlFor="case_deadline">Caso</Label>
                       <Select value={newDeadline.case_id} onValueChange={(value) => {
                         const selectedCase = cases.find(c => c.id === value);
-                        setNewDeadline({ ...newDeadline, case_id: value, caso: selectedCase?.titulo || "" });
+                        setNewDeadline({ ...newDeadline, case_id: value, caso: `${selectedCase?.numero_expediente || ''} - ${selectedCase?.titulo || ""}` });
                       }}>
                         <SelectTrigger>
                           <SelectValue placeholder="Seleccionar caso" />
@@ -509,7 +512,10 @@ const Hearings = () => {
                         <SelectContent>
                           {cases.map((caso) => (
                             <SelectItem key={caso.id} value={caso.id}>
-                              {caso.titulo}
+                              <div className="flex flex-col">
+                                <span className="font-medium">{caso.numero_expediente}</span>
+                                <span className="text-sm text-muted-foreground">{caso.titulo}</span>
+                              </div>
                             </SelectItem>
                           ))}
                         </SelectContent>
