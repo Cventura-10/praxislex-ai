@@ -545,6 +545,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_access_client: {
+        Args: { _client_id: string; _user_id: string }
+        Returns: boolean
+      }
       generate_case_number: {
         Args: Record<PropertyKey, never>
         Returns: string
