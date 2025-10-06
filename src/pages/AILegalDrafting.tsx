@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,13 +12,203 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, Loader2, Send, Download } from "lucide-react";
+import { Sparkles, Loader2, Send, Download, ClipboardList } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { MATERIAS_JURIDICAS, TIPOS_DOCUMENTO } from "@/lib/constants";
 import { VoiceInput } from "@/components/VoiceInput";
 import { DocumentViewer } from "@/components/DocumentViewer";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
+
+// =============================
+// Tipos y esquemas Intake Forms
+// =============================
+type FieldType = "text" | "textarea" | "select" | "date" | "number" | "currency" | "checkbox";
+
+type Field = {
+  key: string;
+  label: string;
+  type: FieldType;
+  required?: boolean;
+  placeholder?: string;
+  help?: string;
+  options?: string[];
+  section?: string;
+};
+
+type Schema = {
+  id: string;
+  titulo: string;
+  materia: string;
+  accion: string;
+  fields: Field[];
+};
+
+const SCHEMAS: Schema[] = [
+  {
+    id: "CIVIL_COBRO_PESOS",
+    titulo: "Demanda en cobro de pesos",
+    materia: "Civil",
+    accion: "Demanda en cobro de pesos",
+    fields: [
+      { key: "demandante", label: "Demandante (nombre/RNC/cédula)", type: "text", required: true },
+      { key: "demandado", label: "Demandado (nombre/RNC/cédula)", type: "text", required: true },
+      { key: "abogadoNombre", label: "Abogado apoderado (nombre)", type: "text", required: true },
+      { key: "abogadoColegio", label: "Matrícula/CARD", type: "text" },
+      { key: "abogadoEstudio", label: "Estudio / Domicilio procesal", type: "text" },
+      { key: "tribunal.nombre", label: "Tribunal competente", type: "text", required: true },
+      { key: "tribunal.direccion", label: "Dirección del tribunal", type: "text" },
+      { key: "objeto", label: "Objeto de la demanda (resumen)", type: "textarea", placeholder: "Cobro de RD$ X por incumplimiento/contrato…" },
+      { key: "monto", label: "Cuantía reclamada (RD$)", type: "currency", required: true },
+      { key: "hechos", label: "Hechos (cronológico)", type: "textarea", required: true, help: "Fechas, contratos, pagos, incumplimientos, comunicaciones, reconocimiento de deuda." },
+      { key: "fundamentos", label: "Fundamentos de derecho y jurisprudencia", type: "textarea", help: "Cita artículos y 2+ sentencias con órgano, sala, número, fecha y URL." },
+      { key: "pretensiones", label: "Pretensiones / Dispositivos", type: "textarea", placeholder: "Condenar al pago, intereses legales/comerciales, astreinte, costas…" },
+      { key: "anexos", label: "Anexos / Pruebas", type: "textarea", help: "Contrato, recibos, estados de cuenta, certificaciones, comunicaciones." }
+    ]
+  },
+  {
+    id: "CONST_AMPARO",
+    titulo: "Acción de amparo",
+    materia: "Constitucional",
+    accion: "Acción de amparo",
+    fields: [
+      { key: "demandante", label: "Accionante (nombre/cédula)", type: "text", required: true },
+      { key: "demandado", label: "Accionado (órgano/funcionario/particular)", type: "text", required: true },
+      { key: "abogadoNombre", label: "Abogado (nombre)", type: "text" },
+      { key: "tribunal.nombre", label: "Juzgado apoderado (competente)", type: "text", required: true },
+      { key: "derechosVulnerados", label: "Derechos fundamentales vulnerados", type: "textarea", required: true, help: "Enumera derechos y normas (Constitución, leyes orgánicas)." },
+      { key: "hechos", label: "Hechos (detalle y urgencia)", type: "textarea", required: true },
+      { key: "fundamentos", label: "Fundamentos (jurisprudencia constitucional)", type: "textarea", help: "Incluye 2+ citas vinculadas (TC/SCJ) con URL oficial." },
+      { key: "pretensiones", label: "Pretensiones (ordenar, restituir, abstenerse)", type: "textarea", required: true },
+      { key: "medidas", label: "Medida cautelar (si procede)", type: "textarea", placeholder: "Suspender efectos del acto impugnado…" },
+      { key: "anexos", label: "Anexos (pruebas)", type: "textarea" }
+    ]
+  },
+  {
+    id: "CIVIL_REFERIMIENTO",
+    titulo: "Referimiento (medida provisional)",
+    materia: "Civil",
+    accion: "Demanda en referimiento",
+    fields: [
+      { key: "demandante", label: "Solicitante (nombre/RNC/cédula)", type: "text", required: true },
+      { key: "demandado", label: "Requerido (nombre/RNC/cédula)", type: "text", required: true },
+      { key: "tribunal.nombre", label: "Juez de los referimientos competente", type: "text", required: true },
+      { key: "urgencia", label: "Urgencia y peligro en la demora", type: "textarea", required: true },
+      { key: "apariencia", label: "Apariencia de buen derecho (fumus boni iuris)", type: "textarea", required: true },
+      { key: "medidas", label: "Medidas solicitadas (ordenanzas)", type: "textarea", required: true },
+      { key: "fundamentos", label: "Fundamentos legales y jurisprudencia", type: "textarea", help: "Cita 2+ precedentes (SCJ) y base normativa (Ley 834-78)." },
+      { key: "anexos", label: "Anexos / Soportes", type: "textarea" }
+    ]
+  },
+  {
+    id: "LAB_PRESTACIONES",
+    titulo: "Prestaciones laborales",
+    materia: "Laboral",
+    accion: "Demanda en prestaciones laborales",
+    fields: [
+      { key: "demandante", label: "Trabajador (nombre/cédula)", type: "text", required: true },
+      { key: "demandado", label: "Empleador (nombre/RNC)", type: "text", required: true },
+      { key: "relacionLaboral", label: "Relación laboral (cargo, salario, fecha inicio/fin)", type: "textarea", required: true },
+      { key: "motivoTerminacion", label: "Motivo de terminación (desahucio/despido/dimisión)", type: "select", options: ["Desahucio", "Despido", "Dimisión", "Otro"], required: true },
+      { key: "monto", label: "Cuantía estimada (RD$)", type: "currency", required: true },
+      { key: "hechos", label: "Hechos (cronología, pruebas)", type: "textarea", required: true },
+      { key: "fundamentos", label: "Fundamentos (Código de Trabajo + jurisprudencia)", type: "textarea" },
+      { key: "pretensiones", label: "Pretensiones (prestaciones, intereses, costas)", type: "textarea", required: true },
+      { key: "anexos", label: "Anexos (contrato, nóminas, comunicaciones)", type: "textarea" }
+    ]
+  },
+  {
+    id: "INMO_DESLINDE",
+    titulo: "Deslinde / Saneamiento",
+    materia: "Inmobiliario — Jurisdicción de Tierras",
+    accion: "Acción de deslinde / saneamiento",
+    fields: [
+      { key: "demandante", label: "Parte actora (nombre/RNC)", type: "text", required: true },
+      { key: "demandado", label: "Parte demandada/colindantes", type: "textarea", required: true, help: "Identificar colindantes y parcelas afectadas." },
+      { key: "inmueble", label: "Identificación inmueble (parcela, DC, matrícula)", type: "textarea", required: true },
+      { key: "tribunal.nombre", label: "Tribunal de Tierras competente", type: "text", required: true },
+      { key: "hechos", label: "Hechos y antecedentes registrales", type: "textarea", required: true },
+      { key: "fundamentos", label: "Fundamentos (Ley 108-05 + jurisprudencia)", type: "textarea", required: true },
+      { key: "pretensiones", label: "Pretensiones (deslinde/saneamiento, inscripción, medidas)", type: "textarea", required: true },
+      { key: "anexos", label: "Anexos (planos, certificaciones RT, mensuras)", type: "textarea" }
+    ]
+  }
+];
+
+const FieldInput: React.FC<{ 
+  field: Field; 
+  value: any; 
+  onChange: (v: any) => void;
+}> = ({ field, value, onChange }) => {
+  if (field.type === "textarea") {
+    return (
+      <Textarea
+        value={String(value || "")}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={field.placeholder}
+        rows={5}
+        className="resize-none"
+      />
+    );
+  }
+  
+  if (field.type === "select") {
+    return (
+      <Select value={String(value || "")} onValueChange={onChange}>
+        <SelectTrigger>
+          <SelectValue placeholder="Selecciona…" />
+        </SelectTrigger>
+        <SelectContent>
+          {(field.options || []).map(opt => (
+            <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    );
+  }
+  
+  if (field.type === "checkbox") {
+    return (
+      <Checkbox
+        checked={Boolean(value)}
+        onCheckedChange={onChange}
+      />
+    );
+  }
+  
+  return (
+    <Input
+      type={field.type === "currency" ? "number" : field.type}
+      step={field.type === "number" || field.type === "currency" ? "any" : undefined}
+      value={String(value || "")}
+      onChange={(e) => onChange(
+        field.type === "number" || field.type === "currency" 
+          ? Number(e.target.value) 
+          : e.target.value
+      )}
+      placeholder={field.placeholder}
+    />
+  );
+};
+
+const FieldRow: React.FC<{ 
+  field: Field; 
+  data: Record<string, any>; 
+  setData: (k: string, v: any) => void;
+}> = ({ field, data, setData }) => (
+  <div className="space-y-2">
+    <Label>
+      {field.label}
+      {field.required && <span className="text-destructive"> *</span>}
+    </Label>
+    <FieldInput field={field} value={data[field.key]} onChange={(v) => setData(field.key, v)} />
+    {field.help && (
+      <p className="text-xs text-muted-foreground">{field.help}</p>
+    )}
+  </div>
+);
 
 const AILegalDrafting = () => {
   const { toast } = useToast();
@@ -27,6 +217,12 @@ const AILegalDrafting = () => {
   const [citations, setCitations] = useState<any[]>([]);
   const [chatMessages, setChatMessages] = useState<{role: string, content: string}[]>([]);
   const [chatInput, setChatInput] = useState("");
+  const [intakeMode, setIntakeMode] = useState<'manual' | 'structured'>('manual');
+  
+  // Intake Forms state
+  const [schemaId, setSchemaId] = useState<string>(SCHEMAS[0].id);
+  const schema = useMemo(() => SCHEMAS.find(s => s.id === schemaId)!, [schemaId]);
+  const [intakeData, setIntakeData] = useState<Record<string, any>>({ accion: schema.accion });
 
   // Formulario completo basado en el modelo de demanda
   const [formData, setFormData] = useState({
@@ -374,6 +570,57 @@ const AILegalDrafting = () => {
     });
   };
 
+  const setIntakeField = (k: string, v: any) => setIntakeData((s) => ({ ...s, [k]: v }));
+
+  const generateFromIntake = async () => {
+    setIsGenerating(true);
+    try {
+      const { data: response, error } = await supabase.functions.invoke('generate-legal-doc', {
+        body: {
+          tipo_documento: schema.titulo,
+          materia: schema.materia.split('—')[0].trim(),
+          hechos: intakeData.hechos || "",
+          pretension: intakeData.pretensiones || "",
+          demandante: { nombre: intakeData.demandante },
+          abogado: {
+            nombre: intakeData.abogadoNombre,
+            matricula: intakeData.abogadoColegio,
+            direccion: intakeData.abogadoEstudio
+          },
+          demandado: { nombre: intakeData.demandado },
+          juzgado: intakeData["tribunal.nombre"]
+        }
+      });
+
+      if (error) throw error;
+      
+      setGeneratedDoc(response.documento);
+      setCitations(response.citations || []);
+      
+      if (!response.citations || response.citations.length < 2) {
+        toast({
+          title: "⚠ Citas insuficientes",
+          description: "Se requieren al menos 2 citas verificables para exportar.",
+          variant: "destructive",
+        });
+      }
+      
+      toast({
+        title: "✓ Documento generado",
+        description: `Documento generado con ${response.citations?.length || 0} citas`,
+      });
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo generar con IA",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
       {/* Formulario - Lado Izquierdo */}
@@ -385,6 +632,21 @@ const AILegalDrafting = () => {
               Genera documentos profesionales con IA
             </p>
           </div>
+
+          <Tabs value={intakeMode} onValueChange={(v) => setIntakeMode(v as 'manual' | 'structured')}>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="manual" className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4" />
+                Formulario Manual
+              </TabsTrigger>
+              <TabsTrigger value="structured" className="flex items-center gap-2">
+                <ClipboardList className="h-4 w-4" />
+                Formularios Intake
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="manual" className="space-y-6 mt-6">
+              {/* Formulario manual original */}
 
           <Card className="shadow-medium">
             <CardHeader>
@@ -791,6 +1053,104 @@ const AILegalDrafting = () => {
               </CardContent>
             </Card>
           )}
+            </TabsContent>
+
+            <TabsContent value="structured" className="space-y-6 mt-6">
+              {/* Formularios de Intake estructurados */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Tipo de Acto</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Select 
+                    value={schemaId} 
+                    onValueChange={(value) => {
+                      setSchemaId(value);
+                      setIntakeData({ accion: SCHEMAS.find(s => s.id === value)?.accion });
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {SCHEMAS.map(s => (
+                        <SelectItem key={s.id} value={s.id}>
+                          {s.titulo} — {s.materia}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Información del Acto</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    {schema.fields.map((f) => (
+                      <div 
+                        key={f.key} 
+                        className={f.type === "textarea" ? "sm:col-span-2" : ""}
+                      >
+                        <FieldRow field={f} data={intakeData} setData={setIntakeField} />
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-6 flex flex-wrap gap-2">
+                    <Button 
+                      onClick={generateFromIntake} 
+                      disabled={isGenerating}
+                      className="gap-2"
+                    >
+                      {isGenerating && <Loader2 className="h-4 w-4 animate-spin" />}
+                      <Sparkles className="h-4 w-4" />
+                      Redactar con IA
+                    </Button>
+                    <Button 
+                      onClick={searchJurisprudence} 
+                      variant="outline"
+                      className="gap-2"
+                    >
+                      <Sparkles className="h-4 w-4" />
+                      Sugerir Jurisprudencia
+                    </Button>
+                    <Button 
+                      onClick={() => setIntakeData({ accion: schema.accion })} 
+                      variant="outline"
+                    >
+                      Limpiar
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Mostrar citas actuales */}
+              {citations.length > 0 && (
+                <Card className="shadow-medium">
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      <span>Citas Verificables ({citations.length})</span>
+                      {citations.length < 2 && (
+                        <Badge variant="destructive">Mínimo 2 requeridas</Badge>
+                      )}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {citations.map((cit, idx) => (
+                        <div key={idx} className="p-2 border rounded text-xs">
+                          <div className="font-semibold">{cit.organo} - {cit.sala}</div>
+                          <div className="text-muted-foreground">{cit.num} ({cit.fecha})</div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+          </Tabs>
         </div>
       </ScrollArea>
 

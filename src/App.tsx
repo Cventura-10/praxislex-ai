@@ -13,7 +13,6 @@ import Hearings from "./pages/Hearings";
 import Documents from "./pages/Documents";
 import Jurisprudence from "./pages/Jurisprudence";
 import AILegalDrafting from "./pages/AILegalDrafting";
-import IntakeForms from "./pages/IntakeForms";
 import Accounting from "./pages/Accounting";
 import ClientPortal from "./pages/ClientPortal";
 import Billing from "./pages/Billing";
@@ -50,8 +49,7 @@ const App = () => (
                         <Route path="/audiencias" element={<Hearings />} />
                         <Route path="/documentos" element={<Documents />} />
                         <Route path="/jurisprudencia" element={<Jurisprudence />} />
-                        <Route path="/redaccion-ia" element={<AILegalDrafting />} />
-                        <Route path="/intake-forms" element={<IntakeForms />} />
+              <Route path="/redaccion-ia" element={<AILegalDrafting />} />
                         <Route path="/contabilidad" element={<Accounting />} />
                         <Route path="/portal" element={<ClientPortal />} />
                         <Route path="/facturacion" element={<Billing />} />

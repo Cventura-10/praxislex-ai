@@ -21,7 +21,6 @@ const navItems = [
   { href: "/audiencias", icon: Calendar, label: "Audiencias" },
   { href: "/documentos", icon: FileText, label: "Documentos" },
   { href: "/redaccion-ia", icon: Sparkles, label: "Redacción IA" },
-  { href: "/intake-forms", icon: ClipboardList, label: "Formularios Intake" },
   { href: "/jurisprudencia", icon: Scale, label: "Jurisprudencia" },
   { href: "/contabilidad", icon: Receipt, label: "Contabilidad" },
   { href: "/portal", icon: UserCircle, label: "Portal Cliente" },
