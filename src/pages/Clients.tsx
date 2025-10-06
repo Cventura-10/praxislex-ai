@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,62 +11,116 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Search, Mail, Phone, Briefcase, Eye, Edit, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
+interface Client {
+  id: string;
+  nombre_completo: string;
+  cedula_rnc: string;
+  email: string | null;
+  telefono: string | null;
+  direccion: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 const Clients = () => {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
+  const [clients, setClients] = useState<Client[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showNewClientDialog, setShowNewClientDialog] = useState(false);
 
-  const clients = [
-    {
-      id: "cli_01",
-      nombre: "Juan Pérez",
-      cedula: "001-1234567-8",
-      email: "juanp@example.com",
-      telefono: "+1 809 555 0101",
-      casosActivos: 2,
-      ultimaActividad: "Hace 2 días",
-    },
-    {
-      id: "cli_02",
-      nombre: "Ana Martínez",
-      cedula: "001-2345678-9",
-      email: "ana.martinez@example.com",
-      telefono: "+1 809 555 0202",
-      casosActivos: 1,
-      ultimaActividad: "Hace 5 días",
-    },
-    {
-      id: "cli_03",
-      nombre: "Carlos García",
-      cedula: "001-3456789-0",
-      email: "cgarcia@example.com",
-      telefono: "+1 809 555 0303",
-      casosActivos: 1,
-      ultimaActividad: "Hace 1 semana",
-    },
-    {
-      id: "cli_04",
-      nombre: "Laura Rodríguez",
-      cedula: "001-4567890-1",
-      email: "laura.r@example.com",
-      telefono: "+1 809 555 0404",
-      casosActivos: 1,
-      ultimaActividad: "Hace 3 días",
-    },
-    {
-      id: "cli_05",
-      nombre: "Bufete López & Asociados",
-      cedula: "RNC: 131-12345-6",
-      email: "contacto@lopezasoc.do",
-      telefono: "+1 809 555 0505",
-      casosActivos: 1,
-      ultimaActividad: "Hace 2 semanas",
-    },
-  ];
+  const [newClient, setNewClient] = useState({
+    nombre_completo: "",
+    cedula_rnc: "",
+    email: "",
+    telefono: "",
+    direccion: "",
+  });
+
+  useEffect(() => {
+    fetchClients();
+  }, []);
+
+  const fetchClients = async () => {
+    try {
+      setLoading(true);
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from("clients")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setClients(data || []);
+    } catch (error) {
+      console.error("Error fetching clients:", error);
+      toast({
+        title: "Error",
+        description: "No se pudieron cargar los clientes",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateClient = async () => {
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("Usuario no autenticado");
+
+      const { error } = await supabase.from("clients").insert([
+        {
+          ...newClient,
+          user_id: user.id,
+        },
+      ]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Cliente creado",
+        description: "El cliente ha sido creado exitosamente",
+      });
+
+      setShowNewClientDialog(false);
+      setNewClient({
+        nombre_completo: "",
+        cedula_rnc: "",
+        email: "",
+        telefono: "",
+        direccion: "",
+      });
+      fetchClients();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo crear el cliente",
+        variant: "destructive",
+      });
+    }
+  };
 
   const getInitials = (name: string) => {
     return name
@@ -90,27 +145,112 @@ const Clients = () => {
     });
   };
 
-  const handleDeleteClient = (nombre: string) => {
-    toast({
-      title: "Eliminar cliente",
-      description: `¿Confirmar eliminación de: ${nombre}?`,
-      variant: "destructive",
-    });
+  const handleDeleteClient = async (clientId: string, nombre: string) => {
+    try {
+      const { error } = await supabase.from("clients").delete().eq("id", clientId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Cliente eliminado",
+        description: `${nombre} ha sido eliminado`,
+      });
+
+      fetchClients();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo eliminar el cliente",
+        variant: "destructive",
+      });
+    }
   };
+
+  const filteredClients = clients.filter(
+    (client) =>
+      searchQuery === "" ||
+      client.nombre_completo.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      client.cedula_rnc.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (client.email || "").toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Clientes</h1>
-          <p className="text-muted-foreground mt-1">
-            Administra tu cartera de clientes
-          </p>
+          <p className="text-muted-foreground mt-1">Administra tu cartera de clientes</p>
         </div>
-        <Button className="gap-2">
-          <Plus className="h-4 w-4" />
-          Nuevo cliente
-        </Button>
+        <Dialog open={showNewClientDialog} onOpenChange={setShowNewClientDialog}>
+          <DialogTrigger asChild>
+            <Button className="gap-2">
+              <Plus className="h-4 w-4" />
+              Nuevo cliente
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Crear Nuevo Cliente</DialogTitle>
+              <DialogDescription>Complete los datos del nuevo cliente</DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="nombre_completo">Nombre Completo *</Label>
+                <Input
+                  id="nombre_completo"
+                  value={newClient.nombre_completo}
+                  onChange={(e) => setNewClient({ ...newClient, nombre_completo: e.target.value })}
+                  placeholder="Ej: Juan Pérez"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="cedula_rnc">Cédula/RNC *</Label>
+                <Input
+                  id="cedula_rnc"
+                  value={newClient.cedula_rnc}
+                  onChange={(e) => setNewClient({ ...newClient, cedula_rnc: e.target.value })}
+                  placeholder="Ej: 001-1234567-8"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={newClient.email}
+                  onChange={(e) => setNewClient({ ...newClient, email: e.target.value })}
+                  placeholder="cliente@example.com"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="telefono">Teléfono</Label>
+                <Input
+                  id="telefono"
+                  value={newClient.telefono}
+                  onChange={(e) => setNewClient({ ...newClient, telefono: e.target.value })}
+                  placeholder="+1 809 555 0101"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="direccion">Dirección</Label>
+                <Input
+                  id="direccion"
+                  value={newClient.direccion}
+                  onChange={(e) => setNewClient({ ...newClient, direccion: e.target.value })}
+                  placeholder="Dirección completa"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowNewClientDialog(false)}>
+                Cancelar
+              </Button>
+              <Button onClick={handleCreateClient} disabled={!newClient.nombre_completo || !newClient.cedula_rnc}>
+                Crear Cliente
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <Card className="shadow-medium">
@@ -125,108 +265,85 @@ const Clients = () => {
                 className="pl-9"
               />
             </div>
-            <Button variant="outline">Filtros</Button>
           </div>
         </CardContent>
       </Card>
 
       <Card className="shadow-medium">
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Cliente</TableHead>
-                <TableHead>Cédula/RNC</TableHead>
-                <TableHead>Contacto</TableHead>
-                <TableHead>Casos activos</TableHead>
-                <TableHead>Última actividad</TableHead>
-                <TableHead className="text-right">Acciones</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {clients.map((client) => (
-                <TableRow
-                  key={client.id}
-                  className="hover:bg-accent/5"
-                >
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Avatar>
-                        <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                          {getInitials(client.nombre)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-medium">{client.nombre}</p>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className="font-mono text-xs">
-                    {client.cedula}
-                  </TableCell>
-                  <TableCell>
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <Mail className="h-3 w-3" />
-                        {client.email}
-                      </div>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <Phone className="h-3 w-3" />
-                        {client.telefono}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="gap-1">
-                      <Briefcase className="h-3 w-3" />
-                      {client.casosActivos}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {client.ultimaActividad}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleViewClient(client.nombre)}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleEditClient(client.nombre)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDeleteClient(client.nombre)}
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </div>
-                  </TableCell>
+          {loading ? (
+            <div className="text-center py-8">Cargando clientes...</div>
+          ) : filteredClients.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              No hay clientes registrados. Crea tu primer cliente haciendo clic en "Nuevo cliente"
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Cliente</TableHead>
+                  <TableHead>Cédula/RNC</TableHead>
+                  <TableHead>Contacto</TableHead>
+                  <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredClients.map((client) => (
+                  <TableRow key={client.id} className="hover:bg-accent/5">
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <Avatar>
+                          <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                            {getInitials(client.nombre_completo)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-medium">{client.nombre_completo}</p>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="font-mono text-xs">{client.cedula_rnc}</TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        {client.email && (
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <Mail className="h-3 w-3" />
+                            {client.email}
+                          </div>
+                        )}
+                        {client.telefono && (
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <Phone className="h-3 w-3" />
+                            {client.telefono}
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <Button variant="ghost" size="icon" onClick={() => handleViewClient(client.nombre_completo)}>
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => handleEditClient(client.nombre_completo)}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => handleDeleteClient(client.id, client.nombre_completo)}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
 
       <div className="flex items-center justify-between text-sm text-muted-foreground">
-        <p>Mostrando 5 de 5 clientes</p>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" disabled>
-            Anterior
-          </Button>
-          <Button variant="outline" size="sm" disabled>
-            Siguiente
-          </Button>
-        </div>
+        <p>
+          Mostrando {filteredClients.length} de {clients.length} clientes
+        </p>
       </div>
     </div>
   );

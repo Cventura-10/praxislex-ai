@@ -14,6 +14,245 @@ export type Database = {
   }
   public: {
     Tables: {
+      cases: {
+        Row: {
+          client_id: string | null
+          created_at: string | null
+          descripcion: string | null
+          estado: string | null
+          etapa_procesal: string | null
+          id: string
+          juzgado: string | null
+          materia: string
+          numero_expediente: string
+          responsable: string | null
+          titulo: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string | null
+          descripcion?: string | null
+          estado?: string | null
+          etapa_procesal?: string | null
+          id?: string
+          juzgado?: string | null
+          materia: string
+          numero_expediente: string
+          responsable?: string | null
+          titulo: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string | null
+          descripcion?: string | null
+          estado?: string | null
+          etapa_procesal?: string | null
+          id?: string
+          juzgado?: string | null
+          materia?: string
+          numero_expediente?: string
+          responsable?: string | null
+          titulo?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cases_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clients: {
+        Row: {
+          cedula_rnc: string
+          created_at: string | null
+          direccion: string | null
+          email: string | null
+          id: string
+          nombre_completo: string
+          telefono: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          cedula_rnc: string
+          created_at?: string | null
+          direccion?: string | null
+          email?: string | null
+          id?: string
+          nombre_completo: string
+          telefono?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          cedula_rnc?: string
+          created_at?: string | null
+          direccion?: string | null
+          email?: string | null
+          id?: string
+          nombre_completo?: string
+          telefono?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      deadlines: {
+        Row: {
+          case_id: string | null
+          caso: string
+          completado: boolean | null
+          created_at: string | null
+          fecha_vencimiento: string
+          id: string
+          prioridad: string | null
+          tipo: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          case_id?: string | null
+          caso: string
+          completado?: boolean | null
+          created_at?: string | null
+          fecha_vencimiento: string
+          id?: string
+          prioridad?: string | null
+          tipo: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          case_id?: string | null
+          caso?: string
+          completado?: boolean | null
+          created_at?: string | null
+          fecha_vencimiento?: string
+          id?: string
+          prioridad?: string | null
+          tipo?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deadlines_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hearings: {
+        Row: {
+          case_id: string | null
+          caso: string
+          created_at: string | null
+          estado: string | null
+          fecha: string
+          hora: string
+          id: string
+          juzgado: string
+          tipo: string
+          ubicacion: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          case_id?: string | null
+          caso: string
+          created_at?: string | null
+          estado?: string | null
+          fecha: string
+          hora: string
+          id?: string
+          juzgado: string
+          tipo: string
+          ubicacion?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          case_id?: string | null
+          caso?: string
+          created_at?: string | null
+          estado?: string | null
+          fecha?: string
+          hora?: string
+          id?: string
+          juzgado?: string
+          tipo?: string
+          ubicacion?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hearings_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          client_id: string | null
+          concepto: string
+          created_at: string | null
+          estado: string | null
+          fecha: string
+          id: string
+          monto: number
+          numero_factura: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          client_id?: string | null
+          concepto: string
+          created_at?: string | null
+          estado?: string | null
+          fecha: string
+          id?: string
+          monto: number
+          numero_factura: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          client_id?: string | null
+          concepto?: string
+          created_at?: string | null
+          estado?: string | null
+          fecha?: string
+          id?: string
+          monto?: number
+          numero_factura?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       legal_documents: {
         Row: {
           contenido: string

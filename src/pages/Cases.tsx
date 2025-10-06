@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,74 +18,160 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { CaseStatusBadge } from "@/components/cases/CaseStatusBadge";
 import { Plus, Search, Filter, Download, Eye, Edit, Trash2 } from "lucide-react";
 import { MATERIAS_JURIDICAS, ETAPAS_PROCESALES } from "@/lib/constants";
 import { useToast } from "@/hooks/use-toast";
+
+interface Case {
+  id: string;
+  numero_expediente: string;
+  titulo: string;
+  materia: string;
+  juzgado: string | null;
+  etapa_procesal: string | null;
+  responsable: string | null;
+  estado: string | null;
+  client_id: string | null;
+  descripcion: string | null;
+  created_at: string;
+  updated_at: string;
+  clients?: {
+    nombre_completo: string;
+  };
+}
 
 const Cases = () => {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterMateria, setFilterMateria] = useState("all");
   const [filterEtapa, setFilterEtapa] = useState("all");
+  const [cases, setCases] = useState<Case[]>([]);
+  const [clients, setClients] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showNewCaseDialog, setShowNewCaseDialog] = useState(false);
 
-  const cases = [
-    {
-      id: "cas_01",
-      numero: "2025-00123",
-      titulo: "Cobro de pesos",
-      cliente: "Juan Pérez",
-      materia: "Civil",
-      juzgado: "Primera Instancia DN",
-      etapa: "demanda" as const,
-      responsable: "María Arias",
-      fecha: "05 Oct 2025",
-    },
-    {
-      id: "cas_02",
-      numero: "2025-00115",
-      titulo: "Desalojo",
-      cliente: "Ana Martínez",
-      materia: "Civil",
-      juzgado: "Juzgado de Paz DN",
-      etapa: "pruebas" as const,
-      responsable: "María Arias",
-      fecha: "28 Sep 2025",
-    },
-    {
-      id: "cas_03",
-      numero: "2024-00892",
-      titulo: "Despido injustificado",
-      cliente: "Carlos García",
-      materia: "Laboral",
-      juzgado: "Tribunal Laboral DN",
-      etapa: "contestacion" as const,
-      responsable: "José Ramírez",
-      fecha: "15 Ago 2025",
-    },
-    {
-      id: "cas_04",
-      numero: "2025-00045",
-      titulo: "Divorcio",
-      cliente: "Laura Rodríguez",
-      materia: "Familia",
-      juzgado: "Primera Instancia DN",
-      etapa: "sentencia" as const,
-      responsable: "María Arias",
-      fecha: "10 Feb 2025",
-    },
-    {
-      id: "cas_05",
-      numero: "2024-00654",
-      titulo: "Cobro de honorarios",
-      cliente: "Bufete López & Asociados",
-      materia: "Comercial",
-      juzgado: "Cámara Civil y Comercial",
-      etapa: "apelacion" as const,
-      responsable: "José Ramírez",
-      fecha: "03 Jun 2024",
-    },
-  ];
+  const [newCase, setNewCase] = useState({
+    numero_expediente: "",
+    titulo: "",
+    materia: "",
+    juzgado: "",
+    etapa_procesal: "",
+    responsable: "",
+    client_id: "",
+    descripcion: "",
+  });
+
+  useEffect(() => {
+    fetchCases();
+    fetchClients();
+  }, []);
+
+  const fetchCases = async () => {
+    try {
+      setLoading(true);
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from("cases")
+        .select(
+          `
+          *,
+          clients (
+            nombre_completo
+          )
+        `
+        )
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setCases(data || []);
+    } catch (error) {
+      console.error("Error fetching cases:", error);
+      toast({
+        title: "Error",
+        description: "No se pudieron cargar los casos",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchClients = async () => {
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from("clients")
+        .select("*")
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+      setClients(data || []);
+    } catch (error) {
+      console.error("Error fetching clients:", error);
+    }
+  };
+
+  const handleCreateCase = async () => {
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("Usuario no autenticado");
+
+      const { error } = await supabase.from("cases").insert([
+        {
+          ...newCase,
+          user_id: user.id,
+          client_id: newCase.client_id || null,
+        },
+      ]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Caso creado",
+        description: "El caso ha sido creado exitosamente",
+      });
+
+      setShowNewCaseDialog(false);
+      setNewCase({
+        numero_expediente: "",
+        titulo: "",
+        materia: "",
+        juzgado: "",
+        etapa_procesal: "",
+        responsable: "",
+        client_id: "",
+        descripcion: "",
+      });
+      fetchCases();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo crear el caso",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleViewCase = (caseId: string, titulo: string) => {
     toast({
@@ -100,27 +187,161 @@ const Cases = () => {
     });
   };
 
-  const handleDeleteCase = (caseId: string, titulo: string) => {
-    toast({
-      title: "Eliminar caso",
-      description: `¿Confirmar eliminación de: ${titulo}?`,
-      variant: "destructive",
-    });
+  const handleDeleteCase = async (caseId: string, titulo: string) => {
+    try {
+      const { error } = await supabase.from("cases").delete().eq("id", caseId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Caso eliminado",
+        description: `${titulo} ha sido eliminado`,
+      });
+
+      fetchCases();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo eliminar el caso",
+        variant: "destructive",
+      });
+    }
   };
+
+  const filteredCases = cases.filter((caso) => {
+    const matchesSearch =
+      searchQuery === "" ||
+      caso.titulo.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      caso.numero_expediente.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (caso.clients?.nombre_completo || "").toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesMateria = filterMateria === "all" || caso.materia === filterMateria;
+    const matchesEtapa = filterEtapa === "all" || caso.etapa_procesal === filterEtapa;
+
+    return matchesSearch && matchesMateria && matchesEtapa;
+  });
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Casos</h1>
-          <p className="text-muted-foreground mt-1">
-            Gestiona todos tus expedientes jurídicos
-          </p>
+          <p className="text-muted-foreground mt-1">Gestiona todos tus expedientes jurídicos</p>
         </div>
-        <Button className="gap-2">
-          <Plus className="h-4 w-4" />
-          Nuevo caso
-        </Button>
+        <Dialog open={showNewCaseDialog} onOpenChange={setShowNewCaseDialog}>
+          <DialogTrigger asChild>
+            <Button className="gap-2">
+              <Plus className="h-4 w-4" />
+              Nuevo caso
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Crear Nuevo Caso</DialogTitle>
+              <DialogDescription>Complete los datos del nuevo caso legal</DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="numero_expediente">Número de Expediente *</Label>
+                <Input
+                  id="numero_expediente"
+                  value={newCase.numero_expediente}
+                  onChange={(e) => setNewCase({ ...newCase, numero_expediente: e.target.value })}
+                  placeholder="Ej: 001-2024-CIVI-00123"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="titulo">Título del Caso *</Label>
+                <Input
+                  id="titulo"
+                  value={newCase.titulo}
+                  onChange={(e) => setNewCase({ ...newCase, titulo: e.target.value })}
+                  placeholder="Ej: Demanda de Desalojo"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="client_id">Cliente</Label>
+                <Select value={newCase.client_id} onValueChange={(value) => setNewCase({ ...newCase, client_id: value })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar cliente" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {clients.map((client) => (
+                      <SelectItem key={client.id} value={client.id}>
+                        {client.nombre_completo}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="materia">Materia *</Label>
+                <Select value={newCase.materia} onValueChange={(value) => setNewCase({ ...newCase, materia: value })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar materia" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {MATERIAS_JURIDICAS.map((materia) => (
+                      <SelectItem key={materia.value} value={materia.value}>
+                        {materia.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="juzgado">Juzgado</Label>
+                <Input
+                  id="juzgado"
+                  value={newCase.juzgado}
+                  onChange={(e) => setNewCase({ ...newCase, juzgado: e.target.value })}
+                  placeholder="Ej: 1ra Cámara Civil"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="etapa_procesal">Etapa Procesal</Label>
+                <Select value={newCase.etapa_procesal} onValueChange={(value) => setNewCase({ ...newCase, etapa_procesal: value })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar etapa" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ETAPAS_PROCESALES.map((etapa) => (
+                      <SelectItem key={etapa.value} value={etapa.value}>
+                        {etapa.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="responsable">Responsable</Label>
+                <Input
+                  id="responsable"
+                  value={newCase.responsable}
+                  onChange={(e) => setNewCase({ ...newCase, responsable: e.target.value })}
+                  placeholder="Ej: Dra. María González"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="descripcion">Descripción</Label>
+                <Input
+                  id="descripcion"
+                  value={newCase.descripcion}
+                  onChange={(e) => setNewCase({ ...newCase, descripcion: e.target.value })}
+                  placeholder="Descripción del caso"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowNewCaseDialog(false)}>
+                Cancelar
+              </Button>
+              <Button onClick={handleCreateCase} disabled={!newCase.numero_expediente || !newCase.titulo || !newCase.materia}>
+                Crear Caso
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <Card className="shadow-medium">
@@ -165,100 +386,72 @@ const Cases = () => {
               </SelectContent>
             </Select>
           </div>
-          <div className="flex gap-2 mt-4">
-            <Button variant="outline" size="sm" className="gap-2">
-              <Filter className="h-4 w-4" />
-              Más filtros
-            </Button>
-            <Button variant="outline" size="sm" className="gap-2">
-              <Download className="h-4 w-4" />
-              Exportar
-            </Button>
-          </div>
         </CardContent>
       </Card>
 
       <Card className="shadow-medium">
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Número</TableHead>
-                <TableHead>Título</TableHead>
-                <TableHead>Cliente</TableHead>
-                <TableHead>Materia</TableHead>
-                <TableHead>Juzgado</TableHead>
-                <TableHead>Etapa</TableHead>
-                <TableHead>Responsable</TableHead>
-                <TableHead>Acciones</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {cases.map((caso) => (
-                <TableRow
-                  key={caso.id}
-                  className="hover:bg-accent/5"
-                >
-                  <TableCell className="font-mono text-xs">
-                    {caso.numero}
-                  </TableCell>
-                  <TableCell className="font-medium">{caso.titulo}</TableCell>
-                  <TableCell>{caso.cliente}</TableCell>
-                  <TableCell>
-                    <span className="inline-flex rounded-full px-2 py-1 text-xs font-medium bg-secondary/20 text-secondary-foreground">
-                      {caso.materia}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-sm">{caso.juzgado}</TableCell>
-                  <TableCell>
-                    <CaseStatusBadge status={caso.etapa} />
-                  </TableCell>
-                  <TableCell className="text-sm">{caso.responsable}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {caso.fecha}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleViewCase(caso.id, caso.titulo)}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleEditCase(caso.id, caso.titulo)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDeleteCase(caso.id, caso.titulo)}
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </div>
-                  </TableCell>
+          {loading ? (
+            <div className="text-center py-8">Cargando casos...</div>
+          ) : filteredCases.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              No hay casos registrados. Crea tu primer caso haciendo clic en "Nuevo Caso"
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Número</TableHead>
+                  <TableHead>Título</TableHead>
+                  <TableHead>Cliente</TableHead>
+                  <TableHead>Materia</TableHead>
+                  <TableHead>Juzgado</TableHead>
+                  <TableHead>Etapa</TableHead>
+                  <TableHead>Responsable</TableHead>
+                  <TableHead>Acciones</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredCases.map((caso) => (
+                  <TableRow key={caso.id} className="hover:bg-accent/5">
+                    <TableCell className="font-mono text-xs">{caso.numero_expediente}</TableCell>
+                    <TableCell className="font-medium">{caso.titulo}</TableCell>
+                    <TableCell>{caso.clients?.nombre_completo || "Sin cliente"}</TableCell>
+                    <TableCell>
+                      <span className="inline-flex rounded-full px-2 py-1 text-xs font-medium bg-secondary/20 text-secondary-foreground">
+                        {caso.materia}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-sm">{caso.juzgado || "N/A"}</TableCell>
+                    <TableCell>
+                      {caso.etapa_procesal ? <CaseStatusBadge status={caso.etapa_procesal as any} /> : <span className="text-muted-foreground text-sm">N/A</span>}
+                    </TableCell>
+                    <TableCell className="text-sm">{caso.responsable || "N/A"}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <Button variant="ghost" size="icon" onClick={() => handleViewCase(caso.id, caso.titulo)}>
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => handleEditCase(caso.id, caso.titulo)}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => handleDeleteCase(caso.id, caso.titulo)}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
 
       <div className="flex items-center justify-between text-sm text-muted-foreground">
-        <p>Mostrando 5 de 5 casos</p>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" disabled>
-            Anterior
-          </Button>
-          <Button variant="outline" size="sm" disabled>
-            Siguiente
-          </Button>
-        </div>
+        <p>
+          Mostrando {filteredCases.length} de {cases.length} casos
+        </p>
       </div>
     </div>
   );
