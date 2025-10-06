@@ -86,7 +86,7 @@ export default function Auth() {
     // Email validation
     if (!emailRegex.test(email)) e.email = "Por favor introduce un correo válido";
     
-    // Password validation
+    // Password validation - enforce 12 char minimum for both signup and signin
     if (isSignUp) {
       try {
         passwordSchema.parse(password);
@@ -96,7 +96,10 @@ export default function Auth() {
         }
       }
     } else {
-      if (!password || password.length < 6) e.password = "Mínimo 6 caracteres";
+      // Sign-in also requires 12+ characters for UX parity
+      if (!password || password.length < 12) {
+        e.password = "La contraseña debe tener al menos 12 caracteres";
+      }
     }
     
     // Full name validation
