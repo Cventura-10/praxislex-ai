@@ -25,7 +25,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Mail, Phone, Briefcase, Eye, Edit, Trash2, EyeOff, ArrowLeft } from "lucide-react";
+import { Plus, Search, Mail, Phone, Briefcase, Eye, Edit, Trash2, EyeOff, ArrowLeft, Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { maskEmail, maskPhone, maskCedula } from "@/lib/dataMasking";
 
@@ -224,6 +224,38 @@ const Clients = () => {
     }
   };
 
+  const handleSendInvitation = async (clientId: string, clientEmail: string, nombre: string) => {
+    try {
+      if (!clientEmail) {
+        toast({
+          title: "Error",
+          description: "El cliente no tiene email registrado",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { error } = await supabase.functions.invoke("send-client-invitation", {
+        body: { clientId },
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Invitación enviada",
+        description: `Se ha enviado la invitación al portal a ${nombre}`,
+      });
+
+      fetchClients();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo enviar la invitación",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleDeleteClient = async (clientId: string, nombre: string) => {
     try {
       const { error } = await supabase.from("clients").delete().eq("id", clientId);
@@ -417,6 +449,14 @@ const Clients = () => {
                             <EyeOff className="h-4 w-4 text-muted-foreground" />
                           </Button>
                         )}
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => handleSendInvitation(client.id, client.email || '', client.nombre_completo)}
+                          title="Enviar invitación al portal"
+                        >
+                          <Send className="h-4 w-4" />
+                        </Button>
                         <Button variant="ghost" size="icon" onClick={() => handleEditClient(client.nombre_completo)}>
                           <Edit className="h-4 w-4" />
                         </Button>

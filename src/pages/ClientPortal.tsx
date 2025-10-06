@@ -29,6 +29,7 @@ import { useToast } from "@/hooks/use-toast";
 import { CaseStatusBadge } from "@/components/cases/CaseStatusBadge";
 import { InvoiceViewer } from "@/components/InvoiceViewer";
 import { useLawFirmProfile } from "@/hooks/useLawFirmProfile";
+import { TermsAndConditionsDialog } from "@/components/TermsAndConditionsDialog";
 
 interface ClientCase {
   id: string;
@@ -86,6 +87,7 @@ const ClientPortal = () => {
   const [documents, setDocuments] = useState<ClientDocument[]>([]);
   const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
   const [showInvoiceViewer, setShowInvoiceViewer] = useState(false);
+  const [showTermsDialog, setShowTermsDialog] = useState(false);
 
   useEffect(() => {
     fetchClientData();
@@ -122,6 +124,11 @@ const ClientPortal = () => {
           variant: "destructive",
         });
         return;
+      }
+
+      // Verificar si el cliente ha aceptado los términos
+      if (!clientInfo.accepted_terms) {
+        setShowTermsDialog(true);
       }
 
       // Obtener casos del cliente
@@ -175,6 +182,37 @@ const ClientPortal = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAcceptTerms = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || !clientData) return;
+
+      const { error } = await supabase
+        .from("clients")
+        .update({
+          accepted_terms: true,
+          terms_accepted_at: new Date().toISOString(),
+        })
+        .eq("id", clientData.id);
+
+      if (error) throw error;
+
+      setShowTermsDialog(false);
+      toast({
+        title: "Términos aceptados",
+        description: "Bienvenido al portal del cliente",
+      });
+      
+      fetchClientData();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "No se pudieron aceptar los términos",
+        variant: "destructive",
+      });
     }
   };
 
@@ -263,7 +301,13 @@ const ClientPortal = () => {
   }
 
   return (
-    <div className="space-y-6 p-6">
+    <>
+      <TermsAndConditionsDialog 
+        open={showTermsDialog} 
+        onAccept={handleAcceptTerms}
+      />
+      
+      <div className="space-y-6 p-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -555,7 +599,8 @@ const ClientPortal = () => {
           lawFirm={lawFirmProfile}
         />
       )}
-    </div>
+      </div>
+    </>
   );
 };
 

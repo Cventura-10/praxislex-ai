@@ -93,35 +93,50 @@ export type Database = {
       }
       clients: {
         Row: {
+          accepted_terms: boolean | null
+          auth_user_id: string | null
           cedula_rnc: string
           created_at: string | null
           direccion: string | null
           email: string | null
           id: string
+          invitation_token: string | null
+          invited_at: string | null
           nombre_completo: string
           telefono: string | null
+          terms_accepted_at: string | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
+          accepted_terms?: boolean | null
+          auth_user_id?: string | null
           cedula_rnc: string
           created_at?: string | null
           direccion?: string | null
           email?: string | null
           id?: string
+          invitation_token?: string | null
+          invited_at?: string | null
           nombre_completo: string
           telefono?: string | null
+          terms_accepted_at?: string | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
+          accepted_terms?: boolean | null
+          auth_user_id?: string | null
           cedula_rnc?: string
           created_at?: string | null
           direccion?: string | null
           email?: string | null
           id?: string
+          invitation_token?: string | null
+          invited_at?: string | null
           nombre_completo?: string
           telefono?: string | null
+          terms_accepted_at?: string | null
           updated_at?: string | null
           user_id?: string
         }
