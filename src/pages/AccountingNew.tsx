@@ -16,7 +16,9 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import { CATEGORIAS_GASTOS } from "@/lib/constants";
 import { 
   ArrowLeft, 
   Plus, 
@@ -26,17 +28,23 @@ import {
   Receipt,
   Eye,
   DollarSign,
+  ShoppingCart,
+  Trash2,
 } from "lucide-react";
 
 export default function AccountingNew() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [clients, setClients] = useState<any[]>([]);
+  const [cases, setCases] = useState<any[]>([]);
+  const [expenses, setExpenses] = useState<any[]>([]);
   const [showCreditDialog, setShowCreditDialog] = useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [showExpenseDialog, setShowExpenseDialog] = useState(false);
   const [showStatementDialog, setShowStatementDialog] = useState(false);
   const [accountStatement, setAccountStatement] = useState<any[]>([]);
   const [selectedClientId, setSelectedClientId] = useState("");
+  const [selectedCaseId, setSelectedCaseId] = useState("");
   const [balance, setBalance] = useState(0);
   
   const [newCredit, setNewCredit] = useState({
@@ -59,10 +67,55 @@ export default function AccountingNew() {
     invoice_id: "",
     notas: "",
   });
+  
+  const [newExpense, setNewExpense] = useState({
+    client_id: "",
+    case_id: "",
+    concepto: "",
+    categoria: "",
+    monto: "",
+    fecha: new Date().toISOString().split('T')[0],
+    metodo_pago: "",
+    proveedor: "",
+    referencia: "",
+    notas: "",
+    reembolsable: true,
+  });
 
   useEffect(() => {
-    fetchClients();
+    fetchData();
   }, []);
+
+  const fetchData = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: clientsData } = await supabase
+        .from("clients")
+        .select("id, nombre_completo, cedula_rnc")
+        .eq("user_id", user.id)
+        .order("nombre_completo");
+
+      const { data: casesData } = await supabase
+        .from("cases")
+        .select("id, titulo, numero_expediente, client_id")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      const { data: expensesData } = await supabase
+        .from("expenses")
+        .select("*, clients(nombre_completo), cases(titulo, numero_expediente)")
+        .eq("user_id", user.id)
+        .order("fecha", { ascending: false });
+
+      setClients(clientsData || []);
+      setCases(casesData || []);
+      setExpenses(expensesData || []);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
 
   const fetchClients = async () => {
     try {
@@ -79,6 +132,74 @@ export default function AccountingNew() {
       setClients(data || []);
     } catch (error) {
       console.error("Error fetching clients:", error);
+    }
+  };
+
+  const handleCreateExpense = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("No autenticado");
+
+      const { error } = await supabase.from("expenses").insert([
+        {
+          ...newExpense,
+          monto: parseFloat(newExpense.monto),
+          user_id: user.id,
+        },
+      ]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Gasto registrado",
+        description: "El gasto ha sido registrado exitosamente",
+      });
+
+      setShowExpenseDialog(false);
+      setNewExpense({
+        client_id: "",
+        case_id: "",
+        concepto: "",
+        categoria: "",
+        monto: "",
+        fecha: new Date().toISOString().split('T')[0],
+        metodo_pago: "",
+        proveedor: "",
+        referencia: "",
+        notas: "",
+        reembolsable: true,
+      });
+      fetchData();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo registrar el gasto",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteExpense = async (expenseId: string) => {
+    try {
+      const { error } = await supabase
+        .from("expenses")
+        .delete()
+        .eq("id", expenseId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Gasto eliminado",
+        description: "El gasto ha sido eliminado exitosamente",
+      });
+
+      fetchData();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo eliminar el gasto",
+        variant: "destructive",
+      });
     }
   };
 
@@ -265,13 +386,170 @@ export default function AccountingNew() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Gestión de Créditos y Pagos</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Gestión Financiera</h1>
             <p className="text-muted-foreground mt-1">
-              Administra créditos, pagos y estados de cuenta de clientes
+              Administra créditos, pagos, gastos y estados de cuenta
             </p>
           </div>
         </div>
         <div className="flex gap-2">
+          <Dialog open={showExpenseDialog} onOpenChange={setShowExpenseDialog}>
+            <DialogTrigger asChild>
+              <Button className="gap-2" variant="outline">
+                <ShoppingCart className="h-4 w-4" />
+                Nuevo Gasto
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Registrar Gasto</DialogTitle>
+                <DialogDescription>
+                  Registrar un gasto relacionado con un caso
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="expense_client">Cliente *</Label>
+                  <Select 
+                    value={newExpense.client_id} 
+                    onValueChange={(value) => {
+                      setNewExpense({ ...newExpense, client_id: value, case_id: "" });
+                      setSelectedClientId(value);
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar cliente" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {clients.map((client) => (
+                        <SelectItem key={client.id} value={client.id}>
+                          {client.nombre_completo}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="expense_case">Caso</Label>
+                  <Select 
+                    value={newExpense.case_id} 
+                    onValueChange={(value) => setNewExpense({ ...newExpense, case_id: value })}
+                    disabled={!newExpense.client_id}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar caso (opcional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {cases
+                        .filter(c => c.client_id === newExpense.client_id)
+                        .map((caso) => (
+                          <SelectItem key={caso.id} value={caso.id}>
+                            {caso.numero_expediente} - {caso.titulo}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="expense_categoria">Categoría *</Label>
+                  <Select value={newExpense.categoria} onValueChange={(value) => setNewExpense({ ...newExpense, categoria: value })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar categoría" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CATEGORIAS_GASTOS.map((cat) => (
+                        <SelectItem key={cat.value} value={cat.value}>
+                          {cat.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="expense_concepto">Concepto *</Label>
+                  <Input
+                    id="expense_concepto"
+                    value={newExpense.concepto}
+                    onChange={(e) => setNewExpense({ ...newExpense, concepto: e.target.value })}
+                    placeholder="Descripción del gasto"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="expense_monto">Monto *</Label>
+                  <Input
+                    id="expense_monto"
+                    type="number"
+                    step="0.01"
+                    value={newExpense.monto}
+                    onChange={(e) => setNewExpense({ ...newExpense, monto: e.target.value })}
+                    placeholder="0.00"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="expense_proveedor">Proveedor</Label>
+                  <Input
+                    id="expense_proveedor"
+                    value={newExpense.proveedor}
+                    onChange={(e) => setNewExpense({ ...newExpense, proveedor: e.target.value })}
+                    placeholder="Nombre del proveedor (opcional)"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="expense_metodo">Método de Pago</Label>
+                  <Select value={newExpense.metodo_pago} onValueChange={(value) => setNewExpense({ ...newExpense, metodo_pago: value })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar método" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="efectivo">Efectivo</SelectItem>
+                      <SelectItem value="transferencia">Transferencia</SelectItem>
+                      <SelectItem value="cheque">Cheque</SelectItem>
+                      <SelectItem value="tarjeta">Tarjeta</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="expense_fecha">Fecha *</Label>
+                  <Input
+                    id="expense_fecha"
+                    type="date"
+                    value={newExpense.fecha}
+                    onChange={(e) => setNewExpense({ ...newExpense, fecha: e.target.value })}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="expense_referencia">Referencia</Label>
+                  <Input
+                    id="expense_referencia"
+                    value={newExpense.referencia}
+                    onChange={(e) => setNewExpense({ ...newExpense, referencia: e.target.value })}
+                    placeholder="Número de factura o recibo (opcional)"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="expense_notas">Notas</Label>
+                  <Textarea
+                    id="expense_notas"
+                    value={newExpense.notas}
+                    onChange={(e) => setNewExpense({ ...newExpense, notas: e.target.value })}
+                    placeholder="Notas adicionales (opcional)"
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setShowExpenseDialog(false)}>
+                  Cancelar
+                </Button>
+                <Button 
+                  onClick={handleCreateExpense} 
+                  disabled={!newExpense.client_id || !newExpense.concepto || !newExpense.categoria || !newExpense.monto}
+                >
+                  Registrar Gasto
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+          
           <Dialog open={showCreditDialog} onOpenChange={setShowCreditDialog}>
             <DialogTrigger asChild>
               <Button className="gap-2" variant="outline">
@@ -478,44 +756,135 @@ export default function AccountingNew() {
         </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <CreditCard className="h-5 w-5" />
-            Clientes - Estados de Cuenta
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {clients.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">
-              No hay clientes registrados
-            </p>
-          ) : (
-            <div className="grid gap-3">
-              {clients.map((client) => (
-                <div
-                  key={client.id}
-                  className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/5 transition-base"
-                >
-                  <div>
-                    <p className="font-medium">{client.nombre_completo}</p>
-                    <p className="text-sm text-muted-foreground">{client.cedula_rnc}</p>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-2"
-                    onClick={() => handleViewStatement(client.id)}
-                  >
-                    <Eye className="h-4 w-4" />
-                    Ver Estado de Cuenta
-                  </Button>
+      <Tabs defaultValue="clients" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="clients">Clientes y Estados de Cuenta</TabsTrigger>
+          <TabsTrigger value="expenses">Gastos Procesales</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="clients">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CreditCard className="h-5 w-5" />
+                Clientes - Estados de Cuenta
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {clients.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">
+                  No hay clientes registrados
+                </p>
+              ) : (
+                <div className="grid gap-3">
+                  {clients.map((client) => (
+                    <div
+                      key={client.id}
+                      className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/5 transition-base"
+                    >
+                      <div>
+                        <p className="font-medium">{client.nombre_completo}</p>
+                        <p className="text-sm text-muted-foreground">{client.cedula_rnc}</p>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
+                        onClick={() => handleViewStatement(client.id)}
+                      >
+                        <Eye className="h-4 w-4" />
+                        Ver Estado de Cuenta
+                      </Button>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="expenses">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ShoppingCart className="h-5 w-5" />
+                Gastos Procesales
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {expenses.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">
+                  No hay gastos registrados
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {expenses.map((expense) => (
+                    <div
+                      key={expense.id}
+                      className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/5 transition-base"
+                    >
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="font-medium">{expense.concepto}</p>
+                          <Badge variant="outline">
+                            {CATEGORIAS_GASTOS.find(c => c.value === expense.categoria)?.label}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                          <span>{expense.clients?.nombre_completo}</span>
+                          {expense.cases && (
+                            <>
+                              <span>•</span>
+                              <span>{expense.cases.numero_expediente}</span>
+                            </>
+                          )}
+                          <span>•</span>
+                          <span>{formatDate(expense.fecha)}</span>
+                          {expense.proveedor && (
+                            <>
+                              <span>•</span>
+                              <span>{expense.proveedor}</span>
+                            </>
+                          )}
+                        </div>
+                        {expense.notas && (
+                          <p className="text-xs text-muted-foreground mt-1">{expense.notas}</p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="text-right">
+                          <p className="font-semibold text-lg">{formatCurrency(expense.monto)}</p>
+                          {expense.reembolsable && !expense.reembolsado && (
+                            <Badge variant="secondary" className="text-xs">
+                              Reembolsable
+                            </Badge>
+                          )}
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteExpense(expense.id)}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  <div className="mt-6 p-4 bg-muted/50 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Total de gastos:</span>
+                      <span className="text-xl font-bold">
+                        {formatCurrency(expenses.reduce((sum, exp) => sum + parseFloat(exp.monto), 0))}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       <Dialog open={showStatementDialog} onOpenChange={setShowStatementDialog}>
         <DialogContent className="max-w-4xl max-h-[80vh]">

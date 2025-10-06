@@ -215,3 +215,22 @@ export const TIPOS_COBRO = [
   { value: "consultoria", label: "Consultoría" },
   { value: "otros", label: "Otros" },
 ] as const;
+
+// Categorías de gastos procesales
+export const CATEGORIAS_GASTOS = [
+  { value: "tasas_judiciales", label: "Tasas Judiciales" },
+  { value: "timbres", label: "Timbres y Papel Sellado" },
+  { value: "notificaciones", label: "Notificaciones y Alguacilazgo" },
+  { value: "peritos", label: "Honorarios de Peritos" },
+  { value: "traducciones", label: "Traducciones" },
+  { value: "copias_certificadas", label: "Copias Certificadas" },
+  { value: "publicaciones", label: "Publicaciones y Edictos" },
+  { value: "transporte", label: "Transporte y Traslados" },
+  { value: "depositos_garantia", label: "Depósitos y Garantías" },
+  { value: "tramites_registrales", label: "Trámites Registrales" },
+  { value: "investigaciones", label: "Investigaciones Privadas" },
+  { value: "documentacion", label: "Obtención de Documentos" },
+  { value: "mensajeria", label: "Mensajería y Courier" },
+  { value: "papeleria", label: "Papelería y Materiales" },
+  { value: "otros", label: "Otros Gastos" },
+] as const;

@@ -272,6 +272,78 @@ export type Database = {
           },
         ]
       }
+      expenses: {
+        Row: {
+          case_id: string | null
+          categoria: string
+          client_id: string | null
+          concepto: string
+          created_at: string | null
+          fecha: string
+          id: string
+          metodo_pago: string | null
+          monto: number
+          notas: string | null
+          proveedor: string | null
+          reembolsable: boolean | null
+          reembolsado: boolean | null
+          referencia: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          case_id?: string | null
+          categoria: string
+          client_id?: string | null
+          concepto: string
+          created_at?: string | null
+          fecha?: string
+          id?: string
+          metodo_pago?: string | null
+          monto: number
+          notas?: string | null
+          proveedor?: string | null
+          reembolsable?: boolean | null
+          reembolsado?: boolean | null
+          referencia?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          case_id?: string | null
+          categoria?: string
+          client_id?: string | null
+          concepto?: string
+          created_at?: string | null
+          fecha?: string
+          id?: string
+          metodo_pago?: string | null
+          monto?: number
+          notas?: string | null
+          proveedor?: string | null
+          reembolsable?: boolean | null
+          reembolsado?: boolean | null
+          referencia?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expenses_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hearings: {
         Row: {
           case_id: string | null
