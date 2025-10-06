@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,6 +13,39 @@ serve(async (req) => {
   }
 
   try {
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) {
+      throw new Error('LOVABLE_API_KEY no configurada');
+    }
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    const authHeader = req.headers.get("authorization");
+    let userId = null;
+    if (authHeader) {
+      const token = authHeader.replace("Bearer ", "");
+      const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+      if (!authError && user) {
+        userId = user.id;
+      }
+    }
+
+    // Obtener información de la firma del abogado si está disponible
+    let lawFirmInfo = null;
+    if (userId) {
+      const { data: firmData } = await supabase
+        .from("law_firm_profile")
+        .select("*")
+        .eq("user_id", userId)
+        .single();
+      
+      if (firmData) {
+        lawFirmInfo = firmData;
+      }
+    }
+
     const { 
       tipo_documento,
       materia,
@@ -28,11 +62,6 @@ serve(async (req) => {
       legislacion,
       jurisprudencia 
     } = await req.json();
-
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY no configurada');
-    }
 
     // Jerarquía normativa según materia
     const jerarquiaNormativa: Record<string, string[]> = {
@@ -90,7 +119,24 @@ serve(async (req) => {
 
     const normasAplicables = jerarquiaNormativa[materia] || jerarquiaNormativa.civil;
 
+    // Preparar información del abogado/firma para el documento
+    const firmaNombre = lawFirmInfo?.nombre_firma || (firma_apoderada?.nombre) || "[Nombre de la Firma]";
+    const abogadoNombre = lawFirmInfo?.abogado_principal || abogado?.nombre || "[Nombre del Abogado]";
+    const matriculaCard = lawFirmInfo?.matricula_card || abogado?.matricula || "[Matrícula CARD]";
+    const direccionFirma = lawFirmInfo?.direccion || abogado?.direccion || "[Dirección]";
+    const telefonoFirma = lawFirmInfo?.telefono || abogado?.telefono || "[Teléfono]";
+    const emailFirma = lawFirmInfo?.email || abogado?.email || "[Email]";
+    const eslogan = lawFirmInfo?.eslogan || "";
+    const rncFirma = lawFirmInfo?.rnc || firma_apoderada?.rnc || "";
+
     const systemPrompt = `Eres un asistente jurídico experto especializado en República Dominicana.
+
+    CARÁTULA DE LA FIRMA:
+    ${firmaNombre}${rncFirma ? ` - RNC: ${rncFirma}` : ''}
+    ${abogadoNombre} - Matrícula CARD: ${matriculaCard}
+    ${direccionFirma}
+    ${telefonoFirma} | ${emailFirma}
+    ${eslogan ? `"${eslogan}"` : ''}
 
     JERARQUÍA NORMATIVA PARA ${materia.toUpperCase()}:
     ${normasAplicables.map((n, i) => `${i + 1}. ${n}`).join('\n')}

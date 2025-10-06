@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Settings as SettingsIcon, Bell, Lock, Globe, ArrowLeft } from "lucide-react";
+import { Settings as SettingsIcon, Bell, Lock, Globe, ArrowLeft, Building2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -26,6 +26,23 @@ export default function Settings() {
       </div>
 
       <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Building2 className="h-5 w-5 text-primary" />
+              <CardTitle>Carátula de Firma</CardTitle>
+            </div>
+            <CardDescription>
+              Configura la información que aparecerá en tus documentos
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => navigate("/configuracion/firma")} className="w-full">
+              Personalizar Carátula
+            </Button>
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <div className="flex items-center gap-2">

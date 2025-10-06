@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,9 +12,35 @@ import {
   Upload,
   Download,
   CheckCircle2,
+  Building2,
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const ClientPortal = () => {
+  const [lawFirmInfo, setLawFirmInfo] = useState<any>(null);
+
+  useEffect(() => {
+    fetchLawFirmInfo();
+  }, []);
+
+  const fetchLawFirmInfo = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from("law_firm_profile")
+        .select("*")
+        .eq("user_id", user.id)
+        .single();
+
+      if (error && error.code !== "PGRST116") throw error;
+      if (data) setLawFirmInfo(data);
+    } catch (error: any) {
+      console.error("Error fetching law firm info:", error);
+    }
+  };
+
   const clientInfo = {
     nombre: "Juan Pérez",
     cedula: "001-1234567-8",
@@ -95,6 +122,65 @@ const ClientPortal = () => {
           Enviar mensaje
         </Button>
       </div>
+
+      {lawFirmInfo && (
+        <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-background">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <Building2 className="h-8 w-8 text-primary" />
+              <div>
+                <CardTitle className="text-2xl">{lawFirmInfo.nombre_firma}</CardTitle>
+                {lawFirmInfo.eslogan && (
+                  <p className="text-lg italic text-muted-foreground mt-1">
+                    "{lawFirmInfo.eslogan}"
+                  </p>
+                )}
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm font-semibold text-muted-foreground">Abogado Principal</p>
+                <p className="text-lg">{lawFirmInfo.abogado_principal}</p>
+                {lawFirmInfo.matricula_card && (
+                  <p className="text-sm text-muted-foreground">Matrícula CARD: {lawFirmInfo.matricula_card}</p>
+                )}
+              </div>
+              
+              {lawFirmInfo.direccion && (
+                <div>
+                  <p className="text-sm font-semibold text-muted-foreground">Dirección</p>
+                  <p>{lawFirmInfo.direccion}</p>
+                  {lawFirmInfo.ciudad && lawFirmInfo.provincia && (
+                    <p className="text-sm text-muted-foreground">{lawFirmInfo.ciudad}, {lawFirmInfo.provincia}</p>
+                  )}
+                </div>
+              )}
+
+              {lawFirmInfo.telefono && (
+                <div>
+                  <p className="text-sm font-semibold text-muted-foreground">Contacto</p>
+                  <p>{lawFirmInfo.telefono}</p>
+                  {lawFirmInfo.email && <p className="text-sm">{lawFirmInfo.email}</p>}
+                </div>
+              )}
+
+              {lawFirmInfo.rnc && (
+                <div>
+                  <p className="text-sm font-semibold text-muted-foreground">RNC</p>
+                  <p>{lawFirmInfo.rnc}</p>
+                  {lawFirmInfo.sitio_web && (
+                    <a href={lawFirmInfo.sitio_web} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline">
+                      {lawFirmInfo.sitio_web}
+                    </a>
+                  )}
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card className="shadow-medium border-l-4 border-l-primary">
         <CardHeader>

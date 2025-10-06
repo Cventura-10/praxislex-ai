@@ -68,7 +68,7 @@ export function Header() {
       <div className="container flex h-16 items-center justify-between px-4">
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2">
-            <img src={logo} alt="PraxisLex" className="h-10 w-auto" />
+            <img src={logo} alt="PraxisLex" className="h-16 w-auto" />
           </div>
         </div>
 

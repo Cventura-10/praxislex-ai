@@ -253,6 +253,63 @@ export type Database = {
           },
         ]
       }
+      law_firm_profile: {
+        Row: {
+          abogado_principal: string | null
+          ciudad: string | null
+          created_at: string | null
+          direccion: string | null
+          email: string | null
+          eslogan: string | null
+          id: string
+          logo_url: string | null
+          matricula_card: string | null
+          nombre_firma: string
+          provincia: string | null
+          rnc: string | null
+          sitio_web: string | null
+          telefono: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          abogado_principal?: string | null
+          ciudad?: string | null
+          created_at?: string | null
+          direccion?: string | null
+          email?: string | null
+          eslogan?: string | null
+          id?: string
+          logo_url?: string | null
+          matricula_card?: string | null
+          nombre_firma: string
+          provincia?: string | null
+          rnc?: string | null
+          sitio_web?: string | null
+          telefono?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          abogado_principal?: string | null
+          ciudad?: string | null
+          created_at?: string | null
+          direccion?: string | null
+          email?: string | null
+          eslogan?: string | null
+          id?: string
+          logo_url?: string | null
+          matricula_card?: string | null
+          nombre_firma?: string
+          provincia?: string | null
+          rnc?: string | null
+          sitio_web?: string | null
+          telefono?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       legal_documents: {
         Row: {
           contenido: string
