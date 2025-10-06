@@ -127,6 +127,39 @@ export type Database = {
         }
         Relationships: []
       }
+      data_access_audit: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          ip_address: string | null
+          record_id: string
+          table_name: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          record_id: string
+          table_name: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          record_id?: string
+          table_name?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       deadlines: {
         Row: {
           case_id: string | null

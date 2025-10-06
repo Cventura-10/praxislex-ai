@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { invoiceSchema } from "@/lib/validation";
+import { z } from "zod";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -89,25 +91,33 @@ const Accounting = () => {
   };
 
   const handleCreateInvoice = async () => {
-    if (!newInvoice.numero_factura || !newInvoice.client_id || !newInvoice.concepto || !newInvoice.monto) {
-      toast({
-        title: "Campos requeridos",
-        description: "Todos los campos son obligatorios",
-        variant: "destructive",
-      });
-      return;
-    }
-
     try {
+      // Validate input data
+      const invoiceData = {
+        ...newInvoice,
+        monto: parseFloat(newInvoice.monto),
+        estado: "pendiente" as const,
+      };
+      
+      const validationResult = invoiceSchema.safeParse(invoiceData);
+      if (!validationResult.success) {
+        const firstError = validationResult.error.issues[0];
+        toast({
+          title: "Datos inválidos",
+          description: firstError.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No hay sesión activa");
 
       const { error } = await supabase
         .from("invoices")
         .insert({
-          ...newInvoice,
+          ...validationResult.data,
           user_id: user.id,
-          monto: parseFloat(newInvoice.monto),
         });
 
       if (error) throw error;

@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { clientSchema } from "@/lib/validation";
+import { z } from "zod";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
@@ -85,6 +87,18 @@ const Clients = () => {
 
   const handleCreateClient = async () => {
     try {
+      // Validate input data
+      const validationResult = clientSchema.safeParse(newClient);
+      if (!validationResult.success) {
+        const firstError = validationResult.error.issues[0];
+        toast({
+          title: "Datos inválidos",
+          description: firstError.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -92,7 +106,7 @@ const Clients = () => {
 
       const { error } = await supabase.from("clients").insert([
         {
-          ...newClient,
+          ...validationResult.data,
           user_id: user.id,
         },
       ]);

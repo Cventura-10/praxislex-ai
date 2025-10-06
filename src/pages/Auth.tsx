@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { passwordSchema, calculatePasswordStrength } from "@/lib/validation";
+import { z } from "zod";
 
 const LogoHorizontal = ({ className = "" }: { className?: string }) => (
   <svg
@@ -57,6 +59,7 @@ export default function Auth() {
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string; fullName?: string; form?: string }>({});
+  const [passwordStrength, setPasswordStrength] = useState(calculatePasswordStrength(""));
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -79,12 +82,36 @@ export default function Auth() {
 
   const validate = () => {
     const e: { email?: string; password?: string; fullName?: string } = {};
+    
+    // Email validation
     if (!emailRegex.test(email)) e.email = "Por favor introduce un correo válido";
-    if (!password || password.length < 6) e.password = "Mínimo 6 caracteres";
+    
+    // Password validation
+    if (isSignUp) {
+      try {
+        passwordSchema.parse(password);
+      } catch (err) {
+        if (err instanceof z.ZodError) {
+          e.password = err.issues[0].message;
+        }
+      }
+    } else {
+      if (!password || password.length < 6) e.password = "Mínimo 6 caracteres";
+    }
+    
+    // Full name validation
     if (isSignUp && (!fullName || fullName.trim().length === 0)) e.fullName = "El nombre es requerido";
+    
     setErrors(e);
     return Object.keys(e).length === 0;
   };
+
+  // Update password strength on change
+  useEffect(() => {
+    if (isSignUp) {
+      setPasswordStrength(calculatePasswordStrength(password));
+    }
+  }, [password, isSignUp]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -278,8 +305,32 @@ export default function Auth() {
                   </button>
                 </div>
                 {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
+                
+                {isSignUp && password && (
+                  <div className="mt-2">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs text-slate-600">Fortaleza de contraseña:</span>
+                      <span className={`text-xs font-medium ${
+                        passwordStrength.score < 3 ? 'text-red-600' :
+                        passwordStrength.score < 5 ? 'text-orange-600' :
+                        passwordStrength.score < 6 ? 'text-yellow-600' :
+                        'text-green-600'
+                      }`}>
+                        {passwordStrength.label}
+                      </span>
+                    </div>
+                    <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full ${passwordStrength.color} transition-all duration-300`}
+                        style={{ width: `${(passwordStrength.score / 7) * 100}%` }}
+                      />
+                    </div>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Usa al menos 12 caracteres con mayúsculas, minúsculas, números y símbolos
+                    </p>
+                  </div>
+                )}
               </div>
-
 
               <button
                 type="submit"

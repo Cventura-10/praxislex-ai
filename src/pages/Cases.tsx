@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { caseSchema } from "@/lib/validation";
+import { z } from "zod";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
@@ -132,6 +134,24 @@ const Cases = () => {
 
   const handleCreateCase = async () => {
     try {
+      // Validate input data
+      const caseData = {
+        ...newCase,
+        estado: "activo",
+        client_id: newCase.client_id || null,
+      };
+      
+      const validationResult = caseSchema.safeParse(caseData);
+      if (!validationResult.success) {
+        const firstError = validationResult.error.issues[0];
+        toast({
+          title: "Datos inválidos",
+          description: firstError.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -139,9 +159,8 @@ const Cases = () => {
 
       const { error } = await supabase.from("cases").insert([
         {
-          ...newCase,
+          ...validationResult.data,
           user_id: user.id,
-          client_id: newCase.client_id || null,
         },
       ]);
 
