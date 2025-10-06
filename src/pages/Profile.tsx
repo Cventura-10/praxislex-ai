@@ -5,8 +5,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { User, ArrowLeft } from "lucide-react";
+import { User, ArrowLeft, Trash2 } from "lucide-react";
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -69,6 +80,33 @@ export default function Profile() {
     }
   };
 
+  const handleDeleteAccount = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("No se encontró el usuario");
+
+      const { data, error } = await supabase.functions.invoke('delete-user', {
+        body: { userId: user.id }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Cuenta eliminada",
+        description: "Tu cuenta ha sido eliminada exitosamente.",
+      });
+
+      await supabase.auth.signOut();
+      navigate('/auth');
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo eliminar la cuenta.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="container mx-auto py-8 px-4 max-w-4xl">
       <Button
@@ -126,6 +164,43 @@ export default function Profile() {
               {loading ? "Guardando..." : "Guardar Cambios"}
             </Button>
           </form>
+        </CardContent>
+      </Card>
+
+      <Card className="border-destructive mt-6">
+        <CardHeader>
+          <CardTitle className="text-destructive">Zona de Peligro</CardTitle>
+          <CardDescription>
+            Acciones irreversibles en tu cuenta
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" className="gap-2">
+                <Trash2 className="h-4 w-4" />
+                Eliminar Cuenta
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>¿Estás completamente seguro?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Esta acción no se puede deshacer. Esto eliminará permanentemente tu cuenta
+                  y todos los datos asociados (casos, clientes, documentos, audiencias, etc.).
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleDeleteAccount}
+                  className="bg-destructive hover:bg-destructive/90"
+                >
+                  Eliminar definitivamente
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </CardContent>
       </Card>
     </div>
