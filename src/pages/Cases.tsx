@@ -383,7 +383,7 @@ const Cases = () => {
               <Button variant="outline" onClick={() => setShowNewCaseDialog(false)}>
                 Cancelar
               </Button>
-              <Button onClick={handleCreateCase} disabled={!newCase.numero_expediente || !newCase.titulo || !newCase.materia}>
+              <Button onClick={handleCreateCase} disabled={!newCase.titulo || !newCase.materia}>
                 Crear Caso
               </Button>
             </div>
