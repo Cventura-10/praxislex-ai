@@ -196,28 +196,27 @@ const Clients = () => {
 
   const handleRevealClient = async (clientId: string) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      // Log to audit table
-      await supabase.from("data_access_audit").insert({
-        user_id: user.id,
-        table_name: 'clients',
-        record_id: clientId,
-        action: 'unmask'
+      // Use secure RPC to reveal PII with server-side audit logging
+      const { data, error } = await supabase.rpc('reveal_client_pii', {
+        p_client_id: clientId
       });
+
+      if (error) throw error;
+      if (!data || data.length === 0) {
+        throw new Error("No se pudo acceder a los datos del cliente");
+      }
 
       setRevealedClients(prev => new Set(prev).add(clientId));
 
       toast({
         title: "Datos revelados",
-        description: "Los datos sensibles ahora son visibles",
+        description: "Los datos sensibles ahora son visibles. Esta acción ha sido registrada en auditoría.",
       });
     } catch (error: any) {
       console.error("Error revealing client data:", error);
       toast({
         title: "Error",
-        description: "No se pudieron revelar los datos",
+        description: error.message || "No se pudieron revelar los datos",
         variant: "destructive",
       });
     }

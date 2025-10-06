@@ -541,6 +541,17 @@ export type Database = {
         }
         Returns: boolean
       }
+      reveal_client_pii: {
+        Args: { p_client_id: string }
+        Returns: {
+          cedula_rnc: string
+          direccion: string
+          email: string
+          id: string
+          nombre_completo: string
+          telefono: string
+        }[]
+      }
     }
     Enums: {
       app_role: "free" | "pro" | "admin"
