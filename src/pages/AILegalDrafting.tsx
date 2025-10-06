@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,7 @@ import { DocumentViewer } from "@/components/DocumentViewer";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useLawFirmProfile } from "@/hooks/useLawFirmProfile";
 
 // =============================
 // Tipos y esquemas Intake Forms
@@ -213,6 +214,7 @@ const FieldRow: React.FC<{
 
 const AILegalDrafting = () => {
   const { toast } = useToast();
+  const { profile: lawFirmProfile, loading: profileLoading } = useLawFirmProfile();
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedDoc, setGeneratedDoc] = useState("");
   const [citations, setCitations] = useState<any[]>([]);
@@ -284,6 +286,25 @@ const AILegalDrafting = () => {
     jurisprudencia: "",
   });
 
+  // Auto-rellenar información de la firma legal cuando se carga el perfil
+  useEffect(() => {
+    if (lawFirmProfile && !profileLoading) {
+      setFormData(prev => ({
+        ...prev,
+        firma_nombre: prev.firma_nombre || lawFirmProfile.nombre_firma || "",
+        firma_rnc: prev.firma_rnc || lawFirmProfile.rnc || "",
+        firma_domicilio: prev.firma_domicilio || lawFirmProfile.direccion || "",
+        abogado_nombre: prev.abogado_nombre || lawFirmProfile.abogado_principal || "",
+        abogado_matricula: prev.abogado_matricula || lawFirmProfile.matricula_card || "",
+        abogado_direccion: prev.abogado_direccion || lawFirmProfile.direccion || "",
+        abogado_telefono: prev.abogado_telefono || lawFirmProfile.telefono || "",
+        abogado_email: prev.abogado_email || lawFirmProfile.email || "",
+        ciudad_actuacion: prev.ciudad_actuacion || lawFirmProfile.ciudad || "",
+        provincia: prev.provincia || lawFirmProfile.provincia || "",
+      }));
+    }
+  }, [lawFirmProfile, profileLoading]);
+
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
@@ -296,7 +317,7 @@ const AILegalDrafting = () => {
   };
 
   const generateDocument = async () => {
-    // Comprehensive validation
+    // Comprehensive validation con mensajes más específicos
     const payload = {
       tipo_documento: formData.tipo_documento,
       materia: formData.materia,
@@ -310,10 +331,13 @@ const AILegalDrafting = () => {
 
     const validationResult = generateLegalDocSchema.safeParse(payload);
     if (!validationResult.success) {
-      const firstError = validationResult.error.issues[0];
+      const errors = validationResult.error.issues;
+      const errorMessages = errors.map(err => `• ${err.path.join('.')}: ${err.message}`).join('\n');
       toast({
-        title: "Datos inválidos",
-        description: firstError.message,
+        title: "Formulario incompleto",
+        description: errors.length > 1 
+          ? `Por favor complete los siguientes campos:\n${errorMessages}`
+          : errors[0].message,
         variant: "destructive",
       });
       return;

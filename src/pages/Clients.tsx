@@ -90,12 +90,23 @@ const Clients = () => {
   const handleCreateClient = async () => {
     try {
       // Validate input data
-      const validationResult = clientSchema.safeParse(newClient);
+      const clientData = {
+        nombre_completo: newClient.nombre_completo,
+        cedula_rnc: newClient.cedula_rnc,
+        email: newClient.email || undefined,
+        telefono: newClient.telefono || undefined,
+        direccion: newClient.direccion || undefined,
+      };
+
+      const validationResult = clientSchema.safeParse(clientData);
       if (!validationResult.success) {
-        const firstError = validationResult.error.issues[0];
+        const errors = validationResult.error.issues;
+        const errorMessages = errors.map(err => `• ${err.message}`).join('\n');
         toast({
           title: "Datos inválidos",
-          description: firstError.message,
+          description: errors.length > 1 
+            ? `Por favor corrija los siguientes errores:\n${errorMessages}`
+            : errors[0].message,
           variant: "destructive",
         });
         return;
@@ -106,18 +117,40 @@ const Clients = () => {
       } = await supabase.auth.getUser();
       if (!user) throw new Error("Usuario no autenticado");
 
-      const { error } = await supabase.from("clients").insert([
-        {
-          ...validationResult.data,
-          user_id: user.id,
-        },
-      ]);
+      // Insertar cliente
+      const { data: newClientData, error: clientError } = await supabase
+        .from("clients")
+        .insert([
+          {
+            ...validationResult.data,
+            user_id: user.id,
+          },
+        ])
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (clientError) throw clientError;
+
+      // Crear relación usuario-cliente
+      if (newClientData) {
+        const { error: relationError } = await supabase
+          .from("user_clients")
+          .insert([
+            {
+              user_id: user.id,
+              client_id: newClientData.id,
+              rol: 'principal',
+            },
+          ]);
+
+        if (relationError) {
+          console.error("Error creating user-client relation:", relationError);
+        }
+      }
 
       toast({
         title: "Cliente creado",
-        description: "El cliente ha sido creado exitosamente",
+        description: "El cliente ha sido creado exitosamente y asociado a su cuenta",
       });
 
       setShowNewClientDialog(false);

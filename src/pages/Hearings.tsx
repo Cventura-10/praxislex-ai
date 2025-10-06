@@ -127,10 +127,13 @@ const Hearings = () => {
       });
 
       if (!validationResult.success) {
-        const firstError = validationResult.error.issues[0];
+        const errors = validationResult.error.issues;
+        const errorMessages = errors.map(err => `• ${err.path.join('.')}: ${err.message}`).join('\n');
         toast({
-          title: "Datos inválidos",
-          description: firstError.message,
+          title: "Formulario incompleto",
+          description: errors.length > 1 
+            ? `Por favor complete los siguientes campos:\n${errorMessages}`
+            : errors[0].message,
           variant: "destructive",
         });
         return;
@@ -187,10 +190,13 @@ const Hearings = () => {
       });
 
       if (!validationResult.success) {
-        const firstError = validationResult.error.issues[0];
+        const errors = validationResult.error.issues;
+        const errorMessages = errors.map(err => `• ${err.path.join('.')}: ${err.message}`).join('\n');
         toast({
-          title: "Datos inválidos",
-          description: firstError.message,
+          title: "Formulario incompleto",
+          description: errors.length > 1 
+            ? `Por favor complete los siguientes campos:\n${errorMessages}`
+            : errors[0].message,
           variant: "destructive",
         });
         return;
