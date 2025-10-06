@@ -62,13 +62,39 @@ const Documents = () => {
     }
   };
 
-  const handleViewDocument = (doc: any) => {
+  const handleViewDocument = async (doc: any) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        // Log document view to audit table
+        await supabase.from("data_access_audit").insert({
+          user_id: user.id,
+          table_name: 'legal_documents',
+          record_id: doc.id,
+          action: 'view_document'
+        });
+      }
+    } catch (error) {
+      console.error("Error logging document view:", error);
+    }
+    
     setSelectedDoc(doc);
     setViewerOpen(true);
   };
 
   const handleDownloadDocument = async (doc: any) => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        // Log document download to audit table
+        await supabase.from("data_access_audit").insert({
+          user_id: user.id,
+          table_name: 'legal_documents',
+          record_id: doc.id,
+          action: 'download_document'
+        });
+      }
+
       const { Document, Packer, Paragraph, TextRun, AlignmentType } = await import('docx');
       
       const paragraphs = doc.contenido.split('\n').map((line: string) => {
@@ -136,6 +162,17 @@ const Documents = () => {
 
   const handleExportForPJ = async (doc: any) => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        // Log document export to audit table
+        await supabase.from("data_access_audit").insert({
+          user_id: user.id,
+          table_name: 'legal_documents',
+          record_id: doc.id,
+          action: 'export_document_pj'
+        });
+      }
+
       const { Document, Packer, Paragraph, TextRun, AlignmentType, Table, TableRow, TableCell, WidthType, BorderStyle } = await import('docx');
       
       // Formato especial para Poder Judicial Dominicano

@@ -4,7 +4,7 @@ project_id = "hpeyqttxzrqctrefjlfq"
 verify_jwt = true
 
 [functions.documents-generate]
-verify_jwt = false
+verify_jwt = true
 
 [functions.jurisprudence-search]
 verify_jwt = true

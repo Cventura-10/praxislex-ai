@@ -16,6 +16,7 @@ import { Sparkles, Loader2, Send, Download, ClipboardList } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { MATERIAS_JURIDICAS, TIPOS_DOCUMENTO } from "@/lib/constants";
+import { generateLegalDocSchema } from "@/lib/validation";
 import { VoiceInput } from "@/components/VoiceInput";
 import { DocumentViewer } from "@/components/DocumentViewer";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -295,10 +296,24 @@ const AILegalDrafting = () => {
   };
 
   const generateDocument = async () => {
-    if (!formData.hechos || !formData.pretension) {
+    // Comprehensive validation
+    const payload = {
+      tipo_documento: formData.tipo_documento,
+      materia: formData.materia,
+      hechos: formData.hechos.trim(),
+      pretension: formData.pretension.trim(),
+      demandante_nombre: formData.demandante_nombre.trim(),
+      abogado_nombre: formData.abogado_nombre.trim(),
+      demandado_nombre: formData.demandado_nombre.trim(),
+      juzgado: formData.juzgado.trim(),
+    };
+
+    const validationResult = generateLegalDocSchema.safeParse(payload);
+    if (!validationResult.success) {
+      const firstError = validationResult.error.issues[0];
       toast({
-        title: "Información incompleta",
-        description: "Por favor, completa los hechos y la pretensión",
+        title: "Datos inválidos",
+        description: firstError.message,
         variant: "destructive",
       });
       return;

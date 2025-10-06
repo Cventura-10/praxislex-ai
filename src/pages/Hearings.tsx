@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar, Clock, MapPin, Plus, AlertTriangle, Edit, Trash2, CheckCircle2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { hearingSchema, deadlineSchema } from "@/lib/validation";
 
 interface Hearing {
   id: string;
@@ -115,6 +116,26 @@ const Hearings = () => {
 
   const handleCreateHearing = async () => {
     try {
+      // Validate input data
+      const validationResult = hearingSchema.safeParse({
+        caso: newHearing.caso,
+        juzgado: newHearing.juzgado,
+        fecha: newHearing.fecha,
+        hora: newHearing.hora,
+        tipo: newHearing.tipo,
+        ubicacion: newHearing.ubicacion || undefined,
+      });
+
+      if (!validationResult.success) {
+        const firstError = validationResult.error.issues[0];
+        toast({
+          title: "Datos inválidos",
+          description: firstError.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -157,6 +178,24 @@ const Hearings = () => {
 
   const handleCreateDeadline = async () => {
     try {
+      // Validate input data
+      const validationResult = deadlineSchema.safeParse({
+        caso: newDeadline.caso,
+        tipo: newDeadline.tipo,
+        fecha_vencimiento: newDeadline.fecha_vencimiento,
+        prioridad: newDeadline.prioridad,
+      });
+
+      if (!validationResult.success) {
+        const firstError = validationResult.error.issues[0];
+        toast({
+          title: "Datos inválidos",
+          description: firstError.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
       const {
         data: { user },
       } = await supabase.auth.getUser();

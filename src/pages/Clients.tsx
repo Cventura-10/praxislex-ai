@@ -24,8 +24,9 @@ import {
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Mail, Phone, Briefcase, Eye, Edit, Trash2 } from "lucide-react";
+import { Plus, Search, Mail, Phone, Briefcase, Eye, Edit, Trash2, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { maskEmail, maskPhone, maskCedula } from "@/lib/dataMasking";
 
 interface Client {
   id: string;
@@ -44,6 +45,7 @@ const Clients = () => {
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const [showNewClientDialog, setShowNewClientDialog] = useState(false);
+  const [revealedClients, setRevealedClients] = useState<Set<string>>(new Set());
 
   const [newClient, setNewClient] = useState({
     nombre_completo: "",
@@ -157,6 +159,35 @@ const Clients = () => {
       title: "Editar cliente",
       description: `Editando: ${nombre}`,
     });
+  };
+
+  const handleRevealClient = async (clientId: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Log to audit table
+      await supabase.from("data_access_audit").insert({
+        user_id: user.id,
+        table_name: 'clients',
+        record_id: clientId,
+        action: 'unmask'
+      });
+
+      setRevealedClients(prev => new Set(prev).add(clientId));
+
+      toast({
+        title: "Datos revelados",
+        description: "Los datos sensibles ahora son visibles",
+      });
+    } catch (error: any) {
+      console.error("Error revealing client data:", error);
+      toast({
+        title: "Error",
+        description: "No se pudieron revelar los datos",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleDeleteClient = async (clientId: string, nombre: string) => {
@@ -316,28 +347,37 @@ const Clients = () => {
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="font-mono text-xs">{client.cedula_rnc}</TableCell>
+                    <TableCell className="font-mono text-xs">
+                      {revealedClients.has(client.id) ? client.cedula_rnc : maskCedula(client.cedula_rnc)}
+                    </TableCell>
                     <TableCell>
                       <div className="space-y-1">
                         {client.email && (
                           <div className="flex items-center gap-2 text-xs text-muted-foreground">
                             <Mail className="h-3 w-3" />
-                            {client.email}
+                            {revealedClients.has(client.id) ? client.email : maskEmail(client.email)}
                           </div>
                         )}
                         {client.telefono && (
                           <div className="flex items-center gap-2 text-xs text-muted-foreground">
                             <Phone className="h-3 w-3" />
-                            {client.telefono}
+                            {revealedClients.has(client.id) ? client.telefono : maskPhone(client.telefono)}
                           </div>
                         )}
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">
-                        <Button variant="ghost" size="icon" onClick={() => handleViewClient(client.nombre_completo)}>
-                          <Eye className="h-4 w-4" />
-                        </Button>
+                        {!revealedClients.has(client.id) && (
+                          <Button variant="ghost" size="icon" onClick={() => handleRevealClient(client.id)} title="Revelar datos">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {revealedClients.has(client.id) && (
+                          <Button variant="ghost" size="icon" disabled title="Datos revelados">
+                            <EyeOff className="h-4 w-4 text-muted-foreground" />
+                          </Button>
+                        )}
                         <Button variant="ghost" size="icon" onClick={() => handleEditClient(client.nombre_completo)}>
                           <Edit className="h-4 w-4" />
                         </Button>
