@@ -24,6 +24,9 @@ const AILegalDrafting = () => {
   const { toast } = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedDoc, setGeneratedDoc] = useState("");
+  const [citations, setCitations] = useState<any[]>([]);
+  const [chatMessages, setChatMessages] = useState<{role: string, content: string}[]>([]);
+  const [chatInput, setChatInput] = useState("");
 
   // Formulario completo basado en el modelo de demanda
   const [formData, setFormData] = useState({
@@ -179,8 +182,19 @@ const AILegalDrafting = () => {
         throw error;
       }
 
-      if (data?.documento) {
-        setGeneratedDoc(data.documento);
+      if (data?.documento || data?.cuerpo) {
+        const docContent = data.documento || data.cuerpo;
+        setGeneratedDoc(docContent);
+        setCitations(data.citations || []);
+        
+        // Verificar política de citas
+        if (!data.citations || data.citations.length < 2) {
+          toast({
+            title: "⚠ Citas insuficientes",
+            description: "Se requieren al menos 2 citas verificables para exportar. Sugerimos revisar jurisprudencia.",
+            variant: "destructive",
+          });
+        }
         
         // Guardar en base de datos
         const { data: { user } } = await supabase.auth.getUser();
@@ -192,7 +206,7 @@ const AILegalDrafting = () => {
             tipo_documento: formData.tipo_documento,
             materia: formData.materia,
             titulo: `${tipoLabel} - ${formData.demandante_nombre || 'N/D'} vs ${formData.demandado_nombre || 'N/D'}`,
-            contenido: data.documento,
+            contenido: docContent,
             demandante_nombre: formData.demandante_nombre,
             demandado_nombre: formData.demandado_nombre,
             juzgado: formData.juzgado,
@@ -202,7 +216,7 @@ const AILegalDrafting = () => {
         
         toast({
           title: "✓ Documento generado",
-          description: "Tu documento ha sido redactado y guardado",
+          description: `Documento generado con ${data.citations?.length || 0} citas`,
         });
       }
     } catch (error: any) {
@@ -217,7 +231,47 @@ const AILegalDrafting = () => {
     }
   };
 
+  const searchJurisprudence = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('jurisprudence-search', {
+        body: { 
+          materia: formData.materia, 
+          keywords: formData.hechos.substring(0, 100),
+          limit: 5 
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "✓ Jurisprudencia encontrada",
+        description: `Se encontraron ${data?.length || 0} referencias`,
+      });
+
+      // Agregar las citas encontradas
+      if (data && data.length > 0) {
+        setCitations(prev => [...prev, ...data]);
+      }
+    } catch (error: any) {
+      console.error('Error:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo buscar jurisprudencia",
+        variant: "destructive",
+      });
+    }
+  };
+
   const downloadDocument = async () => {
+    if (citations.length < 2) {
+      toast({
+        title: "⚠ Exportación bloqueada",
+        description: "Se requieren al menos 2 citas verificables para exportar",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const { Document, Packer, Paragraph, TextRun, AlignmentType } = await import('docx');
       
@@ -233,6 +287,34 @@ const AILegalDrafting = () => {
           spacing: { after: 120 },
         });
       });
+
+      // Agregar citas al documento
+      if (citations.length > 0) {
+        paragraphs.push(
+          new Paragraph({ text: '', spacing: { before: 400 } }),
+          new Paragraph({
+            children: [new TextRun({ text: 'REFERENCIAS Y CITAS', bold: true, size: 26 })],
+            alignment: AlignmentType.CENTER,
+          }),
+          new Paragraph({ text: '', spacing: { after: 200 } })
+        );
+
+        citations.forEach((cit, idx) => {
+          paragraphs.push(
+            new Paragraph({
+              children: [new TextRun({ text: `${idx + 1}. ${cit.organo} - ${cit.sala}`, bold: true, size: 22 })],
+              spacing: { before: 120 },
+            }),
+            new Paragraph({
+              children: [new TextRun({ text: `   ${cit.num} (${cit.fecha})`, size: 22 })],
+            }),
+            new Paragraph({
+              children: [new TextRun({ text: `   ${cit.url}`, size: 20, italics: true })],
+              spacing: { after: 120 },
+            })
+          );
+        });
+      }
 
       // Agregar firma digital
       paragraphs.push(
@@ -629,19 +711,86 @@ const AILegalDrafting = () => {
             </CardContent>
           </Card>
 
-          <Button onClick={generateDocument} disabled={isGenerating} className="w-full gap-2" size="lg">
-            {isGenerating ? (
-              <>
-                <Loader2 className="h-5 w-5 animate-spin" />
-                Generando documento...
-              </>
-            ) : (
-              <>
-                <Sparkles className="h-5 w-5" />
-                Generar con IA
-              </>
-            )}
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={searchJurisprudence} variant="outline" className="flex-1 gap-2">
+              <Sparkles className="h-4 w-4" />
+              Sugerir Jurisprudencia
+            </Button>
+            <Button onClick={generateDocument} disabled={isGenerating} className="flex-1 gap-2" size="lg">
+              {isGenerating ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  Generando...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-5 w-5" />
+                  Generar con IA
+                </>
+              )}
+            </Button>
+          </div>
+
+          {/* Chat Conversacional */}
+          {chatMessages.length > 0 && (
+            <Card className="shadow-medium">
+              <CardHeader>
+                <CardTitle>Chat - Intake Guiado</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ScrollArea className="h-[200px] mb-4">
+                  <div className="space-y-2">
+                    {chatMessages.map((msg, idx) => (
+                      <div key={idx} className={`p-2 rounded ${msg.role === 'assistant' ? 'bg-muted' : 'bg-primary/10'}`}>
+                        <span className="text-xs font-semibold">{msg.role === 'assistant' ? 'IA' : 'Tú'}:</span>
+                        <p className="text-sm">{msg.content}</p>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+                <div className="flex gap-2">
+                  <Input 
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    placeholder="Pregunta a la IA..."
+                    onKeyPress={(e) => e.key === 'Enter' && chatInput && setChatMessages(prev => [...prev, {role: 'user', content: chatInput}])}
+                  />
+                  <Button size="icon" onClick={() => {
+                    if (chatInput) {
+                      setChatMessages(prev => [...prev, {role: 'user', content: chatInput}]);
+                      setChatInput("");
+                    }
+                  }}>
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Mostrar citas actuales */}
+          {citations.length > 0 && (
+            <Card className="shadow-medium">
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span>Citas Verificables ({citations.length})</span>
+                  {citations.length < 2 && (
+                    <Badge variant="destructive">Mínimo 2 requeridas</Badge>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {citations.map((cit, idx) => (
+                    <div key={idx} className="p-2 border rounded text-xs">
+                      <div className="font-semibold">{cit.organo} - {cit.sala}</div>
+                      <div className="text-muted-foreground">{cit.num} ({cit.fecha})</div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </ScrollArea>
 
@@ -654,6 +803,7 @@ const AILegalDrafting = () => {
           onSendToJudicial={sendToJudicialPortal}
           abogadoNombre={formData.abogado_nombre}
           abogadoMatricula={formData.abogado_matricula}
+          citations={citations}
         />
       </div>
     </div>

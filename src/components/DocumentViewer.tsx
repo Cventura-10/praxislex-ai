@@ -12,6 +12,7 @@ interface DocumentViewerProps {
   onSendToJudicial?: () => void;
   abogadoNombre?: string;
   abogadoMatricula?: string;
+  citations?: any[];
 }
 
 export const DocumentViewer = ({ 
@@ -20,7 +21,8 @@ export const DocumentViewer = ({
   onDownload, 
   onSendToJudicial,
   abogadoNombre,
-  abogadoMatricula 
+  abogadoMatricula,
+  citations = []
 }: DocumentViewerProps) => {
   const [formattedContent, setFormattedContent] = useState<JSX.Element[]>([]);
 
@@ -123,6 +125,30 @@ export const DocumentViewer = ({
               <>
                 {formattedContent}
                 
+                {/* Sección de Citas */}
+                {citations.length > 0 && (
+                  <div className="mt-8 border-t pt-6">
+                    <div className="font-bold text-base mb-4 text-center">
+                      REFERENCIAS Y CITAS
+                    </div>
+                    <div className="space-y-3">
+                      {citations.map((cit, idx) => (
+                        <div key={idx} className="text-sm pl-4">
+                          <div className="font-semibold">
+                            {idx + 1}. {cit.organo} - {cit.sala}
+                          </div>
+                          <div className="ml-4 text-muted-foreground">
+                            {cit.num} ({cit.fecha})
+                          </div>
+                          <div className="ml-4 text-xs italic break-all">
+                            {cit.url}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Firma Digital del Abogado */}
                 {abogadoNombre && (
                   <div className="mt-12 border-t pt-6">
