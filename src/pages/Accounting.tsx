@@ -23,6 +23,7 @@ import {
   DollarSign,
   Plus,
   TrendingUp,
+  TrendingDown,
   Clock,
   CheckCircle2,
   AlertTriangle,
@@ -30,6 +31,8 @@ import {
   Send,
   Eye,
   ArrowLeft,
+  CreditCard,
+  Receipt,
 } from "lucide-react";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { ESTADOS_PAGO } from "@/lib/constants";
@@ -48,12 +51,40 @@ const Accounting = () => {
   const [showNewInvoiceDialog, setShowNewInvoiceDialog] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<any | null>(null);
   const [showInvoiceViewer, setShowInvoiceViewer] = useState(false);
+  const [showCreditDialog, setShowCreditDialog] = useState(false);
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [showStatementDialog, setShowStatementDialog] = useState(false);
+  const [accountStatement, setAccountStatement] = useState<any[]>([]);
+  const [selectedClientId, setSelectedClientId] = useState("");
+  const [balance, setBalance] = useState(0);
+  
   const [newInvoice, setNewInvoice] = useState({
     numero_factura: "",
     client_id: "",
     concepto: "",
     monto: "",
     fecha: new Date().toISOString().split('T')[0],
+  });
+
+  const [newCredit, setNewCredit] = useState({
+    client_id: "",
+    monto: "",
+    concepto: "",
+    tipo: "credito",
+    fecha: new Date().toISOString().split('T')[0],
+    referencia: "",
+    notas: "",
+  });
+
+  const [newPayment, setNewPayment] = useState({
+    client_id: "",
+    monto: "",
+    concepto: "",
+    metodo_pago: "",
+    fecha: new Date().toISOString().split('T')[0],
+    referencia: "",
+    invoice_id: "",
+    notas: "",
   });
 
   useEffect(() => {
@@ -162,6 +193,173 @@ const Accounting = () => {
     }
   };
 
+  const handleCreateCredit = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("No autenticado");
+
+      const { error } = await supabase.from("client_credits").insert([
+        {
+          ...newCredit,
+          monto: parseFloat(newCredit.monto),
+          user_id: user.id,
+        },
+      ]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Crédito creado",
+        description: "El crédito ha sido registrado exitosamente",
+      });
+
+      setShowCreditDialog(false);
+      setNewCredit({
+        client_id: "",
+        monto: "",
+        concepto: "",
+        tipo: "credito",
+        fecha: new Date().toISOString().split('T')[0],
+        referencia: "",
+        notas: "",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo crear el crédito",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCreatePayment = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("No autenticado");
+
+      const { error } = await supabase.from("payments").insert([
+        {
+          ...newPayment,
+          monto: parseFloat(newPayment.monto),
+          user_id: user.id,
+          invoice_id: newPayment.invoice_id || null,
+        },
+      ]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Pago registrado",
+        description: "El pago ha sido registrado exitosamente",
+      });
+
+      setShowPaymentDialog(false);
+      setNewPayment({
+        client_id: "",
+        monto: "",
+        concepto: "",
+        metodo_pago: "",
+        fecha: new Date().toISOString().split('T')[0],
+        referencia: "",
+        invoice_id: "",
+        notas: "",
+      });
+      fetchData();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo registrar el pago",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleViewStatement = async (clientId: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: invoices } = await supabase
+        .from("invoices")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("client_id", clientId)
+        .order("fecha");
+
+      const { data: credits } = await supabase
+        .from("client_credits")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("client_id", clientId)
+        .order("fecha");
+
+      const { data: payments } = await supabase
+        .from("payments")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("client_id", clientId)
+        .order("fecha");
+
+      const statement: any[] = [];
+      let runningBalance = 0;
+
+      const allTransactions = [
+        ...(invoices || []).map(inv => ({
+          type: 'invoice',
+          fecha: inv.fecha,
+          concepto: `Factura ${inv.numero_factura} - ${inv.concepto}`,
+          debito: inv.monto,
+          credito: 0,
+          referencia: inv.numero_factura,
+        })),
+        ...(credits || []).map(cred => ({
+          type: 'credit',
+          fecha: cred.fecha,
+          concepto: cred.concepto,
+          debito: cred.tipo === 'debito' ? cred.monto : 0,
+          credito: cred.tipo === 'credito' ? cred.monto : 0,
+          referencia: cred.referencia || '',
+        })),
+        ...(payments || []).map(pay => ({
+          type: 'payment',
+          fecha: pay.fecha,
+          concepto: `Pago - ${pay.concepto}`,
+          debito: 0,
+          credito: pay.monto,
+          referencia: pay.referencia || '',
+        })),
+      ].sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
+
+      allTransactions.forEach(trans => {
+        runningBalance += trans.debito - trans.credito;
+        statement.push({
+          ...trans,
+          saldo: runningBalance,
+        });
+      });
+
+      setAccountStatement(statement);
+      setBalance(runningBalance);
+      setSelectedClientId(clientId);
+      setShowStatementDialog(true);
+    } catch (error) {
+      console.error("Error fetching account statement:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo cargar el estado de cuenta",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('es-DO', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  };
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("es-DO", {
       style: "currency",
@@ -227,6 +425,10 @@ const Accounting = () => {
           </div>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" className="gap-2" onClick={() => navigate('/creditos-pagos')}>
+            <CreditCard className="h-4 w-4" />
+            Créditos y Pagos
+          </Button>
           <Button variant="outline" className="gap-2">
             <Download className="h-4 w-4" />
             Exportar

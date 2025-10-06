@@ -14,6 +14,7 @@ import Documents from "./pages/Documents";
 import Jurisprudence from "./pages/Jurisprudence";
 import AILegalDrafting from "./pages/AILegalDrafting";
 import Accounting from "./pages/Accounting";
+import AccountingNew from "./pages/AccountingNew";
 import LawFirmSettings from "./pages/LawFirmSettings";
 import ClientPortal from "./pages/ClientPortal";
 import Billing from "./pages/Billing";
@@ -53,6 +54,7 @@ const App = () => (
                         <Route path="/jurisprudencia" element={<Jurisprudence />} />
                         <Route path="/redaccion-ia" element={<AILegalDrafting />} />
                         <Route path="/contabilidad" element={<Accounting />} />
+                        <Route path="/creditos-pagos" element={<AccountingNew />} />
                         <Route path="/configuracion/firma" element={<LawFirmSettings />} />
                         <Route path="/portal" element={<ClientPortal />} />
                         <Route path="/facturacion" element={<Billing />} />

@@ -91,6 +91,56 @@ export type Database = {
           },
         ]
       }
+      client_credits: {
+        Row: {
+          client_id: string | null
+          concepto: string
+          created_at: string | null
+          fecha: string
+          id: string
+          monto: number
+          notas: string | null
+          referencia: string | null
+          tipo: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          client_id?: string | null
+          concepto: string
+          created_at?: string | null
+          fecha?: string
+          id?: string
+          monto: number
+          notas?: string | null
+          referencia?: string | null
+          tipo: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          client_id?: string | null
+          concepto?: string
+          created_at?: string | null
+          fecha?: string
+          id?: string
+          monto?: number
+          notas?: string | null
+          referencia?: string | null
+          tipo?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_credits_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           accepted_terms: boolean | null
@@ -429,6 +479,66 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      payments: {
+        Row: {
+          client_id: string | null
+          concepto: string
+          created_at: string | null
+          fecha: string
+          id: string
+          invoice_id: string | null
+          metodo_pago: string
+          monto: number
+          notas: string | null
+          referencia: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          client_id?: string | null
+          concepto: string
+          created_at?: string | null
+          fecha?: string
+          id?: string
+          invoice_id?: string | null
+          metodo_pago: string
+          monto: number
+          notas?: string | null
+          referencia?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          client_id?: string | null
+          concepto?: string
+          created_at?: string | null
+          fecha?: string
+          id?: string
+          invoice_id?: string | null
+          metodo_pago?: string
+          monto?: number
+          notas?: string | null
+          referencia?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
