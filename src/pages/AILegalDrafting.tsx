@@ -220,7 +220,7 @@ const AILegalDrafting = () => {
   const [citations, setCitations] = useState<any[]>([]);
   const [chatMessages, setChatMessages] = useState<{role: string, content: string}[]>([]);
   const [chatInput, setChatInput] = useState("");
-  const [intakeMode, setIntakeMode] = useState<'manual' | 'structured'>('manual');
+  const [intakeMode, setIntakeMode] = useState<'manual' | 'structured'>('structured');
   
   // Intake Forms state
   const [schemaId, setSchemaId] = useState<string>(SCHEMAS[0].id);
@@ -674,13 +674,13 @@ const AILegalDrafting = () => {
 
           <Tabs value={intakeMode} onValueChange={(v) => setIntakeMode(v as 'manual' | 'structured')}>
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="manual" className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4" />
-                Formulario Manual
-              </TabsTrigger>
               <TabsTrigger value="structured" className="flex items-center gap-2">
                 <ClipboardList className="h-4 w-4" />
                 Formularios Intake
+              </TabsTrigger>
+              <TabsTrigger value="manual" className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4" />
+                Formulario Manual
               </TabsTrigger>
             </TabsList>
 
