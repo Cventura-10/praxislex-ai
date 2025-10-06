@@ -53,6 +53,7 @@ const emailRegex = /^(?:[a-zA-Z0-9_'^&/+-])+(?:\.(?:[a-zA-Z0-9_'^&/+-])+)*@(?:[a
 
 export default function Auth() {
   const [isSignUp, setIsSignUp] = useState(false);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -60,6 +61,7 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string; fullName?: string; form?: string }>({});
   const [passwordStrength, setPasswordStrength] = useState(calculatePasswordStrength(""));
+  const [resetEmailSent, setResetEmailSent] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -180,6 +182,42 @@ export default function Auth() {
     }
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validate email
+    if (!emailRegex.test(email)) {
+      setErrors({ email: "Por favor introduce un correo válido" });
+      return;
+    }
+    
+    setLoading(true);
+    setErrors({});
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth`,
+      });
+
+      if (error) throw error;
+
+      setResetEmailSent(true);
+      toast({
+        title: "Correo enviado",
+        description: "Revisa tu correo para restablecer tu contraseña.",
+      });
+    } catch (error: any) {
+      setErrors({ form: error.message });
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[linear-gradient(120deg,#F7F5EF,white)] text-slate-800">
       {/* Decoración de fondo */}
@@ -229,10 +267,14 @@ export default function Auth() {
         <div className="flex items-center justify-center">
           <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl ring-1 ring-slate-200/70">
             <h2 className="text-3xl font-extrabold text-slate-900">
-              {isSignUp ? "Crear despacho" : "Entrar a PraxisLex"}
+              {isForgotPassword ? "Recuperar contraseña" : isSignUp ? "Crear despacho" : "Entrar a PraxisLex"}
             </h2>
             <p className="mt-1 text-sm text-slate-600">
-              {isSignUp ? "Comienza tu prueba gratuita hoy" : "Accede a tu escritorio jurídico en la nube"}
+              {isForgotPassword 
+                ? "Te enviaremos un correo para restablecer tu contraseña" 
+                : isSignUp 
+                  ? "Comienza tu prueba gratuita hoy" 
+                  : "Accede a tu escritorio jurídico en la nube"}
             </p>
 
             {errors.form && (
@@ -241,131 +283,207 @@ export default function Auth() {
               </div>
             )}
 
-            <form className="mt-6 flex flex-col gap-4" onSubmit={isSignUp ? handleSignUp : handleSignIn}>
-              {isSignUp && (
+            {resetEmailSent && isForgotPassword && (
+              <div className="mt-4 rounded-xl border border-green-200 bg-green-50 p-3 text-sm text-green-700">
+                Correo enviado exitosamente. Revisa tu bandeja de entrada.
+              </div>
+            )}
+
+            {isForgotPassword ? (
+              // Formulario de recuperación de contraseña
+              <form className="mt-6 flex flex-col gap-4" onSubmit={handleForgotPassword}>
                 <div className="w-full">
-                  <label htmlFor="fullName" className="block text-sm font-medium text-slate-700 mb-1">
-                    Nombre Completo
+                  <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1">
+                    Correo electrónico
                   </label>
                   <input
-                    id="fullName"
-                    type="text"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    placeholder="Juan Pérez"
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="tu@correo.com"
+                    autoComplete="email"
                     className={`w-full rounded-xl border bg-white px-4 py-3 text-slate-800 placeholder-slate-400 shadow-sm focus:outline-none focus:ring-4 transition-all ${
-                      errors.fullName ? "border-red-400 ring-2 ring-red-100" : "border-slate-200 focus:ring-[#0E6B4E]/20 focus:border-[#0E6B4E]"
+                      errors.email ? "border-red-400 ring-2 ring-red-100" : "border-slate-200 focus:ring-[#0E6B4E]/20 focus:border-[#0E6B4E]"
                     }`}
-                    aria-invalid={!!errors.fullName}
+                    aria-invalid={!!errors.email}
                   />
-                  {errors.fullName && <p className="mt-1 text-sm text-red-600">{errors.fullName}</p>}
+                  {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
                 </div>
-              )}
 
-              <div className="w-full">
-                <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1">
-                  Correo electrónico
-                </label>
-                <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="tu@correo.com"
-                  autoComplete="email"
-                  className={`w-full rounded-xl border bg-white px-4 py-3 text-slate-800 placeholder-slate-400 shadow-sm focus:outline-none focus:ring-4 transition-all ${
-                    errors.email ? "border-red-400 ring-2 ring-red-100" : "border-slate-200 focus:ring-[#0E6B4E]/20 focus:border-[#0E6B4E]"
-                  }`}
-                  aria-invalid={!!errors.email}
-                />
-                {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
-              </div>
+                <button
+                  type="submit"
+                  disabled={loading || resetEmailSent}
+                  className="mt-2 inline-flex items-center justify-center rounded-xl bg-[#0E6B4E] px-4 py-3 font-semibold text-white shadow-sm transition hover:brightness-110 focus:outline-none focus:ring-4 focus:ring-[#0E6B4E]/30 disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {loading ? (
+                    <span className="inline-flex items-center gap-2">
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                      Enviando…
+                    </span>
+                  ) : resetEmailSent ? (
+                    "Correo enviado"
+                  ) : (
+                    "Enviar correo de recuperación"
+                  )}
+                </button>
 
-              <div className="w-full">
-                <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-1">
-                  Contraseña
-                </label>
-                <div className="relative flex items-center">
-                  <input
-                    id="password"
-                    type={showPass ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    autoComplete={isSignUp ? "new-password" : "current-password"}
-                    className={`w-full rounded-xl border bg-white px-4 py-3 pr-20 text-slate-800 placeholder-slate-400 shadow-sm focus:outline-none focus:ring-4 transition-all ${
-                      errors.password ? "border-red-400 ring-2 ring-red-100" : "border-slate-200 focus:ring-[#0E6B4E]/20 focus:border-[#0E6B4E]"
-                    }`}
-                    aria-invalid={!!errors.password}
-                  />
+                <div className="mt-4 text-center text-sm text-slate-500">
                   <button
                     type="button"
-                    onClick={() => setShowPass((v) => !v)}
-                    className="absolute right-2 rounded-lg px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50"
-                    aria-label={showPass ? "Ocultar contraseña" : "Mostrar contraseña"}
+                    onClick={() => {
+                      setIsForgotPassword(false);
+                      setResetEmailSent(false);
+                      setErrors({});
+                    }}
+                    className="font-medium text-[#0E6B4E] hover:underline"
                   >
-                    {showPass ? "Ocultar" : "Mostrar"}
+                    Volver al inicio de sesión
                   </button>
                 </div>
-                {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
-                
-                {isSignUp && password && (
-                  <div className="mt-2">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs text-slate-600">Fortaleza de contraseña:</span>
-                      <span className={`text-xs font-medium ${
-                        passwordStrength.score < 3 ? 'text-red-600' :
-                        passwordStrength.score < 5 ? 'text-orange-600' :
-                        passwordStrength.score < 6 ? 'text-yellow-600' :
-                        'text-green-600'
-                      }`}>
-                        {passwordStrength.label}
-                      </span>
-                    </div>
-                    <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full ${passwordStrength.color} transition-all duration-300`}
-                        style={{ width: `${(passwordStrength.score / 7) * 100}%` }}
-                      />
-                    </div>
-                    <p className="text-xs text-slate-500 mt-1">
-                      Usa al menos 12 caracteres con mayúsculas, minúsculas, números y símbolos
-                    </p>
+              </form>
+            ) : (
+              // Formulario de login/signup
+              <form className="mt-6 flex flex-col gap-4" onSubmit={isSignUp ? handleSignUp : handleSignIn}>
+                {isSignUp && (
+                  <div className="w-full">
+                    <label htmlFor="fullName" className="block text-sm font-medium text-slate-700 mb-1">
+                      Nombre Completo
+                    </label>
+                    <input
+                      id="fullName"
+                      type="text"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      placeholder="Juan Pérez"
+                      className={`w-full rounded-xl border bg-white px-4 py-3 text-slate-800 placeholder-slate-400 shadow-sm focus:outline-none focus:ring-4 transition-all ${
+                        errors.fullName ? "border-red-400 ring-2 ring-red-100" : "border-slate-200 focus:ring-[#0E6B4E]/20 focus:border-[#0E6B4E]"
+                      }`}
+                      aria-invalid={!!errors.fullName}
+                    />
+                    {errors.fullName && <p className="mt-1 text-sm text-red-600">{errors.fullName}</p>}
                   </div>
                 )}
-              </div>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="mt-2 inline-flex items-center justify-center rounded-xl bg-[#0E6B4E] px-4 py-3 font-semibold text-white shadow-sm transition hover:brightness-110 focus:outline-none focus:ring-4 focus:ring-[#0E6B4E]/30 disabled:cursor-not-allowed disabled:opacity-70"
-              >
-                {loading ? (
-                  <span className="inline-flex items-center gap-2">
-                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-                    {isSignUp ? "Creando cuenta…" : "Ingresando…"}
-                  </span>
-                ) : isSignUp ? (
-                  "Crear cuenta gratuita"
-                ) : (
-                  "Entrar"
-                )}
-              </button>
+                <div className="w-full">
+                  <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1">
+                    Correo electrónico
+                  </label>
+                  <input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="tu@correo.com"
+                    autoComplete="email"
+                    className={`w-full rounded-xl border bg-white px-4 py-3 text-slate-800 placeholder-slate-400 shadow-sm focus:outline-none focus:ring-4 transition-all ${
+                      errors.email ? "border-red-400 ring-2 ring-red-100" : "border-slate-200 focus:ring-[#0E6B4E]/20 focus:border-[#0E6B4E]"
+                    }`}
+                    aria-invalid={!!errors.email}
+                  />
+                  {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
+                </div>
 
-              <div className="mt-4 text-center text-sm text-slate-500">
-                {isSignUp ? "¿Ya tienes cuenta?" : "¿Aún no tienes cuenta?"}{" "}
+                <div className="w-full">
+                  <div className="flex items-center justify-between mb-1">
+                    <label htmlFor="password" className="block text-sm font-medium text-slate-700">
+                      Contraseña
+                    </label>
+                    {!isSignUp && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsForgotPassword(true);
+                          setErrors({});
+                        }}
+                        className="text-xs font-medium text-[#0E6B4E] hover:underline"
+                      >
+                        ¿Olvidaste tu contraseña?
+                      </button>
+                    )}
+                  </div>
+                  <div className="relative flex items-center">
+                    <input
+                      id="password"
+                      type={showPass ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      autoComplete={isSignUp ? "new-password" : "current-password"}
+                      className={`w-full rounded-xl border bg-white px-4 py-3 pr-20 text-slate-800 placeholder-slate-400 shadow-sm focus:outline-none focus:ring-4 transition-all ${
+                        errors.password ? "border-red-400 ring-2 ring-red-100" : "border-slate-200 focus:ring-[#0E6B4E]/20 focus:border-[#0E6B4E]"
+                      }`}
+                      aria-invalid={!!errors.password}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPass((v) => !v)}
+                      className="absolute right-2 rounded-lg px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50"
+                      aria-label={showPass ? "Ocultar contraseña" : "Mostrar contraseña"}
+                    >
+                      {showPass ? "Ocultar" : "Mostrar"}
+                    </button>
+                  </div>
+                  {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
+                  
+                  {isSignUp && password && (
+                    <div className="mt-2">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs text-slate-600">Fortaleza de contraseña:</span>
+                        <span className={`text-xs font-medium ${
+                          passwordStrength.score < 3 ? 'text-red-600' :
+                          passwordStrength.score < 5 ? 'text-orange-600' :
+                          passwordStrength.score < 6 ? 'text-yellow-600' :
+                          'text-green-600'
+                        }`}>
+                          {passwordStrength.label}
+                        </span>
+                      </div>
+                      <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full ${passwordStrength.color} transition-all duration-300`}
+                          style={{ width: `${(passwordStrength.score / 7) * 100}%` }}
+                        />
+                      </div>
+                      <p className="text-xs text-slate-500 mt-1">
+                        Usa al menos 12 caracteres con mayúsculas, minúsculas, números y símbolos
+                      </p>
+                    </div>
+                  )}
+                </div>
+
                 <button
-                  type="button"
-                  onClick={() => {
-                    setIsSignUp(!isSignUp);
-                    setErrors({});
-                  }}
-                  className="font-medium text-[#0E6B4E] hover:underline"
+                  type="submit"
+                  disabled={loading}
+                  className="mt-2 inline-flex items-center justify-center rounded-xl bg-[#0E6B4E] px-4 py-3 font-semibold text-white shadow-sm transition hover:brightness-110 focus:outline-none focus:ring-4 focus:ring-[#0E6B4E]/30 disabled:cursor-not-allowed disabled:opacity-70"
                 >
-                  {isSignUp ? "Iniciar sesión" : "Crear despacho"}
+                  {loading ? (
+                    <span className="inline-flex items-center gap-2">
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                      {isSignUp ? "Creando cuenta…" : "Ingresando…"}
+                    </span>
+                  ) : isSignUp ? (
+                    "Crear cuenta gratuita"
+                  ) : (
+                    "Entrar"
+                  )}
                 </button>
-              </div>
-            </form>
+
+                <div className="mt-4 text-center text-sm text-slate-500">
+                  {isSignUp ? "¿Ya tienes cuenta?" : "¿Aún no tienes cuenta?"}{" "}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsSignUp(!isSignUp);
+                      setErrors({});
+                    }}
+                    className="font-medium text-[#0E6B4E] hover:underline"
+                  >
+                    {isSignUp ? "Iniciar sesión" : "Crear despacho"}
+                  </button>
+                </div>
+              </form>
+            )}
 
             <div className="mt-6 border-t pt-4 text-xs text-slate-500">
               Al continuar aceptas los{" "}
