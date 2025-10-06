@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Sparkles, Loader2, Send, Download, ClipboardList, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { MATERIAS_JURIDICAS, TIPOS_DOCUMENTO } from "@/lib/constants";
+import { MATERIAS_JURIDICAS, TIPOS_DOCUMENTO, TIPOS_ACCION_LEGAL } from "@/lib/constants";
 import { generateLegalDocSchema } from "@/lib/validation";
 import { VoiceInput } from "@/components/VoiceInput";
 import { DocumentViewer } from "@/components/DocumentViewer";
@@ -234,6 +234,7 @@ const AILegalDrafting = () => {
     // Tipo y materia
     tipo_documento: "demanda",
     materia: "civil",
+    accion_legal: "",
     
     // Datos del Acto
     acto_numero: "",
@@ -696,11 +697,11 @@ const AILegalDrafting = () => {
 
           <Card className="shadow-medium">
             <CardHeader>
-              <CardTitle>Tipo de Documento y Materia</CardTitle>
+              <CardTitle>Tipo de Documento, Acción Legal y Materia</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label>Tipo de Acción</Label>
+                <Label>Tipo de Documento</Label>
                 <Select value={formData.tipo_documento} onValueChange={(v) => handleInputChange("tipo_documento", v)}>
                   <SelectTrigger>
                     <SelectValue />
@@ -708,6 +709,21 @@ const AILegalDrafting = () => {
                   <SelectContent>
                     {TIPOS_DOCUMENTO.map((t) => (
                       <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>Acción Legal (Opcional)</Label>
+                <Select value={formData.accion_legal} onValueChange={(v) => handleInputChange("accion_legal", v)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar acción específica..." />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[400px]">
+                    <SelectItem value="">Sin acción específica</SelectItem>
+                    {TIPOS_ACCION_LEGAL.map((a) => (
+                      <SelectItem key={a.value} value={a.value}>{a.label}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

@@ -32,7 +32,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { CaseStatusBadge } from "@/components/cases/CaseStatusBadge";
 import { Plus, Search, Filter, Download, Eye, Edit, Trash2, ArrowLeft } from "lucide-react";
-import { MATERIAS_JURIDICAS, ETAPAS_PROCESALES } from "@/lib/constants";
+import { MATERIAS_JURIDICAS, ETAPAS_PROCESALES, TIPOS_ACCION_LEGAL } from "@/lib/constants";
 import { useToast } from "@/hooks/use-toast";
 
 interface Case {
@@ -283,12 +283,27 @@ const Cases = () => {
                 <p className="text-xs text-muted-foreground">Si se deja vacío, se generará automáticamente con formato CASO-YYYY-NNNN</p>
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="titulo">Título del Caso *</Label>
+                <Label htmlFor="tipo_accion">Tipo de Acción (Opcional)</Label>
+                <Select value="" onValueChange={(value) => setNewCase({ ...newCase, titulo: value })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar una acción predefinida..." />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[300px]">
+                    {TIPOS_ACCION_LEGAL.map((accion) => (
+                      <SelectItem key={accion.value} value={accion.label}>
+                        {accion.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="titulo">Título del Caso * (o escriba uno personalizado)</Label>
                 <Input
                   id="titulo"
                   value={newCase.titulo}
                   onChange={(e) => setNewCase({ ...newCase, titulo: e.target.value })}
-                  placeholder="Ej: Demanda de Desalojo"
+                  placeholder="Ej: Demanda de Desalojo o seleccione una acción arriba"
                 />
               </div>
               <div className="grid gap-2">
