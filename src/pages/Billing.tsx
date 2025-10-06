@@ -1,7 +1,10 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
 import {
   CreditCard,
   TrendingUp,
@@ -10,9 +13,14 @@ import {
   Sparkles,
   CheckCircle2,
   ArrowUpRight,
+  Download,
 } from "lucide-react";
 
 const Billing = () => {
+  const { toast } = useToast();
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState("");
+
   const currentPlan = {
     name: "Pro",
     price: "RD$ 3,990",
@@ -98,6 +106,27 @@ const Billing = () => {
     },
   ];
 
+  const handleChangePlan = (planName: string) => {
+    setSelectedPlan(planName);
+    setShowPaymentDialog(true);
+  };
+
+  const handleProcessPayment = () => {
+    toast({
+      title: "✓ Pago procesado",
+      description: `Tu plan ha sido actualizado a ${selectedPlan}`,
+    });
+    setShowPaymentDialog(false);
+    setSelectedPlan("");
+  };
+
+  const handleDownloadInvoice = (invoiceId: string) => {
+    toast({
+      title: "✓ Descarga iniciada",
+      description: "La factura se está descargando",
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -126,7 +155,11 @@ const Billing = () => {
             <p className="text-sm text-muted-foreground mt-1">
               {currentPlan.price}/{currentPlan.interval}
             </p>
-            <Button className="w-full mt-4" variant="outline">
+            <Button 
+              className="w-full mt-4" 
+              variant="outline"
+              onClick={() => handleChangePlan("Pro")}
+            >
               Cambiar plan
             </Button>
           </CardContent>
@@ -142,7 +175,16 @@ const Billing = () => {
           <CardContent>
             <div className="text-3xl font-bold font-serif">{currentPlan.price}</div>
             <p className="text-sm text-muted-foreground mt-1">01 Nov 2025</p>
-            <Button className="w-full mt-4" variant="outline">
+            <Button 
+              className="w-full mt-4" 
+              variant="outline"
+              onClick={() => {
+                toast({
+                  title: "Gestión de pagos",
+                  description: "Redirigiendo a la configuración de métodos de pago",
+                });
+              }}
+            >
               <CreditCard className="h-4 w-4 mr-2" />
               Métodos de pago
             </Button>
@@ -263,6 +305,7 @@ const Billing = () => {
                   variant={plan.highlighted ? "outline" : "default"}
                   className="w-full gap-2"
                   disabled={plan.highlighted}
+                  onClick={() => handleChangePlan(plan.name)}
                 >
                   {plan.highlighted ? "Plan actual" : "Cambiar a este plan"}
                   {!plan.highlighted && <ArrowUpRight className="h-4 w-4" />}
@@ -295,8 +338,12 @@ const Billing = () => {
                       {invoice.estado}
                     </Badge>
                   </div>
-                  <Button variant="ghost" size="sm">
-                    Descargar
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => handleDownloadInvoice(invoice.id)}
+                  >
+                    <Download className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
@@ -304,6 +351,38 @@ const Billing = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Payment Dialog */}
+      <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cambiar Plan</DialogTitle>
+            <DialogDescription>
+              Confirma el cambio de plan a {selectedPlan}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="p-4 border rounded-lg">
+              <h3 className="font-semibold mb-2">Resumen del plan {selectedPlan}</h3>
+              <p className="text-sm text-muted-foreground">
+                El plan será efectivo inmediatamente y se facturará el próximo ciclo.
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={handleProcessPayment} className="flex-1">
+                Confirmar cambio
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowPaymentDialog(false)}
+                className="flex-1"
+              >
+                Cancelar
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

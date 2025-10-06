@@ -1,7 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -10,13 +16,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   DollarSign,
   Plus,
@@ -35,113 +34,107 @@ import { useToast } from "@/hooks/use-toast";
 const Accounting = () => {
   const { toast } = useToast();
   const [filterEstado, setFilterEstado] = useState("all");
+  const [loading, setLoading] = useState(true);
+  const [invoices, setInvoices] = useState<any[]>([]);
+  const [clients, setClients] = useState<any[]>([]);
+  const [showNewInvoiceDialog, setShowNewInvoiceDialog] = useState(false);
+  const [newInvoice, setNewInvoice] = useState({
+    numero_factura: "",
+    client_id: "",
+    concepto: "",
+    monto: "",
+    fecha: new Date().toISOString().split('T')[0],
+  });
 
-  const stats = {
-    totalPendiente: 245000,
-    totalCobrado: 580000,
-    vencidos: 3,
-    esteMes: 125000,
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Fetch invoices
+      const { data: invoicesData, error: invoicesError } = await supabase
+        .from("invoices")
+        .select("*, clients(nombre_completo)")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (invoicesError) throw invoicesError;
+
+      // Fetch clients
+      const { data: clientsData, error: clientsError } = await supabase
+        .from("clients")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("nombre_completo");
+
+      if (clientsError) throw clientsError;
+
+      setInvoices(invoicesData || []);
+      setClients(clientsData || []);
+    } catch (error: any) {
+      console.error("Error fetching data:", error);
+      toast({
+        title: "Error",
+        description: "No se pudieron cargar los datos",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const invoices = [
-    {
-      id: "fact_001",
-      numero: "2025-001",
-      cliente: "Juan Pérez",
-      caso: "Cobro de pesos",
-      concepto: "Honorarios demanda civil",
-      monto: 35000,
-      pagado: 0,
-      saldo: 35000,
-      fecha: "01 Oct 2025",
-      vencimiento: "15 Oct 2025",
-      estado: "pendiente" as const,
-      metodo: null,
-    },
-    {
-      id: "fact_002",
-      numero: "2025-002",
-      cliente: "Ana Martínez",
-      caso: "Desalojo",
-      concepto: "Honorarios + Gastos procesales",
-      monto: 45000,
-      pagado: 25000,
-      saldo: 20000,
-      fecha: "28 Sep 2025",
-      vencimiento: "12 Oct 2025",
-      estado: "parcial" as const,
-      metodo: "Transferencia",
-    },
-    {
-      id: "fact_003",
-      numero: "2025-003",
-      cliente: "Carlos García",
-      caso: "Despido injustificado",
-      concepto: "Anticipo honorarios laborales",
-      monto: 30000,
-      pagado: 30000,
-      saldo: 0,
-      fecha: "15 Sep 2025",
-      vencimiento: "30 Sep 2025",
-      estado: "pagado" as const,
-      metodo: "Azul",
-    },
-    {
-      id: "fact_004",
-      numero: "2025-004",
-      cliente: "Laura Rodríguez",
-      caso: "Divorcio",
-      concepto: "Honorarios proceso divorcio",
-      monto: 50000,
-      pagado: 50000,
-      saldo: 0,
-      fecha: "10 Sep 2025",
-      vencimiento: "25 Sep 2025",
-      estado: "pagado" as const,
-      metodo: "Cheque",
-    },
-    {
-      id: "fact_005",
-      numero: "2024-145",
-      cliente: "Bufete López & Asociados",
-      caso: "Cobro de honorarios",
-      concepto: "Consultoría jurídica - Agosto",
-      monto: 85000,
-      pagado: 0,
-      saldo: 85000,
-      fecha: "25 Ago 2025",
-      vencimiento: "25 Sep 2025",
-      estado: "vencido" as const,
-      metodo: null,
-    },
-  ];
+  const handleCreateInvoice = async () => {
+    if (!newInvoice.numero_factura || !newInvoice.client_id || !newInvoice.concepto || !newInvoice.monto) {
+      toast({
+        title: "Campos requeridos",
+        description: "Todos los campos son obligatorios",
+        variant: "destructive",
+      });
+      return;
+    }
 
-  const recentPayments = [
-    {
-      id: "pag_01",
-      factura: "2025-003",
-      cliente: "Carlos García",
-      monto: 30000,
-      metodo: "Azul",
-      fecha: "28 Sep 2025",
-    },
-    {
-      id: "pag_02",
-      factura: "2025-004",
-      cliente: "Laura Rodríguez",
-      monto: 50000,
-      metodo: "Cheque",
-      fecha: "24 Sep 2025",
-    },
-    {
-      id: "pag_03",
-      factura: "2025-002",
-      cliente: "Ana Martínez",
-      monto: 25000,
-      metodo: "Transferencia",
-      fecha: "05 Oct 2025",
-    },
-  ];
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("No hay sesión activa");
+
+      const { error } = await supabase
+        .from("invoices")
+        .insert({
+          ...newInvoice,
+          user_id: user.id,
+          monto: parseFloat(newInvoice.monto),
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "✓ Factura creada",
+        description: "La factura ha sido creada exitosamente",
+      });
+
+      setShowNewInvoiceDialog(false);
+      setNewInvoice({
+        numero_factura: "",
+        client_id: "",
+        concepto: "",
+        monto: "",
+        fecha: new Date().toISOString().split('T')[0],
+      });
+      fetchData();
+    } catch (error: any) {
+      console.error("Error creating invoice:", error);
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo crear la factura",
+        variant: "destructive",
+      });
+    }
+  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("es-DO", {
@@ -150,7 +143,7 @@ const Accounting = () => {
     }).format(amount);
   };
 
-  const getEstadoBadge = (estado: typeof ESTADOS_PAGO[number]["value"]) => {
+  const getEstadoBadge = (estado: string) => {
     const variants = {
       pendiente: { variant: "outline" as const, label: "Pendiente" },
       parcial: { variant: "secondary" as const, label: "Pago Parcial" },
@@ -158,7 +151,7 @@ const Accounting = () => {
       vencido: { variant: "destructive" as const, label: "Vencido" },
       cancelado: { variant: "outline" as const, label: "Cancelado" },
     };
-    const config = variants[estado];
+    const config = variants[estado as keyof typeof variants] || variants.pendiente;
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
@@ -180,6 +173,19 @@ const Accounting = () => {
     ? invoices 
     : invoices.filter(inv => inv.estado === filterEstado);
 
+  const stats = {
+    totalPendiente: invoices.filter(inv => inv.estado === "pendiente").reduce((acc, inv) => acc + inv.monto, 0),
+    totalCobrado: invoices.filter(inv => inv.estado === "pagado").reduce((acc, inv) => acc + inv.monto, 0),
+    vencidos: invoices.filter(inv => inv.estado === "vencido").length,
+    esteMes: invoices.filter(inv => {
+      const invoiceDate = new Date(inv.fecha);
+      const currentDate = new Date();
+      return invoiceDate.getMonth() === currentDate.getMonth() && 
+             invoiceDate.getFullYear() === currentDate.getFullYear() &&
+             inv.estado === "pagado";
+    }).reduce((acc, inv) => acc + inv.monto, 0),
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -194,264 +200,234 @@ const Accounting = () => {
             <Download className="h-4 w-4" />
             Exportar
           </Button>
-          <Button className="gap-2">
-            <Plus className="h-4 w-4" />
-            Nueva factura
-          </Button>
+          <Dialog open={showNewInvoiceDialog} onOpenChange={setShowNewInvoiceDialog}>
+            <DialogTrigger asChild>
+              <Button className="gap-2">
+                <Plus className="h-4 w-4" />
+                Nueva factura
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Nueva Factura</DialogTitle>
+                <DialogDescription>
+                  Crear una nueva factura para un cliente
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Número de Factura</Label>
+                  <Input
+                    value={newInvoice.numero_factura}
+                    onChange={(e) => setNewInvoice({ ...newInvoice, numero_factura: e.target.value })}
+                    placeholder="Ej: 2025-001"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Cliente</Label>
+                  <Select
+                    value={newInvoice.client_id}
+                    onValueChange={(value) => setNewInvoice({ ...newInvoice, client_id: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar cliente" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {clients.map((client) => (
+                        <SelectItem key={client.id} value={client.id}>
+                          {client.nombre_completo}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Concepto</Label>
+                  <Textarea
+                    value={newInvoice.concepto}
+                    onChange={(e) => setNewInvoice({ ...newInvoice, concepto: e.target.value })}
+                    placeholder="Descripción de los servicios"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Monto (RD$)</Label>
+                  <Input
+                    type="number"
+                    value={newInvoice.monto}
+                    onChange={(e) => setNewInvoice({ ...newInvoice, monto: e.target.value })}
+                    placeholder="0.00"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Fecha</Label>
+                  <Input
+                    type="date"
+                    value={newInvoice.fecha}
+                    onChange={(e) => setNewInvoice({ ...newInvoice, fecha: e.target.value })}
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button onClick={handleCreateInvoice}>Crear Factura</Button>
+                  <Button variant="outline" onClick={() => setShowNewInvoiceDialog(false)}>
+                    Cancelar
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatsCard
-          title="Total pendiente"
-          value={formatCurrency(stats.totalPendiente)}
-          icon={Clock}
-          variant="warning"
-          description="Por cobrar"
-        />
-        <StatsCard
-          title="Cobrado este mes"
-          value={formatCurrency(stats.esteMes)}
-          icon={CheckCircle2}
-          variant="success"
-          trend={{ value: "+18% vs mes anterior", isPositive: true }}
-        />
-        <StatsCard
-          title="Total cobrado"
-          value={formatCurrency(stats.totalCobrado)}
-          icon={TrendingUp}
-          variant="success"
-        />
-        <StatsCard
-          title="Facturas vencidas"
-          value={stats.vencidos}
-          icon={AlertTriangle}
-          variant="warning"
-          description="Requieren seguimiento"
-        />
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-3">
-        <Card className="md:col-span-2 shadow-medium">
-          <CardHeader className="flex flex-row items-center justify-between pb-3">
-            <CardTitle>Facturas</CardTitle>
-            <Select value={filterEstado} onValueChange={setFilterEstado}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filtrar por estado" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos los estados</SelectItem>
-                {ESTADOS_PAGO.map((estado) => (
-                  <SelectItem key={estado.value} value={estado.value}>
-                    {estado.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </CardHeader>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Factura</TableHead>
-                  <TableHead>Cliente</TableHead>
-                  <TableHead>Concepto</TableHead>
-                  <TableHead className="text-right">Monto</TableHead>
-                  <TableHead className="text-right">Saldo</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead className="text-right">Acciones</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredInvoices.map((invoice) => (
-                  <TableRow
-                    key={invoice.id}
-                    className="cursor-pointer hover:bg-accent/5"
-                  >
-                    <TableCell>
-                      <div>
-                        <p className="font-mono font-medium text-sm">
-                          {invoice.numero}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Vence: {invoice.vencimiento}
-                        </p>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <p className="font-medium text-sm">{invoice.cliente}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {invoice.caso}
-                        </p>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-sm max-w-[200px] truncate">
-                      {invoice.concepto}
-                    </TableCell>
-                    <TableCell className="text-right font-medium">
-                      {formatCurrency(invoice.monto)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <span
-                        className={
-                          invoice.saldo > 0
-                            ? "font-semibold text-warning"
-                            : "text-muted-foreground"
-                        }
-                      >
-                        {formatCurrency(invoice.saldo)}
-                      </span>
-                    </TableCell>
-                    <TableCell>{getEstadoBadge(invoice.estado)}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          title="Ver detalles"
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        {invoice.estado !== "pagado" && (
-                          <>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              title="Enviar factura"
-                              onClick={() =>
-                                handleSendInvoice(
-                                  invoice.numero,
-                                  invoice.cliente
-                                )
-                              }
-                            >
-                              <Send className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              title="Registrar pago"
-                              onClick={() =>
-                                handleRegisterPayment(invoice.numero)
-                              }
-                            >
-                              <DollarSign className="h-4 w-4" />
-                            </Button>
-                          </>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-medium">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CheckCircle2 className="h-5 w-5 text-success" />
-              Pagos recientes
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {recentPayments.map((payment) => (
-                <div
-                  key={payment.id}
-                  className="p-3 rounded-lg border bg-card"
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <p className="font-medium text-sm">{payment.cliente}</p>
-                      <p className="text-xs text-muted-foreground">
-                        Factura: {payment.factura}
-                      </p>
-                    </div>
-                    <span className="font-semibold text-success">
-                      {formatCurrency(payment.monto)}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>{payment.metodo}</span>
-                    <span>{payment.fecha}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card className="shadow-medium">
-        <CardHeader>
-          <CardTitle>Resumen por cliente</CardTitle>
-        </CardHeader>
-        <CardContent>
+      {loading ? (
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">Cargando...</p>
+        </div>
+      ) : (
+        <>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {[
-              {
-                cliente: "Juan Pérez",
-                total: 35000,
-                pagado: 0,
-                facturas: 1,
-              },
-              {
-                cliente: "Ana Martínez",
-                total: 45000,
-                pagado: 25000,
-                facturas: 1,
-              },
-              {
-                cliente: "Carlos García",
-                total: 30000,
-                pagado: 30000,
-                facturas: 1,
-              },
-              {
-                cliente: "Bufete López",
-                total: 85000,
-                pagado: 0,
-                facturas: 1,
-              },
-            ].map((item, index) => (
-              <div
-                key={index}
-                className="p-4 rounded-lg border bg-card hover:bg-accent/5 transition-base"
-              >
-                <p className="font-semibold mb-3">{item.cliente}</p>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Total:</span>
-                    <span className="font-medium">
-                      {formatCurrency(item.total)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Pagado:</span>
-                    <span className="font-medium text-success">
-                      {formatCurrency(item.pagado)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Pendiente:</span>
-                    <span className="font-semibold text-warning">
-                      {formatCurrency(item.total - item.pagado)}
-                    </span>
-                  </div>
-                  <div className="pt-2 border-t">
-                    <span className="text-xs text-muted-foreground">
-                      {item.facturas} factura{item.facturas !== 1 ? "s" : ""}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))}
+            <StatsCard
+              title="Total pendiente"
+              value={formatCurrency(stats.totalPendiente)}
+              icon={Clock}
+              variant="warning"
+              description="Por cobrar"
+            />
+            <StatsCard
+              title="Cobrado este mes"
+              value={formatCurrency(stats.esteMes)}
+              icon={CheckCircle2}
+              variant="success"
+            />
+            <StatsCard
+              title="Total cobrado"
+              value={formatCurrency(stats.totalCobrado)}
+              icon={TrendingUp}
+              variant="success"
+            />
+            <StatsCard
+              title="Facturas vencidas"
+              value={stats.vencidos}
+              icon={AlertTriangle}
+              variant="warning"
+              description="Requieren seguimiento"
+            />
           </div>
-        </CardContent>
-      </Card>
+
+          <Card className="shadow-medium">
+            <CardHeader className="flex flex-row items-center justify-between pb-3">
+              <CardTitle>Facturas</CardTitle>
+              <Select value={filterEstado} onValueChange={setFilterEstado}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filtrar por estado" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos los estados</SelectItem>
+                  {ESTADOS_PAGO.map((estado) => (
+                    <SelectItem key={estado.value} value={estado.value}>
+                      {estado.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </CardHeader>
+            <CardContent className="p-0">
+              {filteredInvoices.length === 0 ? (
+                <div className="text-center py-8">
+                  <DollarSign className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                  <p className="text-sm text-muted-foreground mb-4">
+                    No hay facturas creadas aún
+                  </p>
+                  <Button onClick={() => setShowNewInvoiceDialog(true)} size="sm">
+                    Crear primera factura
+                  </Button>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Factura</TableHead>
+                      <TableHead>Cliente</TableHead>
+                      <TableHead>Concepto</TableHead>
+                      <TableHead className="text-right">Monto</TableHead>
+                      <TableHead>Estado</TableHead>
+                      <TableHead className="text-right">Acciones</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredInvoices.map((invoice) => (
+                      <TableRow
+                        key={invoice.id}
+                        className="cursor-pointer hover:bg-accent/5"
+                      >
+                        <TableCell>
+                          <div>
+                            <p className="font-mono font-medium text-sm">
+                              {invoice.numero_factura}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {new Date(invoice.fecha).toLocaleDateString('es-DO')}
+                            </p>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <p className="font-medium text-sm">
+                            {invoice.clients?.nombre_completo || "Cliente eliminado"}
+                          </p>
+                        </TableCell>
+                        <TableCell className="text-sm max-w-[200px] truncate">
+                          {invoice.concepto}
+                        </TableCell>
+                        <TableCell className="text-right font-medium">
+                          {formatCurrency(invoice.monto)}
+                        </TableCell>
+                        <TableCell>{getEstadoBadge(invoice.estado)}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center justify-end gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              title="Ver detalles"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            {invoice.estado !== "pagado" && (
+                              <>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  title="Enviar factura"
+                                  onClick={() =>
+                                    handleSendInvoice(
+                                      invoice.numero_factura,
+                                      invoice.clients?.nombre_completo || "Cliente"
+                                    )
+                                  }
+                                >
+                                  <Send className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  title="Registrar pago"
+                                  onClick={() =>
+                                    handleRegisterPayment(invoice.numero_factura)
+                                  }
+                                >
+                                  <DollarSign className="h-4 w-4" />
+                                </Button>
+                              </>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        </>
+      )}
     </div>
   );
 };
