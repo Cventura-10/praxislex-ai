@@ -59,6 +59,7 @@ export default function Auth() {
   const [fullName, setFullName] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
   const [errors, setErrors] = useState<{ email?: string; password?: string; fullName?: string; form?: string }>({});
   const [passwordStrength, setPasswordStrength] = useState(calculatePasswordStrength(""));
   const [resetEmailSent, setResetEmailSent] = useState(false);
@@ -70,6 +71,8 @@ export default function Auth() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         navigate("/");
+      } else {
+        setCheckingAuth(false);
       }
     });
 
@@ -81,6 +84,17 @@ export default function Auth() {
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Verificando sesión...</p>
+        </div>
+      </div>
+    );
+  }
 
   const validate = () => {
     const e: { email?: string; password?: string; fullName?: string } = {};
