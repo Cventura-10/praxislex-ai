@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_verifications: {
+        Row: {
+          created_at: string
+          method: string | null
+          user_id: string
+          verified_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          method?: string | null
+          user_id: string
+          verified_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          method?: string | null
+          user_id?: string
+          verified_by?: string | null
+        }
+        Relationships: []
+      }
       cases: {
         Row: {
           client_id: string | null
@@ -382,6 +403,42 @@ export type Database = {
         }
         Relationships: []
       }
+      role_audit_log: {
+        Row: {
+          action: string
+          changed_by: string | null
+          created_at: string
+          id: string
+          ip_address: string | null
+          new_role: Database["public"]["Enums"]["app_role"] | null
+          old_role: Database["public"]["Enums"]["app_role"] | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          new_role?: Database["public"]["Enums"]["app_role"] | null
+          old_role?: Database["public"]["Enums"]["app_role"] | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          new_role?: Database["public"]["Enums"]["app_role"] | null
+          old_role?: Database["public"]["Enums"]["app_role"] | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -408,6 +465,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      has_admin_verification: {
+        Args: { _user_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
