@@ -47,9 +47,20 @@ const Clients = () => {
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const [showNewClientDialog, setShowNewClientDialog] = useState(false);
+  const [showViewClientDialog, setShowViewClientDialog] = useState(false);
+  const [showEditClientDialog, setShowEditClientDialog] = useState(false);
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [revealedClients, setRevealedClients] = useState<Set<string>>(new Set());
 
   const [newClient, setNewClient] = useState({
+    nombre_completo: "",
+    cedula_rnc: "",
+    email: "",
+    telefono: "",
+    direccion: "",
+  });
+
+  const [editClient, setEditClient] = useState({
     nombre_completo: "",
     cedula_rnc: "",
     email: "",
@@ -182,18 +193,71 @@ const Clients = () => {
       .toUpperCase();
   };
 
-  const handleViewClient = (nombre: string) => {
-    toast({
-      title: "Ver perfil",
-      description: `Abriendo perfil de: ${nombre}`,
-    });
+  const handleViewClient = (client: Client) => {
+    setSelectedClient(client);
+    setShowViewClientDialog(true);
   };
 
-  const handleEditClient = (nombre: string) => {
-    toast({
-      title: "Editar cliente",
-      description: `Editando: ${nombre}`,
+  const handleEditClient = (client: Client) => {
+    setSelectedClient(client);
+    setEditClient({
+      nombre_completo: client.nombre_completo,
+      cedula_rnc: client.cedula_rnc,
+      email: client.email || "",
+      telefono: client.telefono || "",
+      direccion: client.direccion || "",
     });
+    setShowEditClientDialog(true);
+  };
+
+  const handleUpdateClient = async () => {
+    if (!selectedClient) return;
+
+    try {
+      const clientData = {
+        nombre_completo: editClient.nombre_completo,
+        cedula_rnc: editClient.cedula_rnc,
+        email: editClient.email || undefined,
+        telefono: editClient.telefono || undefined,
+        direccion: editClient.direccion || undefined,
+      };
+
+      const validationResult = clientSchema.safeParse(clientData);
+      if (!validationResult.success) {
+        const errors = validationResult.error.issues;
+        const errorMessages = errors.map(err => `• ${err.message}`).join('\n');
+        toast({
+          title: "Datos inválidos",
+          description: errors.length > 1 
+            ? `Por favor corrija los siguientes errores:\n${errorMessages}`
+            : errors[0].message,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { error } = await supabase
+        .from("clients")
+        .update(validationResult.data)
+        .eq("id", selectedClient.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Cliente actualizado",
+        description: "Los datos del cliente han sido actualizados exitosamente",
+      });
+
+      setShowEditClientDialog(false);
+      setSelectedClient(null);
+      fetchClients();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo actualizar el cliente",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleRevealClient = async (clientId: string) => {
@@ -440,15 +504,26 @@ const Clients = () => {
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">
                         {!revealedClients.has(client.id) && (
-                          <Button variant="ghost" size="icon" onClick={() => handleRevealClient(client.id)} title="Revelar datos">
-                            <Eye className="h-4 w-4" />
+                          <Button variant="ghost" size="icon" onClick={() => handleRevealClient(client.id)} title="Revelar datos enmascarados">
+                            <EyeOff className="h-4 w-4" />
                           </Button>
                         )}
-                        {revealedClients.has(client.id) && (
-                          <Button variant="ghost" size="icon" disabled title="Datos revelados">
-                            <EyeOff className="h-4 w-4 text-muted-foreground" />
-                          </Button>
-                        )}
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => handleViewClient(client)}
+                          title="Ver cliente"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => handleEditClient(client)}
+                          title="Editar cliente"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
                         <Button 
                           variant="ghost" 
                           size="icon" 
@@ -456,9 +531,6 @@ const Clients = () => {
                           title="Enviar invitación al portal"
                         >
                           <Send className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleEditClient(client.nombre_completo)}>
-                          <Edit className="h-4 w-4" />
                         </Button>
                         <Button variant="ghost" size="icon" onClick={() => handleDeleteClient(client.id, client.nombre_completo)}>
                           <Trash2 className="h-4 w-4 text-destructive" />
@@ -478,6 +550,139 @@ const Clients = () => {
           Mostrando {filteredClients.length} de {clients.length} clientes
         </p>
       </div>
+
+      {/* View Client Dialog */}
+      <Dialog open={showViewClientDialog} onOpenChange={setShowViewClientDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Detalles del Cliente</DialogTitle>
+            <DialogDescription>Información completa del cliente</DialogDescription>
+          </DialogHeader>
+          {selectedClient && (
+            <div className="space-y-4 py-4">
+              <div className="flex items-center gap-4 pb-4 border-b">
+                <Avatar className="h-16 w-16">
+                  <AvatarFallback className="bg-primary/10 text-primary font-semibold text-lg">
+                    {getInitials(selectedClient.nombre_completo)}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <h3 className="text-xl font-semibold">{selectedClient.nombre_completo}</h3>
+                  <p className="text-sm text-muted-foreground">Cliente desde {new Date(selectedClient.created_at).toLocaleDateString('es-DO')}</p>
+                </div>
+              </div>
+              
+              <div className="grid gap-4">
+                <div>
+                  <Label className="text-muted-foreground">Cédula/RNC</Label>
+                  <p className="font-mono text-sm mt-1">{selectedClient.cedula_rnc}</p>
+                </div>
+                
+                {selectedClient.email && (
+                  <div>
+                    <Label className="text-muted-foreground">Email</Label>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Mail className="h-4 w-4 text-muted-foreground" />
+                      <p className="text-sm">{selectedClient.email}</p>
+                    </div>
+                  </div>
+                )}
+                
+                {selectedClient.telefono && (
+                  <div>
+                    <Label className="text-muted-foreground">Teléfono</Label>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Phone className="h-4 w-4 text-muted-foreground" />
+                      <p className="text-sm">{selectedClient.telefono}</p>
+                    </div>
+                  </div>
+                )}
+                
+                {selectedClient.direccion && (
+                  <div>
+                    <Label className="text-muted-foreground">Dirección</Label>
+                    <p className="text-sm mt-1">{selectedClient.direccion}</p>
+                  </div>
+                )}
+                
+                <div>
+                  <Label className="text-muted-foreground">Última actualización</Label>
+                  <p className="text-sm mt-1">{new Date(selectedClient.updated_at).toLocaleString('es-DO')}</p>
+                </div>
+              </div>
+            </div>
+          )}
+          <div className="flex justify-end">
+            <Button onClick={() => setShowViewClientDialog(false)}>Cerrar</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Client Dialog */}
+      <Dialog open={showEditClientDialog} onOpenChange={setShowEditClientDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Editar Cliente</DialogTitle>
+            <DialogDescription>Modifica los datos del cliente</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="edit_nombre_completo">Nombre Completo *</Label>
+              <Input
+                id="edit_nombre_completo"
+                value={editClient.nombre_completo}
+                onChange={(e) => setEditClient({ ...editClient, nombre_completo: e.target.value })}
+                placeholder="Ej: Juan Pérez"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit_cedula_rnc">Cédula/RNC *</Label>
+              <Input
+                id="edit_cedula_rnc"
+                value={editClient.cedula_rnc}
+                onChange={(e) => setEditClient({ ...editClient, cedula_rnc: e.target.value })}
+                placeholder="Ej: 001-1234567-8"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit_email">Email</Label>
+              <Input
+                id="edit_email"
+                type="email"
+                value={editClient.email}
+                onChange={(e) => setEditClient({ ...editClient, email: e.target.value })}
+                placeholder="cliente@example.com"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit_telefono">Teléfono</Label>
+              <Input
+                id="edit_telefono"
+                value={editClient.telefono}
+                onChange={(e) => setEditClient({ ...editClient, telefono: e.target.value })}
+                placeholder="+1 809 555 0101"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit_direccion">Dirección</Label>
+              <Input
+                id="edit_direccion"
+                value={editClient.direccion}
+                onChange={(e) => setEditClient({ ...editClient, direccion: e.target.value })}
+                placeholder="Dirección completa"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setShowEditClientDialog(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleUpdateClient} disabled={!editClient.nombre_completo || !editClient.cedula_rnc}>
+              Guardar Cambios
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
