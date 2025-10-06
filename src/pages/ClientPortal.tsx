@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +23,7 @@ import {
   Eye,
   Download,
   AlertCircle,
+  ArrowLeft,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { CaseStatusBadge } from "@/components/cases/CaseStatusBadge";
@@ -73,6 +75,7 @@ interface ClientDocument {
 }
 
 const ClientPortal = () => {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const { profile: lawFirmProfile } = useLawFirmProfile();
   const [loading, setLoading] = useState(true);
@@ -263,11 +266,16 @@ const ClientPortal = () => {
     <div className="space-y-6 p-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Portal del Cliente</h1>
-          <p className="text-muted-foreground mt-1">
-            Bienvenido, {clientData.nombre_completo}
-          </p>
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')}>
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Portal del Cliente</h1>
+            <p className="text-muted-foreground mt-1">
+              Bienvenido, {clientData.nombre_completo}
+            </p>
+          </div>
         </div>
       </div>
 

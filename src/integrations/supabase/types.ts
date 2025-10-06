@@ -530,6 +530,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_case_number: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       has_admin_verification: {
         Args: { _user_id: string }
         Returns: boolean

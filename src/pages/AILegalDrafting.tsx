@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,7 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, Loader2, Send, Download, ClipboardList } from "lucide-react";
+import { Sparkles, Loader2, Send, Download, ClipboardList, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { MATERIAS_JURIDICAS, TIPOS_DOCUMENTO } from "@/lib/constants";
@@ -213,6 +214,7 @@ const FieldRow: React.FC<{
 );
 
 const AILegalDrafting = () => {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const { profile: lawFirmProfile, loading: profileLoading } = useLawFirmProfile();
   const [isGenerating, setIsGenerating] = useState(false);
@@ -665,11 +667,16 @@ const AILegalDrafting = () => {
       {/* Formulario - Lado Izquierdo */}
       <ScrollArea className="h-[calc(100vh-8rem)]">
         <div className="space-y-6 pr-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Redacción Jurídica IA</h1>
-            <p className="text-muted-foreground mt-1">
-              Genera documentos profesionales con IA
-            </p>
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')}>
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">Redacción Jurídica IA</h1>
+              <p className="text-muted-foreground mt-1">
+                Genera documentos profesionales con IA
+              </p>
+            </div>
           </div>
 
           <Tabs value={intakeMode} onValueChange={(v) => setIntakeMode(v as 'manual' | 'structured')}>

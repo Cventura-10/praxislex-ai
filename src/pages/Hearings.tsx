@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,7 +15,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, Clock, MapPin, Plus, AlertTriangle, Edit, Trash2, CheckCircle2 } from "lucide-react";
+import { Calendar, Clock, MapPin, Plus, AlertTriangle, Edit, Trash2, CheckCircle2, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { hearingSchema, deadlineSchema } from "@/lib/validation";
 
@@ -39,6 +40,7 @@ interface Deadline {
 }
 
 const Hearings = () => {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [hearings, setHearings] = useState<Hearing[]>([]);
   const [deadlines, setDeadlines] = useState<Deadline[]>([]);
@@ -311,9 +313,14 @@ const Hearings = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Audiencias y Plazos</h1>
-          <p className="text-muted-foreground mt-1">Calendario de eventos y vencimientos procesales</p>
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')}>
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Audiencias y Plazos</h1>
+            <p className="text-muted-foreground mt-1">Calendario de eventos y vencimientos procesales</p>
+          </div>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" className="gap-2">

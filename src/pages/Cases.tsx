@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,7 +31,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { CaseStatusBadge } from "@/components/cases/CaseStatusBadge";
-import { Plus, Search, Filter, Download, Eye, Edit, Trash2 } from "lucide-react";
+import { Plus, Search, Filter, Download, Eye, Edit, Trash2, ArrowLeft } from "lucide-react";
 import { MATERIAS_JURIDICAS, ETAPAS_PROCESALES } from "@/lib/constants";
 import { useToast } from "@/hooks/use-toast";
 
@@ -53,6 +54,7 @@ interface Case {
 }
 
 const Cases = () => {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterMateria, setFilterMateria] = useState("all");
@@ -63,7 +65,7 @@ const Cases = () => {
   const [showNewCaseDialog, setShowNewCaseDialog] = useState(false);
 
   const [newCase, setNewCase] = useState({
-    numero_expediente: "",
+    numero_expediente: "", // Will be auto-generated if empty
     titulo: "",
     materia: "",
     juzgado: "",
@@ -160,12 +162,14 @@ const Cases = () => {
       } = await supabase.auth.getUser();
       if (!user) throw new Error("Usuario no autenticado");
 
-      const { error } = await supabase.from("cases").insert([
-        {
-          ...validationResult.data,
-          user_id: user.id,
-        },
-      ]);
+      // If numero_expediente is empty, send empty string to trigger auto-generation
+      const insertData = {
+        ...validationResult.data,
+        numero_expediente: validationResult.data.numero_expediente || '',
+        user_id: user.id,
+      };
+
+      const { error } = await supabase.from("cases").insert([insertData]);
 
       if (error) throw error;
 
@@ -246,9 +250,14 @@ const Cases = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Casos</h1>
-          <p className="text-muted-foreground mt-1">Gestiona todos tus expedientes jurídicos</p>
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')}>
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Casos</h1>
+            <p className="text-muted-foreground mt-1">Gestiona todos tus expedientes jurídicos</p>
+          </div>
         </div>
         <Dialog open={showNewCaseDialog} onOpenChange={setShowNewCaseDialog}>
           <DialogTrigger asChild>
@@ -264,13 +273,14 @@ const Cases = () => {
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label htmlFor="numero_expediente">Número de Expediente *</Label>
+                <Label htmlFor="numero_expediente">Número de Expediente (Opcional - Se genera automáticamente)</Label>
                 <Input
                   id="numero_expediente"
                   value={newCase.numero_expediente}
                   onChange={(e) => setNewCase({ ...newCase, numero_expediente: e.target.value })}
-                  placeholder="Ej: 001-2024-CIVI-00123"
+                  placeholder="Dejar vacío para generar automáticamente"
                 />
+                <p className="text-xs text-muted-foreground">Si se deja vacío, se generará automáticamente con formato CASO-YYYY-NNNN</p>
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="titulo">Título del Caso *</Label>

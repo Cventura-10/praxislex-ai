@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,11 +11,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Search, ExternalLink, BookOpen, Calendar, Scale, Download } from "lucide-react";
+import { Search, ExternalLink, BookOpen, Calendar, Scale, Download, ArrowLeft } from "lucide-react";
 import { MATERIAS_JURIDICAS, ORGANOS_JUDICIALES } from "@/lib/constants";
 import { useToast } from "@/hooks/use-toast";
 
 const Jurisprudence = () => {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterOrgano, setFilterOrgano] = useState("all");
@@ -100,11 +102,16 @@ const Jurisprudence = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Jurisprudencia</h1>
-          <p className="text-muted-foreground mt-1">
-            Base de datos de sentencias y criterios judiciales
-          </p>
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')}>
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Jurisprudencia</h1>
+            <p className="text-muted-foreground mt-1">
+              Base de datos de sentencias y criterios judiciales
+            </p>
+          </div>
         </div>
         <Button variant="outline" className="gap-2">
           <ExternalLink className="h-4 w-4" />

@@ -57,8 +57,9 @@ export const caseSchema = z.object({
   numero_expediente: z
     .string()
     .trim()
-    .min(3, "El número de expediente debe tener al menos 3 caracteres")
-    .max(100, "El número de expediente no puede exceder 100 caracteres"),
+    .max(100, "El número de expediente no puede exceder 100 caracteres")
+    .optional()
+    .or(z.literal('')),
   materia: z
     .string()
     .refine(

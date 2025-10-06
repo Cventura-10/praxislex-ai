@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,9 +15,11 @@ import {
   CheckCircle2,
   ArrowUpRight,
   Download,
+  ArrowLeft,
 } from "lucide-react";
 
 const Billing = () => {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState("");
@@ -130,11 +133,16 @@ const Billing = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Facturación</h1>
-          <p className="text-muted-foreground mt-1">
-            Gestiona tu suscripción y métodos de pago
-          </p>
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')}>
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Facturación</h1>
+            <p className="text-muted-foreground mt-1">
+              Gestiona tu suscripción y métodos de pago
+            </p>
+          </div>
         </div>
       </div>
 

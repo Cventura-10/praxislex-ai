@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,7 +25,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Mail, Phone, Briefcase, Eye, Edit, Trash2, EyeOff } from "lucide-react";
+import { Plus, Search, Mail, Phone, Briefcase, Eye, Edit, Trash2, EyeOff, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { maskEmail, maskPhone, maskCedula } from "@/lib/dataMasking";
 
@@ -40,6 +41,7 @@ interface Client {
 }
 
 const Clients = () => {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [clients, setClients] = useState<Client[]>([]);
@@ -254,9 +256,14 @@ const Clients = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Clientes</h1>
-          <p className="text-muted-foreground mt-1">Administra tu cartera de clientes</p>
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')}>
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Clientes</h1>
+            <p className="text-muted-foreground mt-1">Administra tu cartera de clientes</p>
+          </div>
         </div>
         <Dialog open={showNewClientDialog} onOpenChange={setShowNewClientDialog}>
           <DialogTrigger asChild>

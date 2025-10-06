@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { invoiceSchema } from "@/lib/validation";
@@ -28,6 +29,7 @@ import {
   Download,
   Send,
   Eye,
+  ArrowLeft,
 } from "lucide-react";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { ESTADOS_PAGO } from "@/lib/constants";
@@ -36,6 +38,7 @@ import { InvoiceViewer } from "@/components/InvoiceViewer";
 import { useLawFirmProfile } from "@/hooks/useLawFirmProfile";
 
 const Accounting = () => {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const { profile: lawFirmProfile } = useLawFirmProfile();
   const [filterEstado, setFilterEstado] = useState("all");
@@ -212,11 +215,16 @@ const Accounting = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Contabilidad</h1>
-          <p className="text-muted-foreground mt-1">
-            Gestión de cobros y pagos de clientes
-          </p>
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')}>
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Contabilidad</h1>
+            <p className="text-muted-foreground mt-1">
+              Gestión de cobros y pagos de clientes
+            </p>
+          </div>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" className="gap-2">
