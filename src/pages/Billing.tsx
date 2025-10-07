@@ -4,8 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { useUserRole } from "@/hooks/useUserRole";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   CreditCard,
   TrendingUp,
@@ -21,47 +23,66 @@ import {
 const Billing = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { isPro, isAdmin, isFree } = useUserRole();
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState("");
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("monthly");
+
+  const getPrice = (monthlyPrice: number) => {
+    if (billingCycle === "annual") {
+      const annualPrice = monthlyPrice * 12 * 0.8; // 20% descuento
+      return `$${Math.round(annualPrice)}`;
+    }
+    return `$${monthlyPrice}`;
+  };
+
+  const getPeriod = () => {
+    return billingCycle === "annual" ? "/año" : "/mes";
+  };
+
+  // Determine current plan based on user role
+  const getCurrentPlanName = () => {
+    if (isAdmin) return "Plan Empresarial";
+    if (isPro) return "Plan Pro";
+    return "Plan Gratuito";
+  };
+
+  const getCurrentPlanPrice = () => {
+    if (isAdmin) return "Personalizado";
+    if (isPro) return billingCycle === "monthly" ? "$49" : "$470";
+    return "$0";
+  };
 
   const currentPlan = {
-    name: "Pro",
-    price: "RD$ 3,990",
-    interval: "mensual",
+    name: getCurrentPlanName(),
+    price: getCurrentPlanPrice(),
+    interval: billingCycle === "monthly" ? "mensual" : "anual",
     limits: {
-      users: { used: 3, total: 10 },
-      storage: { used: 45, total: 200 }, // GB
-      aiDrafts: { used: 128, total: 500 },
+      users: { used: isPro ? 3 : 1, total: isPro ? 10 : 1 },
+      storage: { used: isPro ? 45 : 0.5, total: isPro ? 50 : 1 }, // GB
+      aiDrafts: { used: isPro ? 128 : 5, total: isPro ? 500 : 10 },
     },
-    features: [
-      "Gestión de casos ilimitados",
-      "Búsqueda de jurisprudencia",
-      "Portal del cliente",
-      "500 borradores con IA/mes",
-      "200 GB de almacenamiento",
-      "10 usuarios",
-    ],
   };
 
   const invoices = [
     {
       id: "inv_01",
       periodo: "Octubre 2025",
-      monto: "RD$ 3,990",
+      monto: getCurrentPlanPrice() !== "Personalizado" ? getCurrentPlanPrice() : "$49",
       fecha: "01 Oct 2025",
       estado: "Pagado",
     },
     {
       id: "inv_02",
       periodo: "Septiembre 2025",
-      monto: "RD$ 3,990",
+      monto: getCurrentPlanPrice() !== "Personalizado" ? getCurrentPlanPrice() : "$49",
       fecha: "01 Sep 2025",
       estado: "Pagado",
     },
     {
       id: "inv_03",
       periodo: "Agosto 2025",
-      monto: "RD$ 3,990",
+      monto: getCurrentPlanPrice() !== "Personalizado" ? getCurrentPlanPrice() : "$49",
       fecha: "01 Ago 2025",
       estado: "Pagado",
     },
@@ -69,43 +90,49 @@ const Billing = () => {
 
   const plans = [
     {
-      name: "Starter",
-      price: "RD$ 1,990",
-      description: "Para abogados independientes",
+      name: "Plan Gratuito",
+      monthlyPrice: 0,
+      description: "Perfecto para comenzar",
+      features: [
+        "Hasta 5 casos activos",
+        "Documentos básicos",
+        "1 GB de almacenamiento",
+        "Soporte por email",
+      ],
+      current: isFree,
+    },
+    {
+      name: "Plan Pro",
+      monthlyPrice: 49,
+      description: "Para despachos profesionales",
       features: [
         "Casos ilimitados",
-        "1 usuario",
-        "50 GB almacenamiento",
-        "100 borradores IA/mes",
+        "IA con jurisprudencia citada",
+        "Plantillas avanzadas DOCX/PDF",
+        "Portal del cliente personalizado",
+        "50 GB de almacenamiento",
+        "Soporte prioritario 24/7",
+        "Integraciones con tribunales",
+        "Reportes y analíticas",
       ],
+      highlighted: isPro,
+      current: isPro,
     },
     {
-      name: "Pro",
-      price: "RD$ 3,990",
-      description: "Para firmas medianas",
+      name: "Plan Empresarial",
+      monthlyPrice: null,
+      customPrice: "Personalizado",
+      description: "Para grandes despachos",
       features: [
-        "Todo en Starter",
-        "10 usuarios",
-        "200 GB almacenamiento",
-        "500 borradores IA/mes",
-        "Jurisprudencia avanzada",
-        "Portal del cliente",
-      ],
-      highlighted: true,
-    },
-    {
-      name: "Elite",
-      price: "RD$ 8,990",
-      description: "Para grandes bufetes",
-      features: [
-        "Todo en Pro",
+        "Todo lo incluido en Pro",
         "Usuarios ilimitados",
-        "1 TB almacenamiento",
-        "2000 borradores IA/mes",
-        "Firma electrónica",
-        "API access",
-        "Soporte prioritario",
+        "Almacenamiento ilimitado",
+        "API personalizada",
+        "Gestor de cuenta dedicado",
+        "Capacitación del equipo",
+        "SLA garantizado",
       ],
+      current: isAdmin,
     },
   ];
 
@@ -146,6 +173,16 @@ const Billing = () => {
         </div>
       </div>
 
+      <Tabs value={billingCycle} onValueChange={(value) => setBillingCycle(value as "monthly" | "annual")} className="mb-6">
+        <TabsList className="grid w-full max-w-md mx-auto grid-cols-2">
+          <TabsTrigger value="monthly">Mensual</TabsTrigger>
+          <TabsTrigger value="annual">
+            Anual
+            <Badge variant="secondary" className="ml-2 text-xs">-20%</Badge>
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
+
       <div className="grid gap-6 md:grid-cols-3">
         <Card className="shadow-medium border-l-4 border-l-primary">
           <CardHeader className="pb-3">
@@ -161,14 +198,14 @@ const Billing = () => {
               <Badge variant="default">Activo</Badge>
             </div>
             <p className="text-sm text-muted-foreground mt-1">
-              {currentPlan.price}/{currentPlan.interval}
+              {currentPlan.price}{currentPlan.price !== "Personalizado" && `/${currentPlan.interval}`}
             </p>
             <Button 
               className="w-full mt-4" 
               variant="outline"
-              onClick={() => handleChangePlan("Pro")}
+              onClick={() => navigate("/upgrade")}
             >
-              Cambiar plan
+              Ver todos los planes
             </Button>
           </CardContent>
         </Card>
@@ -182,7 +219,9 @@ const Billing = () => {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold font-serif">{currentPlan.price}</div>
-            <p className="text-sm text-muted-foreground mt-1">01 Nov 2025</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              {billingCycle === "monthly" ? "01 Nov 2025" : "01 Oct 2026"}
+            </p>
             <Button 
               className="w-full mt-4" 
               variant="outline"
@@ -282,21 +321,34 @@ const Billing = () => {
             {plans.map((plan) => (
               <div
                 key={plan.name}
-                className={`p-6 rounded-lg border ${
+                className={`p-6 rounded-lg border transition-all duration-200 ${
                   plan.highlighted
-                    ? "border-primary bg-primary/5"
-                    : "border-border bg-card"
+                    ? "border-primary bg-primary/5 ring-2 ring-primary/20"
+                    : "border-border bg-card hover:border-primary/50"
                 }`}
               >
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-xl font-bold font-serif">{plan.name}</h3>
-                  {plan.highlighted && (
+                  {plan.current && (
                     <Badge variant="default">Actual</Badge>
                   )}
                 </div>
                 <div className="mb-2">
-                  <span className="text-3xl font-bold">{plan.price}</span>
-                  <span className="text-muted-foreground">/mes</span>
+                  <span className="text-3xl font-bold">
+                    {plan.customPrice || getPrice(plan.monthlyPrice)}
+                  </span>
+                  {!plan.customPrice && (
+                    <>
+                      <span className="text-muted-foreground">{getPeriod()}</span>
+                      {billingCycle === "annual" && plan.monthlyPrice > 0 && (
+                        <div className="mt-1">
+                          <span className="text-sm text-muted-foreground line-through">
+                            ${plan.monthlyPrice * 12}/año
+                          </span>
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
                 <p className="text-sm text-muted-foreground mb-4">
                   {plan.description}
@@ -310,13 +362,13 @@ const Billing = () => {
                   ))}
                 </ul>
                 <Button
-                  variant={plan.highlighted ? "outline" : "default"}
+                  variant={plan.current ? "outline" : "default"}
                   className="w-full gap-2"
-                  disabled={plan.highlighted}
-                  onClick={() => handleChangePlan(plan.name)}
+                  disabled={plan.current}
+                  onClick={() => plan.name === "Plan Empresarial" ? navigate("/upgrade") : handleChangePlan(plan.name)}
                 >
-                  {plan.highlighted ? "Plan actual" : "Cambiar a este plan"}
-                  {!plan.highlighted && <ArrowUpRight className="h-4 w-4" />}
+                  {plan.current ? "Plan actual" : plan.name === "Plan Empresarial" ? "Contactar Ventas" : "Cambiar a este plan"}
+                  {!plan.current && <ArrowUpRight className="h-4 w-4" />}
                 </Button>
               </div>
             ))}
