@@ -85,12 +85,17 @@ export default function FirmAccounting() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Fetch firm accounting summary
-      const { data: summary } = await supabase
-        .from("firm_accounting_summary")
-        .select("*")
-        .eq("user_id", user.id)
-        .single();
+      // Fetch firm accounting summary using secure function
+      const { data: summaryData, error: summaryError } = await supabase.rpc('get_firm_accounting_summary', {
+        p_user_id: user.id
+      });
+
+      if (summaryError) {
+        console.error("Error fetching firm accounting summary:", summaryError);
+      }
+
+      // The RPC returns an array, get the first element
+      const summary = summaryData && summaryData.length > 0 ? summaryData[0] : null;
 
       // Fetch general incomes (credits with tipo = 'ingreso_general')
       const { data: incomes } = await supabase
