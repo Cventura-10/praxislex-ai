@@ -56,19 +56,56 @@ const SCHEMAS: Schema[] = [
     materia: "Civil",
     accion: "Cobro de Pesos",
     fields: [
-      { key: "demandante", label: "Demandante (nombre/RNC/cédula)", type: "text", required: true },
-      { key: "demandado", label: "Demandado (nombre/RNC/cédula)", type: "text", required: true },
-      { key: "abogadoNombre", label: "Abogado apoderado (nombre)", type: "text", required: true },
-      { key: "abogadoColegio", label: "Matrícula/CARD", type: "text" },
-      { key: "abogadoEstudio", label: "Estudio / Domicilio procesal", type: "text" },
-      { key: "tribunal.nombre", label: "Tribunal competente", type: "text", required: true },
-      { key: "tribunal.direccion", label: "Dirección del tribunal", type: "text" },
-      { key: "objeto", label: "Objeto de la demanda (resumen)", type: "textarea", placeholder: "Cobro de RD$ X por incumplimiento/contrato…" },
-      { key: "monto", label: "Cuantía reclamada (RD$)", type: "currency", required: true },
-      { key: "hechos", label: "Hechos (cronológico)", type: "textarea", required: true, help: "Fechas, contratos, pagos, incumplimientos, comunicaciones, reconocimiento de deuda." },
-      { key: "fundamentos", label: "Fundamentos de derecho y jurisprudencia", type: "textarea", help: "Cita artículos y 2+ sentencias con órgano, sala, número, fecha y URL." },
-      { key: "pretensiones", label: "Pretensiones / Dispositivos", type: "textarea", placeholder: "Condenar al pago, intereses legales/comerciales, astreinte, costas…" },
-      { key: "anexos", label: "Anexos / Pruebas", type: "textarea", help: "Contrato, recibos, estados de cuenta, certificaciones, comunicaciones." }
+      // Datos del Acto
+      { key: "acto_numero", label: "No. Acto", type: "text", section: "Datos del Acto" },
+      { key: "acto_folios", label: "Folios", type: "text", section: "Datos del Acto" },
+      { key: "ciudad_actuacion", label: "Ciudad de Actuación", type: "text", section: "Datos del Acto" },
+      { key: "alguacil_nombre", label: "Alguacil (Nombre Completo)", type: "text", section: "Datos del Acto" },
+      
+      // Demandante - Generales completas
+      { key: "demandante_nombre", label: "Demandante - Nombre Completo", type: "text", required: true, section: "Demandante" },
+      { key: "demandante_nacionalidad", label: "Nacionalidad", type: "text", section: "Demandante" },
+      { key: "demandante_edad", label: "Edad", type: "text", section: "Demandante" },
+      { key: "demandante_estado_civil", label: "Estado Civil", type: "text", section: "Demandante" },
+      { key: "demandante_profesion", label: "Profesión", type: "text", section: "Demandante" },
+      { key: "demandante_cedula", label: "Cédula o Pasaporte", type: "text", section: "Demandante" },
+      { key: "demandante_domicilio", label: "Domicilio Completo", type: "textarea", section: "Demandante" },
+      
+      // Abogado Apoderado
+      { key: "abogado_nombre", label: "Abogado - Nombre Completo", type: "text", required: true, section: "Abogado" },
+      { key: "abogado_cedula", label: "Cédula", type: "text", section: "Abogado" },
+      { key: "abogado_matricula", label: "Matrícula/CARD", type: "text", section: "Abogado" },
+      { key: "abogado_direccion", label: "Dirección del Despacho", type: "textarea", section: "Abogado" },
+      { key: "abogado_telefono", label: "Teléfono", type: "text", section: "Abogado" },
+      { key: "abogado_email", label: "Email", type: "text", section: "Abogado" },
+      
+      // Demandado - Generales completas
+      { key: "demandado_nombre", label: "Demandado - Nombre/Razón Social", type: "text", required: true, section: "Demandado" },
+      { key: "demandado_nacionalidad", label: "Nacionalidad", type: "text", section: "Demandado" },
+      { key: "demandado_edad", label: "Edad", type: "text", section: "Demandado" },
+      { key: "demandado_estado_civil", label: "Estado Civil", type: "text", section: "Demandado" },
+      { key: "demandado_profesion", label: "Profesión", type: "text", section: "Demandado" },
+      { key: "demandado_cedula", label: "Cédula o Pasaporte", type: "text", section: "Demandado" },
+      { key: "demandado_domicilio", label: "Domicilio Completo", type: "textarea", section: "Demandado" },
+      
+      // Tribunal
+      { key: "tribunal_nombre", label: "Tribunal/Juzgado", type: "text", required: true, section: "Tribunal" },
+      { key: "tribunal_sala", label: "Sala", type: "text", section: "Tribunal" },
+      { key: "tribunal_materia", label: "Materia", type: "text", section: "Tribunal" },
+      { key: "tribunal_ubicacion", label: "Ubicación del Tribunal", type: "textarea", section: "Tribunal" },
+      { key: "expediente_judicial", label: "Expediente Judicial No.", type: "text", section: "Tribunal" },
+      { key: "expediente_gedex", label: "Expediente GEDEX", type: "text", section: "Tribunal" },
+      
+      // Contenido
+      { key: "objeto", label: "Objeto de la demanda", type: "textarea", placeholder: "Cobro de RD$ X por incumplimiento/contrato…", section: "Contenido" },
+      { key: "monto", label: "Cuantía reclamada (RD$)", type: "currency", required: true, section: "Contenido" },
+      { key: "hechos", label: "Hechos (cronológico)", type: "textarea", required: true, help: "Fechas, contratos, pagos, incumplimientos, comunicaciones.", section: "Contenido" },
+      { key: "fundamentos", label: "Fundamentos de derecho y jurisprudencia", type: "textarea", help: "Cita artículos y 2+ sentencias con órgano, sala, número, fecha y URL.", section: "Contenido" },
+      { key: "pretensiones", label: "Pretensiones/Dispositivos", type: "textarea", placeholder: "Condenar al pago, intereses, astreinte, costas…", section: "Contenido" },
+      
+      // Pruebas
+      { key: "anexos", label: "Anexos/Documentos Adjuntos", type: "textarea", help: "Contrato, recibos, estados de cuenta, certificaciones.", section: "Pruebas" },
+      { key: "lista_pruebas", label: "Lista de Pruebas", type: "textarea", section: "Pruebas" }
     ]
   },
   {
@@ -77,16 +114,38 @@ const SCHEMAS: Schema[] = [
     materia: "Constitucional",
     accion: "Acción de Amparo",
     fields: [
-      { key: "demandante", label: "Accionante (nombre/cédula)", type: "text", required: true },
-      { key: "demandado", label: "Accionado (órgano/funcionario/particular)", type: "text", required: true },
-      { key: "abogadoNombre", label: "Abogado (nombre)", type: "text" },
-      { key: "tribunal.nombre", label: "Juzgado apoderado (competente)", type: "text", required: true },
-      { key: "derechosVulnerados", label: "Derechos fundamentales vulnerados", type: "textarea", required: true, help: "Enumera derechos y normas (Constitución, leyes orgánicas)." },
-      { key: "hechos", label: "Hechos (detalle y urgencia)", type: "textarea", required: true },
-      { key: "fundamentos", label: "Fundamentos (jurisprudencia constitucional)", type: "textarea", help: "Incluye 2+ citas vinculadas (TC/SCJ) con URL oficial." },
-      { key: "pretensiones", label: "Pretensiones (ordenar, restituir, abstenerse)", type: "textarea", required: true },
-      { key: "medidas", label: "Medida cautelar (si procede)", type: "textarea", placeholder: "Suspender efectos del acto impugnado…" },
-      { key: "anexos", label: "Anexos (pruebas)", type: "textarea" }
+      // Datos del Acto
+      { key: "acto_numero", label: "No. Acto", type: "text", section: "Datos del Acto" },
+      { key: "ciudad_actuacion", label: "Ciudad de Actuación", type: "text", section: "Datos del Acto" },
+      { key: "alguacil_nombre", label: "Alguacil", type: "text", section: "Datos del Acto" },
+      
+      // Accionante
+      { key: "demandante_nombre", label: "Accionante - Nombre Completo", type: "text", required: true, section: "Accionante" },
+      { key: "demandante_nacionalidad", label: "Nacionalidad", type: "text", section: "Accionante" },
+      { key: "demandante_cedula", label: "Cédula/Pasaporte", type: "text", section: "Accionante" },
+      { key: "demandante_domicilio", label: "Domicilio", type: "textarea", section: "Accionante" },
+      
+      // Accionado
+      { key: "demandado_nombre", label: "Accionado (órgano/funcionario/particular)", type: "text", required: true, section: "Accionado" },
+      { key: "demandado_cargo", label: "Cargo/Calidad", type: "text", section: "Accionado" },
+      { key: "demandado_domicilio", label: "Domicilio", type: "textarea", section: "Accionado" },
+      
+      // Abogado
+      { key: "abogado_nombre", label: "Abogado - Nombre", type: "text", section: "Abogado" },
+      { key: "abogado_matricula", label: "Matrícula", type: "text", section: "Abogado" },
+      { key: "abogado_direccion", label: "Dirección", type: "textarea", section: "Abogado" },
+      
+      // Tribunal
+      { key: "tribunal_nombre", label: "Juzgado apoderado", type: "text", required: true, section: "Tribunal" },
+      { key: "tribunal_ubicacion", label: "Ubicación", type: "textarea", section: "Tribunal" },
+      
+      // Contenido
+      { key: "derechosVulnerados", label: "Derechos fundamentales vulnerados", type: "textarea", required: true, help: "Enumera derechos y normas (Constitución, leyes orgánicas).", section: "Contenido" },
+      { key: "hechos", label: "Hechos (detalle y urgencia)", type: "textarea", required: true, section: "Contenido" },
+      { key: "fundamentos", label: "Fundamentos (jurisprudencia constitucional)", type: "textarea", help: "Incluye 2+ citas vinculadas (TC/SCJ) con URL oficial.", section: "Contenido" },
+      { key: "pretensiones", label: "Pretensiones (ordenar, restituir, abstenerse)", type: "textarea", required: true, section: "Contenido" },
+      { key: "medidas", label: "Medida cautelar (si procede)", type: "textarea", placeholder: "Suspender efectos del acto impugnado…", section: "Contenido" },
+      { key: "anexos", label: "Anexos (pruebas)", type: "textarea", section: "Pruebas" }
     ]
   },
   {
@@ -143,15 +202,34 @@ const SCHEMAS: Schema[] = [
     materia: "Laboral",
     accion: "Demanda en prestaciones laborales",
     fields: [
-      { key: "demandante", label: "Trabajador (nombre/cédula)", type: "text", required: true },
-      { key: "demandado", label: "Empleador (nombre/RNC)", type: "text", required: true },
-      { key: "relacionLaboral", label: "Relación laboral (cargo, salario, fecha inicio/fin)", type: "textarea", required: true },
-      { key: "motivoTerminacion", label: "Motivo de terminación (desahucio/despido/dimisión)", type: "select", options: ["Desahucio", "Despido", "Dimisión", "Otro"], required: true },
-      { key: "monto", label: "Cuantía estimada (RD$)", type: "currency", required: true },
-      { key: "hechos", label: "Hechos (cronología, pruebas)", type: "textarea", required: true },
-      { key: "fundamentos", label: "Fundamentos (Código de Trabajo + jurisprudencia)", type: "textarea" },
-      { key: "pretensiones", label: "Pretensiones (prestaciones, intereses, costas)", type: "textarea", required: true },
-      { key: "anexos", label: "Anexos (contrato, nóminas, comunicaciones)", type: "textarea" }
+      // Trabajador
+      { key: "demandante_nombre", label: "Trabajador - Nombre Completo", type: "text", required: true, section: "Trabajador" },
+      { key: "demandante_nacionalidad", label: "Nacionalidad", type: "text", section: "Trabajador" },
+      { key: "demandante_cedula", label: "Cédula", type: "text", section: "Trabajador" },
+      { key: "demandante_domicilio", label: "Domicilio", type: "textarea", section: "Trabajador" },
+      
+      // Empleador
+      { key: "demandado_nombre", label: "Empleador - Nombre/RNC", type: "text", required: true, section: "Empleador" },
+      { key: "demandado_domicilio", label: "Domicilio", type: "textarea", section: "Empleador" },
+      
+      // Abogado
+      { key: "abogado_nombre", label: "Abogado", type: "text", section: "Abogado" },
+      { key: "abogado_matricula", label: "Matrícula", type: "text", section: "Abogado" },
+      
+      // Tribunal
+      { key: "tribunal_nombre", label: "Tribunal Laboral", type: "text", required: true, section: "Tribunal" },
+      { key: "tribunal_ubicacion", label: "Ubicación", type: "textarea", section: "Tribunal" },
+      
+      // Relación Laboral
+      { key: "relacionLaboral", label: "Relación laboral (cargo, salario, fecha inicio/fin)", type: "textarea", required: true, section: "Relación Laboral" },
+      { key: "motivoTerminacion", label: "Motivo de terminación", type: "select", options: ["Desahucio", "Despido", "Dimisión", "Otro"], required: true, section: "Relación Laboral" },
+      { key: "monto", label: "Cuantía estimada (RD$)", type: "currency", required: true, section: "Relación Laboral" },
+      
+      // Contenido
+      { key: "hechos", label: "Hechos (cronología, pruebas)", type: "textarea", required: true, section: "Contenido" },
+      { key: "fundamentos", label: "Fundamentos (Código de Trabajo + jurisprudencia)", type: "textarea", section: "Contenido" },
+      { key: "pretensiones", label: "Pretensiones (prestaciones, intereses, costas)", type: "textarea", required: true, section: "Contenido" },
+      { key: "anexos", label: "Anexos (contrato, nóminas, comunicaciones)", type: "textarea", section: "Pruebas" }
     ]
   },
   {
@@ -176,16 +254,31 @@ const SCHEMAS: Schema[] = [
     materia: "Civil",
     accion: "Demanda en Daños y Perjuicios",
     fields: [
-      { key: "demandante", label: "Demandante (nombre/RNC/cédula)", type: "text", required: true },
-      { key: "demandado", label: "Demandado (nombre/RNC/cédula)", type: "text", required: true },
-      { key: "abogadoNombre", label: "Abogado apoderado (nombre)", type: "text", required: true },
-      { key: "tribunal.nombre", label: "Tribunal competente", type: "text", required: true },
-      { key: "hechos", label: "Hechos dañosos", type: "textarea", required: true, help: "Descripción del daño causado, circunstancias, culpa o falta." },
-      { key: "danos", label: "Daños sufridos (materiales y morales)", type: "textarea", required: true },
-      { key: "monto", label: "Cuantía reclamada (RD$)", type: "currency", required: true },
-      { key: "fundamentos", label: "Fundamentos (Art. 1382-1383 CC + jurisprudencia)", type: "textarea", required: true },
-      { key: "pretensiones", label: "Pretensiones", type: "textarea", required: true },
-      { key: "anexos", label: "Anexos / Pruebas", type: "textarea" }
+      // Demandante
+      { key: "demandante_nombre", label: "Demandante - Nombre Completo", type: "text", required: true, section: "Demandante" },
+      { key: "demandante_nacionalidad", label: "Nacionalidad", type: "text", section: "Demandante" },
+      { key: "demandante_cedula", label: "Cédula/RNC", type: "text", section: "Demandante" },
+      { key: "demandante_domicilio", label: "Domicilio", type: "textarea", section: "Demandante" },
+      
+      // Demandado
+      { key: "demandado_nombre", label: "Demandado - Nombre/RNC", type: "text", required: true, section: "Demandado" },
+      { key: "demandado_domicilio", label: "Domicilio", type: "textarea", section: "Demandado" },
+      
+      // Abogado
+      { key: "abogado_nombre", label: "Abogado apoderado", type: "text", required: true, section: "Abogado" },
+      { key: "abogado_matricula", label: "Matrícula", type: "text", section: "Abogado" },
+      
+      // Tribunal
+      { key: "tribunal_nombre", label: "Tribunal competente", type: "text", required: true, section: "Tribunal" },
+      { key: "tribunal_ubicacion", label: "Ubicación", type: "textarea", section: "Tribunal" },
+      
+      // Contenido
+      { key: "hechos", label: "Hechos dañosos", type: "textarea", required: true, help: "Descripción del daño causado, circunstancias, culpa o falta.", section: "Contenido" },
+      { key: "danos", label: "Daños sufridos (materiales y morales)", type: "textarea", required: true, section: "Contenido" },
+      { key: "monto", label: "Cuantía reclamada (RD$)", type: "currency", required: true, section: "Contenido" },
+      { key: "fundamentos", label: "Fundamentos (Art. 1382-1383 CC + jurisprudencia)", type: "textarea", required: true, section: "Contenido" },
+      { key: "pretensiones", label: "Pretensiones", type: "textarea", required: true, section: "Contenido" },
+      { key: "anexos", label: "Anexos/Pruebas", type: "textarea", section: "Pruebas" }
     ]
   },
   {
@@ -212,18 +305,33 @@ const SCHEMAS: Schema[] = [
     materia: "Civil",
     accion: "Rescisión de Contrato de Alquiler por Falta de Pago",
     fields: [
-      { key: "demandante", label: "Arrendador (nombre/RNC)", type: "text", required: true },
-      { key: "demandado", label: "Arrendatario (nombre/cédula)", type: "text", required: true },
-      { key: "abogadoNombre", label: "Abogado apoderado", type: "text" },
-      { key: "tribunal.nombre", label: "Juzgado de Paz competente", type: "text", required: true },
-      { key: "inmueble", label: "Inmueble arrendado (dirección completa)", type: "textarea", required: true },
-      { key: "contrato", label: "Contrato (fecha, canon mensual)", type: "textarea", required: true },
-      { key: "incumplimiento", label: "Incumplimiento (meses adeudados)", type: "textarea", required: true },
-      { key: "monto", label: "Monto adeudado (RD$)", type: "currency", required: true },
-      { key: "hechos", label: "Hechos", type: "textarea", required: true },
-      { key: "fundamentos", label: "Fundamentos (Ley 834-78 + jurisprudencia)", type: "textarea" },
-      { key: "pretensiones", label: "Pretensiones (desalojo, pago, intereses)", type: "textarea", required: true },
-      { key: "anexos", label: "Anexos (contrato, recibos, notificaciones)", type: "textarea" }
+      // Arrendador
+      { key: "demandante_nombre", label: "Arrendador - Nombre/RNC", type: "text", required: true, section: "Arrendador" },
+      { key: "demandante_domicilio", label: "Domicilio", type: "textarea", section: "Arrendador" },
+      
+      // Arrendatario
+      { key: "demandado_nombre", label: "Arrendatario - Nombre/Cédula", type: "text", required: true, section: "Arrendatario" },
+      { key: "demandado_domicilio", label: "Domicilio", type: "textarea", section: "Arrendatario" },
+      
+      // Abogado
+      { key: "abogado_nombre", label: "Abogado apoderado", type: "text", section: "Abogado" },
+      { key: "abogado_matricula", label: "Matrícula", type: "text", section: "Abogado" },
+      
+      // Tribunal
+      { key: "tribunal_nombre", label: "Juzgado de Paz competente", type: "text", required: true, section: "Tribunal" },
+      { key: "tribunal_ubicacion", label: "Ubicación", type: "textarea", section: "Tribunal" },
+      
+      // Contrato
+      { key: "inmueble", label: "Inmueble arrendado (dirección completa)", type: "textarea", required: true, section: "Contrato" },
+      { key: "contrato", label: "Contrato (fecha, canon mensual)", type: "textarea", required: true, section: "Contrato" },
+      { key: "incumplimiento", label: "Incumplimiento (meses adeudados)", type: "textarea", required: true, section: "Contrato" },
+      { key: "monto", label: "Monto adeudado (RD$)", type: "currency", required: true, section: "Contrato" },
+      
+      // Contenido
+      { key: "hechos", label: "Hechos", type: "textarea", required: true, section: "Contenido" },
+      { key: "fundamentos", label: "Fundamentos (Ley 834-78 + jurisprudencia)", type: "textarea", section: "Contenido" },
+      { key: "pretensiones", label: "Pretensiones (desalojo, pago, intereses)", type: "textarea", required: true, section: "Contenido" },
+      { key: "anexos", label: "Anexos (contrato, recibos, notificaciones)", type: "textarea", section: "Pruebas" }
     ]
   },
   {
@@ -1820,22 +1928,41 @@ const AILegalDrafting = () => {
                 </CardContent>
               </Card>
 
+              <div className="space-y-6">
+                {/* Agrupar campos por sección */}
+                {(() => {
+                  const sections: Record<string, Field[]> = {};
+                  schema.fields.forEach(field => {
+                    const section = field.section || "General";
+                    if (!sections[section]) sections[section] = [];
+                    sections[section].push(field);
+                  });
+
+                  return Object.entries(sections).map(([sectionName, fields]) => (
+                    <Card key={sectionName}>
+                      <CardHeader>
+                        <CardTitle className="text-lg">{sectionName}</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                          {fields.map((f) => (
+                            <div 
+                              key={f.key} 
+                              className={f.type === "textarea" ? "sm:col-span-2" : ""}
+                            >
+                              <FieldRow field={f} data={intakeData} setData={setIntakeField} />
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ));
+                })()}
+              </div>
+
               <Card>
-                <CardHeader>
-                  <CardTitle>Información del Acto</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    {schema.fields.map((f) => (
-                      <div 
-                        key={f.key} 
-                        className={f.type === "textarea" ? "sm:col-span-2" : ""}
-                      >
-                        <FieldRow field={f} data={intakeData} setData={setIntakeField} />
-                      </div>
-                    ))}
-                  </div>
-                  <div className="mt-6 flex flex-wrap gap-2">
+                <CardContent className="pt-6">
+                  <div className="flex flex-wrap gap-2">
                     <Button 
                       onClick={generateFromIntake} 
                       disabled={isGenerating}
