@@ -95,7 +95,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Generar token seguro de invitación
     const invitationToken = generateSecureToken();
-    const invitationUrl = `${Deno.env.get("SUPABASE_URL")?.replace('.supabase.co', '.lovableproject.com')}/auth?token=${invitationToken}`;
+    const invitationUrl = `${Deno.env.get("SUPABASE_URL")?.replace('.supabase.co', '.lovableproject.com')}/invitation-accept?token=${invitationToken}`;
 
     // Crear registro de invitación con expiración de 7 días
     const { error: invitationError } = await supabase
