@@ -141,6 +141,47 @@ export type Database = {
           },
         ]
       }
+      client_invitations: {
+        Row: {
+          client_id: string
+          created_at: string
+          created_by: string
+          expires_at: string
+          id: string
+          token: string
+          used_at: string | null
+          used_by: string | null
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          created_by: string
+          expires_at?: string
+          id?: string
+          token: string
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          created_by?: string
+          expires_at?: string
+          id?: string
+          token?: string
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_invitations_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           accepted_terms: boolean | null
@@ -765,6 +806,15 @@ export type Database = {
           id: string
           nombre_completo: string
           telefono: string
+        }[]
+      }
+      validate_invitation_token: {
+        Args: { p_token: string }
+        Returns: {
+          client_email: string
+          client_id: string
+          error_message: string
+          is_valid: boolean
         }[]
       }
     }

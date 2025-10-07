@@ -111,7 +111,7 @@ const ClientPortal = () => {
       const { data: clientInfo, error: clientError } = await supabase
         .from("clients")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("auth_user_id", user.id)
         .maybeSingle();
 
       if (clientError) throw clientError;

@@ -1,6 +1,15 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+/**
+ * Generate cryptographically secure random token
+ */
+const generateSecureToken = (): string => {
+  const array = new Uint8Array(32);
+  crypto.getRandomValues(array);
+  return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+};
+
 // Simple Resend API client
 const sendEmail = async (apiKey: string, emailData: {
   from: string;
@@ -84,21 +93,21 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("El cliente no tiene email registrado");
     }
 
-    // Generar token único de invitación
-    const invitationToken = crypto.randomUUID();
+    // Generar token seguro de invitación
+    const invitationToken = generateSecureToken();
     const invitationUrl = `${Deno.env.get("SUPABASE_URL")?.replace('.supabase.co', '.lovableproject.com')}/auth?token=${invitationToken}`;
 
-    // Actualizar cliente con token de invitación
-    const { error: updateError } = await supabase
-      .from("clients")
-      .update({
-        invitation_token: invitationToken,
-        invited_at: new Date().toISOString(),
-      })
-      .eq("id", clientId);
+    // Crear registro de invitación con expiración de 7 días
+    const { error: invitationError } = await supabase
+      .from("client_invitations")
+      .insert({
+        client_id: clientId,
+        token: invitationToken,
+        created_by: user.id,
+      });
 
-    if (updateError) {
-      throw updateError;
+    if (invitationError) {
+      throw invitationError;
     }
 
     // Enviar email de invitación
