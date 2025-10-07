@@ -1,0 +1,30 @@
+@media print {
+  @page {
+    margin: 1cm;
+    size: letter;
+  }
+  
+  body * {
+    visibility: hidden;
+  }
+  
+  #invoice-content,
+  #invoice-content * {
+    visibility: visible;
+  }
+  
+  #invoice-content {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+  
+  .print\:hidden {
+    display: none !important;
+  }
+  
+  .print\:shadow-none {
+    box-shadow: none !important;
+  }
+}

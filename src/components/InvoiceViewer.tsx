@@ -1,8 +1,9 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download, X } from "lucide-react";
+import { Download, X, Printer } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import * as XLSX from 'xlsx';
+import './InvoiceViewer.css';
 
 interface InvoiceViewerProps {
   open: boolean;
@@ -34,6 +35,7 @@ interface InvoiceViewerProps {
     provincia?: string | null;
     eslogan?: string | null;
     sitio_web?: string | null;
+    logo_url?: string | null;
   } | null;
 }
 
@@ -120,6 +122,10 @@ export function InvoiceViewer({ open, onClose, invoice, lawFirm }: InvoiceViewer
     XLSX.writeFile(wb, `Factura_${invoice.numero_factura}.xlsx`);
   };
 
+  const handlePrint = () => {
+    window.print();
+  };
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -134,21 +140,36 @@ export function InvoiceViewer({ open, onClose, invoice, lawFirm }: InvoiceViewer
 
         <div className="space-y-6">
           {/* Vista previa de la factura */}
-          <Card className="bg-white text-foreground">
+          <Card className="bg-white text-foreground print:shadow-none" id="invoice-content">
             <CardContent className="p-8 space-y-8">
               {/* Encabezado de la firma */}
               <div className="border-b pb-6">
-                <h2 className="text-3xl font-bold text-primary mb-2">
-                  {lawFirm?.nombre_firma || "Bufete Legal"}
-                </h2>
-                {lawFirm?.eslogan && (
-                  <p className="text-sm text-muted-foreground italic mb-4">
-                    {lawFirm.eslogan}
-                  </p>
-                )}
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex-1">
+                    <h2 className="text-3xl font-bold text-primary mb-2">
+                      {lawFirm?.nombre_firma || "Bufete Legal"}
+                    </h2>
+                    {lawFirm?.eslogan && (
+                      <p className="text-sm text-muted-foreground italic">
+                        {lawFirm.eslogan}
+                      </p>
+                    )}
+                  </div>
+                  {lawFirm?.logo_url && (
+                    <div className="ml-4">
+                      <img 
+                        src={lawFirm.logo_url} 
+                        alt={lawFirm.nombre_firma}
+                        className="h-20 w-auto object-contain"
+                      />
+                    </div>
+                  )}
+                </div>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     {lawFirm?.rnc && <p><strong>RNC:</strong> {lawFirm.rnc}</p>}
+                    {lawFirm?.abogado_principal && <p><strong>Abogado Principal:</strong> {lawFirm.abogado_principal}</p>}
+                    {lawFirm?.matricula_card && <p><strong>Matrícula:</strong> {lawFirm.matricula_card}</p>}
                     {lawFirm?.direccion && <p><strong>Dirección:</strong> {lawFirm.direccion}</p>}
                     {lawFirm?.ciudad && lawFirm?.provincia && (
                       <p>{lawFirm.ciudad}, {lawFirm.provincia}</p>
@@ -256,9 +277,13 @@ export function InvoiceViewer({ open, onClose, invoice, lawFirm }: InvoiceViewer
           </Card>
 
           {/* Botones de acción */}
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-end gap-2 print:hidden">
             <Button variant="outline" onClick={onClose}>
               Cerrar
+            </Button>
+            <Button variant="outline" onClick={handlePrint} className="gap-2">
+              <Printer className="h-4 w-4" />
+              Imprimir
             </Button>
             <Button onClick={handleDownloadExcel} className="gap-2">
               <Download className="h-4 w-4" />
