@@ -66,6 +66,7 @@ export default function Auth() {
   const [errors, setErrors] = useState<{ email?: string; password?: string; confirmPassword?: string; fullName?: string; form?: string }>({});
   const [passwordStrength, setPasswordStrength] = useState(calculatePasswordStrength(""));
   const [resetEmailSent, setResetEmailSent] = useState(false);
+  const [cooldownSeconds, setCooldownSeconds] = useState(0);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -114,6 +115,16 @@ export default function Auth() {
       setPasswordStrength(calculatePasswordStrength(password));
     }
   }, [password, isSignUp, isResetPassword]);
+
+  // Cooldown timer
+  useEffect(() => {
+    if (cooldownSeconds > 0) {
+      const timer = setTimeout(() => {
+        setCooldownSeconds(cooldownSeconds - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [cooldownSeconds]);
 
   if (checkingAuth) {
     return (
@@ -231,6 +242,16 @@ export default function Auth() {
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Check cooldown
+    if (cooldownSeconds > 0) {
+      toast({
+        title: "Por favor espera",
+        description: `Debes esperar ${cooldownSeconds} segundos antes de solicitar otro correo`,
+        variant: "destructive",
+      });
+      return;
+    }
+    
     // Validate email
     if (!emailRegex.test(email)) {
       setErrors({ email: "Por favor introduce un correo válido" });
@@ -245,9 +266,17 @@ export default function Auth() {
         redirectTo: `${window.location.origin}/auth`,
       });
 
-      if (error) throw error;
+      if (error) {
+        // Check if it's a rate limit error
+        if (error.message.includes("18 seconds") || error.message.includes("security purposes")) {
+          setCooldownSeconds(20); // Set 20 seconds to be safe
+          throw new Error("Por seguridad, debes esperar 20 segundos antes de solicitar otro correo");
+        }
+        throw error;
+      }
 
       setResetEmailSent(true);
+      setCooldownSeconds(20); // Set cooldown after successful send
       toast({
         title: "Correo enviado",
         description: "Revisa tu correo para restablecer tu contraseña.",
@@ -507,7 +536,7 @@ export default function Auth() {
 
                 <button
                   type="submit"
-                  disabled={loading || resetEmailSent}
+                  disabled={loading || resetEmailSent || cooldownSeconds > 0}
                   className="mt-2 inline-flex items-center justify-center rounded-xl bg-[#0E6B4E] px-4 py-3 font-semibold text-white shadow-sm transition hover:brightness-110 focus:outline-none focus:ring-4 focus:ring-[#0E6B4E]/30 disabled:cursor-not-allowed disabled:opacity-70"
                 >
                   {loading ? (
@@ -515,6 +544,8 @@ export default function Auth() {
                       <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
                       Enviando…
                     </span>
+                  ) : cooldownSeconds > 0 ? (
+                    `Espera ${cooldownSeconds}s`
                   ) : resetEmailSent ? (
                     "Correo enviado"
                   ) : (
