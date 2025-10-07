@@ -798,6 +798,7 @@ export type Database = {
       get_clients_masked: {
         Args: { p_user_id?: string }
         Returns: {
+          auth_user_id: string
           cedula_rnc_masked: string
           created_at: string
           direccion_masked: string
