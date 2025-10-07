@@ -377,16 +377,20 @@ const FieldInput: React.FC<{
   field: Field; 
   value: any; 
   onChange: (v: any) => void;
-}> = ({ field, value, onChange }) => {
+  onVoiceInput?: (text: string) => void;
+}> = ({ field, value, onChange, onVoiceInput }) => {
   if (field.type === "textarea") {
     return (
-      <Textarea
-        value={String(value || "")}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={field.placeholder}
-        rows={5}
-        className="resize-none"
-      />
+      <div className="flex gap-2 flex-1">
+        <Textarea
+          value={String(value || "")}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={field.placeholder}
+          rows={5}
+          className="resize-none"
+        />
+        {onVoiceInput && <VoiceInput onTranscribed={onVoiceInput} />}
+      </div>
     );
   }
   
@@ -415,17 +419,22 @@ const FieldInput: React.FC<{
   }
   
   return (
-    <Input
-      type={field.type === "currency" ? "number" : field.type}
-      step={field.type === "number" || field.type === "currency" ? "any" : undefined}
-      value={String(value || "")}
-      onChange={(e) => onChange(
-        field.type === "number" || field.type === "currency" 
-          ? Number(e.target.value) 
-          : e.target.value
+    <div className="flex gap-2">
+      <Input
+        type={field.type === "currency" ? "number" : field.type}
+        step={field.type === "number" || field.type === "currency" ? "any" : undefined}
+        value={String(value || "")}
+        onChange={(e) => onChange(
+          field.type === "number" || field.type === "currency" 
+            ? Number(e.target.value) 
+            : e.target.value
+        )}
+        placeholder={field.placeholder}
+      />
+      {onVoiceInput && field.type !== "date" && field.type !== "number" && field.type !== "currency" && (
+        <VoiceInput onTranscribed={onVoiceInput} />
       )}
-      placeholder={field.placeholder}
-    />
+    </div>
   );
 };
 
@@ -433,18 +442,30 @@ const FieldRow: React.FC<{
   field: Field; 
   data: Record<string, any>; 
   setData: (k: string, v: any) => void;
-}> = ({ field, data, setData }) => (
-  <div className="space-y-2">
-    <Label>
-      {field.label}
-      {field.required && <span className="text-destructive"> *</span>}
-    </Label>
-    <FieldInput field={field} value={data[field.key]} onChange={(v) => setData(field.key, v)} />
-    {field.help && (
-      <p className="text-xs text-muted-foreground">{field.help}</p>
-    )}
-  </div>
-);
+}> = ({ field, data, setData }) => {
+  const handleVoiceInput = (text: string) => {
+    const currentValue = data[field.key] || "";
+    setData(field.key, currentValue ? currentValue + ' ' + text : text);
+  };
+
+  return (
+    <div className="space-y-2">
+      <Label>
+        {field.label}
+        {field.required && <span className="text-destructive"> *</span>}
+      </Label>
+      <FieldInput 
+        field={field} 
+        value={data[field.key]} 
+        onChange={(v) => setData(field.key, v)} 
+        onVoiceInput={handleVoiceInput}
+      />
+      {field.help && (
+        <p className="text-xs text-muted-foreground">{field.help}</p>
+      )}
+    </div>
+  );
+};
 
 const AILegalDrafting = () => {
   const navigate = useNavigate();
@@ -1098,11 +1119,17 @@ const AILegalDrafting = () => {
                 </div>
                 <div>
                   <Label>Folios</Label>
-                  <Input value={formData.acto_folios} onChange={(e) => handleInputChange("acto_folios", e.target.value)} />
+                  <div className="flex gap-2">
+                    <Input value={formData.acto_folios} onChange={(e) => handleInputChange("acto_folios", e.target.value)} />
+                    <VoiceInput onTranscribed={(text) => handleVoiceInput("acto_folios", text)} />
+                  </div>
                 </div>
                 <div>
                   <Label>Año</Label>
-                  <Input value={formData.acto_año} onChange={(e) => handleInputChange("acto_año", e.target.value)} />
+                  <div className="flex gap-2">
+                    <Input value={formData.acto_año} onChange={(e) => handleInputChange("acto_año", e.target.value)} />
+                    <VoiceInput onTranscribed={(text) => handleVoiceInput("acto_año", text)} />
+                  </div>
                 </div>
               </div>
 
@@ -1156,15 +1183,24 @@ const AILegalDrafting = () => {
               <div className="grid grid-cols-3 gap-3">
                 <div>
                   <Label>Nacionalidad</Label>
-                  <Input value={formData.demandante_nacionalidad} onChange={(e) => handleInputChange("demandante_nacionalidad", e.target.value)} />
+                  <div className="flex gap-2">
+                    <Input value={formData.demandante_nacionalidad} onChange={(e) => handleInputChange("demandante_nacionalidad", e.target.value)} />
+                    <VoiceInput onTranscribed={(text) => handleVoiceInput("demandante_nacionalidad", text)} />
+                  </div>
                 </div>
                 <div>
                   <Label>Edad</Label>
-                  <Input value={formData.demandante_edad} onChange={(e) => handleInputChange("demandante_edad", e.target.value)} />
+                  <div className="flex gap-2">
+                    <Input value={formData.demandante_edad} onChange={(e) => handleInputChange("demandante_edad", e.target.value)} />
+                    <VoiceInput onTranscribed={(text) => handleVoiceInput("demandante_edad", text)} />
+                  </div>
                 </div>
                 <div>
                   <Label>Estado Civil</Label>
-                  <Input value={formData.demandante_estado_civil} onChange={(e) => handleInputChange("demandante_estado_civil", e.target.value)} />
+                  <div className="flex gap-2">
+                    <Input value={formData.demandante_estado_civil} onChange={(e) => handleInputChange("demandante_estado_civil", e.target.value)} />
+                    <VoiceInput onTranscribed={(text) => handleVoiceInput("demandante_estado_civil", text)} />
+                  </div>
                 </div>
               </div>
 
@@ -1208,7 +1244,10 @@ const AILegalDrafting = () => {
 
               <div>
                 <Label>RNC</Label>
-                <Input value={formData.firma_rnc} onChange={(e) => handleInputChange("firma_rnc", e.target.value)} />
+                <div className="flex gap-2">
+                  <Input value={formData.firma_rnc} onChange={(e) => handleInputChange("firma_rnc", e.target.value)} />
+                  <VoiceInput onTranscribed={(text) => handleVoiceInput("firma_rnc", text)} />
+                </div>
               </div>
 
               <div>
@@ -1221,7 +1260,10 @@ const AILegalDrafting = () => {
 
               <div>
                 <Label>Cédula del Representante</Label>
-                <Input value={formData.firma_cedula_representante} onChange={(e) => handleInputChange("firma_cedula_representante", e.target.value)} />
+                <div className="flex gap-2">
+                  <Input value={formData.firma_cedula_representante} onChange={(e) => handleInputChange("firma_cedula_representante", e.target.value)} />
+                  <VoiceInput onTranscribed={(text) => handleVoiceInput("firma_cedula_representante", text)} />
+                </div>
               </div>
 
               <div>
@@ -1250,7 +1292,10 @@ const AILegalDrafting = () => {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label>Cédula</Label>
-                  <Input value={formData.abogado_cedula} onChange={(e) => handleInputChange("abogado_cedula", e.target.value)} />
+                  <div className="flex gap-2">
+                    <Input value={formData.abogado_cedula} onChange={(e) => handleInputChange("abogado_cedula", e.target.value)} />
+                    <VoiceInput onTranscribed={(text) => handleVoiceInput("abogado_cedula", text)} />
+                  </div>
                 </div>
                 <div>
                   <Label>Matrícula</Label>
@@ -1272,11 +1317,17 @@ const AILegalDrafting = () => {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label>Teléfono</Label>
-                  <Input value={formData.abogado_telefono} onChange={(e) => handleInputChange("abogado_telefono", e.target.value)} />
+                  <div className="flex gap-2">
+                    <Input value={formData.abogado_telefono} onChange={(e) => handleInputChange("abogado_telefono", e.target.value)} />
+                    <VoiceInput onTranscribed={(text) => handleVoiceInput("abogado_telefono", text)} />
+                  </div>
                 </div>
                 <div>
                   <Label>Email</Label>
-                  <Input type="email" value={formData.abogado_email} onChange={(e) => handleInputChange("abogado_email", e.target.value)} />
+                  <div className="flex gap-2">
+                    <Input type="email" value={formData.abogado_email} onChange={(e) => handleInputChange("abogado_email", e.target.value)} />
+                    <VoiceInput onTranscribed={(text) => handleVoiceInput("abogado_email", text)} />
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -1337,11 +1388,17 @@ const AILegalDrafting = () => {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label>Expediente Judicial No.</Label>
-                  <Input placeholder="________/" value={formData.expediente_judicial} onChange={(e) => handleInputChange("expediente_judicial", e.target.value)} />
+                  <div className="flex gap-2">
+                    <Input placeholder="________/" value={formData.expediente_judicial} onChange={(e) => handleInputChange("expediente_judicial", e.target.value)} />
+                    <VoiceInput onTranscribed={(text) => handleVoiceInput("expediente_judicial", text)} />
+                  </div>
                 </div>
                 <div>
                   <Label>Expediente GEDEX</Label>
-                  <Input placeholder="________/" value={formData.expediente_gedex} onChange={(e) => handleInputChange("expediente_gedex", e.target.value)} />
+                  <div className="flex gap-2">
+                    <Input placeholder="________/" value={formData.expediente_gedex} onChange={(e) => handleInputChange("expediente_gedex", e.target.value)} />
+                    <VoiceInput onTranscribed={(text) => handleVoiceInput("expediente_gedex", text)} />
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -1370,12 +1427,18 @@ const AILegalDrafting = () => {
 
               <div>
                 <Label>Legislación Adicional (Opcional)</Label>
-                <Textarea rows={2} value={formData.legislacion} onChange={(e) => handleInputChange("legislacion", e.target.value)} />
+                <div className="flex gap-2 flex-1">
+                  <Textarea rows={2} value={formData.legislacion} onChange={(e) => handleInputChange("legislacion", e.target.value)} />
+                  <VoiceInput onTranscribed={(text) => handleVoiceInput("legislacion", text)} />
+                </div>
               </div>
 
               <div>
                 <Label>Jurisprudencia (Opcional)</Label>
-                <Textarea rows={2} value={formData.jurisprudencia} onChange={(e) => handleInputChange("jurisprudencia", e.target.value)} />
+                <div className="flex gap-2 flex-1">
+                  <Textarea rows={2} value={formData.jurisprudencia} onChange={(e) => handleInputChange("jurisprudencia", e.target.value)} />
+                  <VoiceInput onTranscribed={(text) => handleVoiceInput("jurisprudencia", text)} />
+                </div>
               </div>
             </CardContent>
           </Card>
