@@ -187,6 +187,7 @@ export type Database = {
           accepted_terms: boolean | null
           auth_user_id: string | null
           cedula_rnc: string
+          cedula_rnc_encrypted: string | null
           created_at: string | null
           direccion: string | null
           email: string | null
@@ -203,6 +204,7 @@ export type Database = {
           accepted_terms?: boolean | null
           auth_user_id?: string | null
           cedula_rnc: string
+          cedula_rnc_encrypted?: string | null
           created_at?: string | null
           direccion?: string | null
           email?: string | null
@@ -219,6 +221,7 @@ export type Database = {
           accepted_terms?: boolean | null
           auth_user_id?: string | null
           cedula_rnc?: string
+          cedula_rnc_encrypted?: string | null
           created_at?: string | null
           direccion?: string | null
           email?: string | null
@@ -780,6 +783,14 @@ export type Database = {
           error_message: string
           is_valid: boolean
         }[]
+      }
+      decrypt_cedula: {
+        Args: { p_encrypted_cedula: string }
+        Returns: string
+      }
+      encrypt_cedula: {
+        Args: { p_cedula: string }
+        Returns: string
       }
       generate_case_number: {
         Args: Record<PropertyKey, never>
