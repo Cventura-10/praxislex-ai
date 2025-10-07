@@ -149,6 +149,7 @@ export type Database = {
           expires_at: string
           id: string
           token: string
+          token_hash: string | null
           used_at: string | null
           used_by: string | null
         }
@@ -159,6 +160,7 @@ export type Database = {
           expires_at?: string
           id?: string
           token: string
+          token_hash?: string | null
           used_at?: string | null
           used_by?: string | null
         }
@@ -169,6 +171,7 @@ export type Database = {
           expires_at?: string
           id?: string
           token?: string
+          token_hash?: string | null
           used_at?: string | null
           used_by?: string | null
         }
@@ -713,6 +716,30 @@ export type Database = {
         }
         Relationships: []
       }
+      token_validation_attempts: {
+        Row: {
+          attempted_at: string
+          id: string
+          ip_address: string | null
+          success: boolean
+          token_hash: string
+        }
+        Insert: {
+          attempted_at?: string
+          id?: string
+          ip_address?: string | null
+          success?: boolean
+          token_hash: string
+        }
+        Update: {
+          attempted_at?: string
+          id?: string
+          ip_address?: string | null
+          success?: boolean
+          token_hash?: string
+        }
+        Relationships: []
+      }
       user_clients: {
         Row: {
           client_id: string
@@ -771,6 +798,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_invitation_token_secure: {
+        Args: { p_client_id: string; p_token: string }
+        Returns: {
+          error_message: string
+          success: boolean
+        }[]
+      }
       can_access_client: {
         Args: { _client_id: string; _user_id: string }
         Returns: boolean
@@ -783,6 +817,10 @@ export type Database = {
           error_message: string
           is_valid: boolean
         }[]
+      }
+      check_token_rate_limit: {
+        Args: { p_token_hash: string }
+        Returns: boolean
       }
       decrypt_cedula: {
         Args: { p_encrypted_cedula: string }
@@ -831,6 +869,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      hash_invitation_token: {
+        Args: { p_token: string }
+        Returns: string
+      }
       link_client_to_auth_user: {
         Args: {
           p_auth_user_id: string
@@ -838,6 +880,14 @@ export type Database = {
           p_invitation_token: string
         }
         Returns: boolean
+      }
+      log_token_validation: {
+        Args: {
+          p_ip_address?: string
+          p_success: boolean
+          p_token_hash: string
+        }
+        Returns: undefined
       }
       reveal_client_pii: {
         Args: { p_client_id: string }
@@ -874,6 +924,19 @@ export type Database = {
           error_message: string
           is_valid: boolean
         }[]
+      }
+      validate_invitation_token_secure: {
+        Args: { p_token: string }
+        Returns: {
+          client_email: string
+          client_id: string
+          error_message: string
+          is_valid: boolean
+        }[]
+      }
+      verify_invitation_token: {
+        Args: { p_hash: string; p_token: string }
+        Returns: boolean
       }
     }
     Enums: {
