@@ -67,14 +67,11 @@ export default function Auth() {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check if user is already logged in
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        navigate("/");
-      }
+    // Only control loading state; avoid redirects here to prevent loops
+    supabase.auth.getSession().then(() => {
       setCheckingAuth(false);
     });
-  }, [navigate]);
+  }, []);
 
   if (checkingAuth) {
     return (
