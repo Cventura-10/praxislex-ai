@@ -54,7 +54,7 @@ const SCHEMAS: Schema[] = [
     id: "CIVIL_COBRO_PESOS",
     titulo: "Demanda en cobro de pesos",
     materia: "Civil",
-    accion: "Demanda en cobro de pesos",
+    accion: "Cobro de Pesos",
     fields: [
       { key: "demandante", label: "Demandante (nombre/RNC/cédula)", type: "text", required: true },
       { key: "demandado", label: "Demandado (nombre/RNC/cédula)", type: "text", required: true },
@@ -75,7 +75,7 @@ const SCHEMAS: Schema[] = [
     id: "CONST_AMPARO",
     titulo: "Acción de amparo",
     materia: "Constitucional",
-    accion: "Acción de amparo",
+    accion: "Acción de Amparo",
     fields: [
       { key: "demandante", label: "Accionante (nombre/cédula)", type: "text", required: true },
       { key: "demandado", label: "Accionado (órgano/funcionario/particular)", type: "text", required: true },
@@ -90,10 +90,42 @@ const SCHEMAS: Schema[] = [
     ]
   },
   {
+    id: "CONST_HABEAS_CORPUS",
+    titulo: "Acción de Habeas Corpus",
+    materia: "Constitucional",
+    accion: "Acción de Habeas Corpus",
+    fields: [
+      { key: "demandante", label: "Accionante (nombre/cédula)", type: "text", required: true },
+      { key: "demandado", label: "Autoridad responsable", type: "text", required: true },
+      { key: "abogadoNombre", label: "Abogado (nombre)", type: "text" },
+      { key: "tribunal.nombre", label: "Tribunal competente", type: "text", required: true },
+      { key: "hechos", label: "Hechos (detención ilegal o arbitraria)", type: "textarea", required: true },
+      { key: "fundamentos", label: "Fundamentos constitucionales", type: "textarea", required: true },
+      { key: "pretensiones", label: "Pretensiones", type: "textarea", required: true },
+      { key: "anexos", label: "Anexos", type: "textarea" }
+    ]
+  },
+  {
+    id: "CONST_HABEAS_DATA",
+    titulo: "Acción de Habeas Data",
+    materia: "Constitucional",
+    accion: "Acción de Habeas Data",
+    fields: [
+      { key: "demandante", label: "Accionante (nombre/cédula)", type: "text", required: true },
+      { key: "demandado", label: "Entidad responsable del registro", type: "text", required: true },
+      { key: "abogadoNombre", label: "Abogado (nombre)", type: "text" },
+      { key: "tribunal.nombre", label: "Tribunal competente", type: "text", required: true },
+      { key: "hechos", label: "Hechos (datos incorrectos/acceso negado)", type: "textarea", required: true },
+      { key: "fundamentos", label: "Fundamentos", type: "textarea", required: true },
+      { key: "pretensiones", label: "Pretensiones (rectificar/suprimir/acceder)", type: "textarea", required: true },
+      { key: "anexos", label: "Anexos", type: "textarea" }
+    ]
+  },
+  {
     id: "CIVIL_REFERIMIENTO",
     titulo: "Referimiento (medida provisional)",
     materia: "Civil",
-    accion: "Demanda en referimiento",
+    accion: "Referimiento",
     fields: [
       { key: "demandante", label: "Solicitante (nombre/RNC/cédula)", type: "text", required: true },
       { key: "demandado", label: "Requerido (nombre/RNC/cédula)", type: "text", required: true },
@@ -136,6 +168,207 @@ const SCHEMAS: Schema[] = [
       { key: "fundamentos", label: "Fundamentos (Ley 108-05 + jurisprudencia)", type: "textarea", required: true },
       { key: "pretensiones", label: "Pretensiones (deslinde/saneamiento, inscripción, medidas)", type: "textarea", required: true },
       { key: "anexos", label: "Anexos (planos, certificaciones RT, mensuras)", type: "textarea" }
+    ]
+  },
+  {
+    id: "CIVIL_DANOS_PERJUICIOS",
+    titulo: "Daños y Perjuicios",
+    materia: "Civil",
+    accion: "Demanda en Daños y Perjuicios",
+    fields: [
+      { key: "demandante", label: "Demandante (nombre/RNC/cédula)", type: "text", required: true },
+      { key: "demandado", label: "Demandado (nombre/RNC/cédula)", type: "text", required: true },
+      { key: "abogadoNombre", label: "Abogado apoderado (nombre)", type: "text", required: true },
+      { key: "tribunal.nombre", label: "Tribunal competente", type: "text", required: true },
+      { key: "hechos", label: "Hechos dañosos", type: "textarea", required: true, help: "Descripción del daño causado, circunstancias, culpa o falta." },
+      { key: "danos", label: "Daños sufridos (materiales y morales)", type: "textarea", required: true },
+      { key: "monto", label: "Cuantía reclamada (RD$)", type: "currency", required: true },
+      { key: "fundamentos", label: "Fundamentos (Art. 1382-1383 CC + jurisprudencia)", type: "textarea", required: true },
+      { key: "pretensiones", label: "Pretensiones", type: "textarea", required: true },
+      { key: "anexos", label: "Anexos / Pruebas", type: "textarea" }
+    ]
+  },
+  {
+    id: "CIVIL_REIVINDICACION",
+    titulo: "Reivindicación",
+    materia: "Civil",
+    accion: "Demanda en Reivindicación",
+    fields: [
+      { key: "demandante", label: "Reivindicante (propietario)", type: "text", required: true },
+      { key: "demandado", label: "Poseedor demandado", type: "text", required: true },
+      { key: "abogadoNombre", label: "Abogado apoderado (nombre)", type: "text", required: true },
+      { key: "tribunal.nombre", label: "Tribunal competente", type: "text", required: true },
+      { key: "inmueble", label: "Bien objeto de reivindicación", type: "textarea", required: true },
+      { key: "tituloPropietario", label: "Título de propiedad del demandante", type: "textarea", required: true },
+      { key: "hechos", label: "Hechos (posesión indebida)", type: "textarea", required: true },
+      { key: "fundamentos", label: "Fundamentos legales", type: "textarea", required: true },
+      { key: "pretensiones", label: "Pretensiones (reivindicar, desalojar)", type: "textarea", required: true },
+      { key: "anexos", label: "Anexos (título, certificaciones)", type: "textarea" }
+    ]
+  },
+  {
+    id: "CIVIL_DESALOJO",
+    titulo: "Desalojo / Rescisión de Contrato de Alquiler",
+    materia: "Civil",
+    accion: "Rescisión de Contrato de Alquiler por Falta de Pago",
+    fields: [
+      { key: "demandante", label: "Arrendador (nombre/RNC)", type: "text", required: true },
+      { key: "demandado", label: "Arrendatario (nombre/cédula)", type: "text", required: true },
+      { key: "abogadoNombre", label: "Abogado apoderado", type: "text" },
+      { key: "tribunal.nombre", label: "Juzgado de Paz competente", type: "text", required: true },
+      { key: "inmueble", label: "Inmueble arrendado (dirección completa)", type: "textarea", required: true },
+      { key: "contrato", label: "Contrato (fecha, canon mensual)", type: "textarea", required: true },
+      { key: "incumplimiento", label: "Incumplimiento (meses adeudados)", type: "textarea", required: true },
+      { key: "monto", label: "Monto adeudado (RD$)", type: "currency", required: true },
+      { key: "hechos", label: "Hechos", type: "textarea", required: true },
+      { key: "fundamentos", label: "Fundamentos (Ley 834-78 + jurisprudencia)", type: "textarea" },
+      { key: "pretensiones", label: "Pretensiones (desalojo, pago, intereses)", type: "textarea", required: true },
+      { key: "anexos", label: "Anexos (contrato, recibos, notificaciones)", type: "textarea" }
+    ]
+  },
+  {
+    id: "ADM_CONTENCIOSO",
+    titulo: "Recurso Contencioso Administrativo",
+    materia: "Contencioso Administrativo",
+    accion: "Recurso Contencioso Administrativo",
+    fields: [
+      { key: "demandante", label: "Recurrente (nombre/RNC/cédula)", type: "text", required: true },
+      { key: "demandado", label: "Órgano administrativo demandado", type: "text", required: true },
+      { key: "abogadoNombre", label: "Abogado (nombre)", type: "text" },
+      { key: "tribunal.nombre", label: "Tribunal Superior Administrativo competente", type: "text", required: true },
+      { key: "actoImpugnado", label: "Acto administrativo impugnado", type: "textarea", required: true, help: "Resolución, decreto, acto administrativo (número y fecha)." },
+      { key: "vicios", label: "Vicios alegados", type: "textarea", required: true, help: "Incompetencia, vicio de forma, desviación de poder, ilegalidad." },
+      { key: "hechos", label: "Hechos", type: "textarea", required: true },
+      { key: "fundamentos", label: "Fundamentos (Ley 107-13 + jurisprudencia)", type: "textarea", required: true },
+      { key: "pretensiones", label: "Pretensiones (anular acto, indemnización)", type: "textarea", required: true },
+      { key: "anexos", label: "Anexos (acto impugnado, notificación)", type: "textarea" }
+    ]
+  },
+  {
+    id: "TRIB_CONTENCIOSO",
+    titulo: "Recurso Contencioso Tributario",
+    materia: "Contencioso Tributario",
+    accion: "Recurso Contencioso Tributario",
+    fields: [
+      { key: "demandante", label: "Contribuyente recurrente", type: "text", required: true },
+      { key: "demandado", label: "DGII / Autoridad fiscal", type: "text", required: true },
+      { key: "abogadoNombre", label: "Abogado (nombre)", type: "text" },
+      { key: "tribunal.nombre", label: "Tribunal Contencioso Tributario", type: "text", required: true },
+      { key: "actoImpugnado", label: "Resolución fiscal impugnada", type: "textarea", required: true },
+      { key: "monto", label: "Cuantía reclamada (RD$)", type: "currency" },
+      { key: "hechos", label: "Hechos y antecedentes", type: "textarea", required: true },
+      { key: "fundamentos", label: "Fundamentos (Código Tributario + jurisprudencia)", type: "textarea", required: true },
+      { key: "pretensiones", label: "Pretensiones (anular resolución, devolución)", type: "textarea", required: true },
+      { key: "anexos", label: "Anexos", type: "textarea" }
+    ]
+  },
+  {
+    id: "PI_INFRACCION",
+    titulo: "Infracción de Propiedad Intelectual",
+    materia: "Propiedad Intelectual",
+    accion: "Demanda por Infracción de Derechos de Autor, Patentes y Marcas",
+    fields: [
+      { key: "demandante", label: "Titular del derecho (nombre/RNC)", type: "text", required: true },
+      { key: "demandado", label: "Infractor (nombre/RNC)", type: "text", required: true },
+      { key: "abogadoNombre", label: "Abogado (nombre)", type: "text" },
+      { key: "tribunal.nombre", label: "Tribunal competente", type: "text", required: true },
+      { key: "derechoInfringido", label: "Derecho infringido (marca, patente, autor)", type: "textarea", required: true },
+      { key: "registro", label: "Registro del derecho (número, fecha)", type: "textarea", required: true },
+      { key: "infraccion", label: "Descripción de la infracción", type: "textarea", required: true },
+      { key: "monto", label: "Daños y perjuicios estimados (RD$)", type: "currency" },
+      { key: "hechos", label: "Hechos", type: "textarea", required: true },
+      { key: "fundamentos", label: "Fundamentos (Ley 20-00 + jurisprudencia)", type: "textarea", required: true },
+      { key: "pretensiones", label: "Pretensiones (cesar uso, indemnización, medidas cautelares)", type: "textarea", required: true },
+      { key: "anexos", label: "Anexos (certificado de registro, pruebas)", type: "textarea" }
+    ]
+  },
+  {
+    id: "FAMILIA_DIVORCIO",
+    titulo: "Divorcio",
+    materia: "Asuntos de Familia",
+    accion: "Demanda en divorcio",
+    fields: [
+      { key: "demandante", label: "Cónyuge demandante", type: "text", required: true },
+      { key: "demandado", label: "Cónyuge demandado", type: "text", required: true },
+      { key: "abogadoNombre", label: "Abogado (nombre)", type: "text" },
+      { key: "tribunal.nombre", label: "Juzgado de Primera Instancia", type: "text", required: true },
+      { key: "matrimonio", label: "Datos del matrimonio (fecha, acta)", type: "textarea", required: true },
+      { key: "causales", label: "Causales del divorcio", type: "textarea", required: true },
+      { key: "hechos", label: "Hechos", type: "textarea", required: true },
+      { key: "fundamentos", label: "Fundamentos (Código Civil + jurisprudencia)", type: "textarea" },
+      { key: "pretensiones", label: "Pretensiones", type: "textarea", required: true },
+      { key: "anexos", label: "Anexos (acta de matrimonio, pruebas)", type: "textarea" }
+    ]
+  },
+  {
+    id: "PENAL_QUERELLA",
+    titulo: "Querella Criminal",
+    materia: "Penal",
+    accion: "Querella criminal con constitución en actor civil",
+    fields: [
+      { key: "querellante", label: "Querellante / Víctima", type: "text", required: true },
+      { key: "querellado", label: "Querellado / Imputado", type: "text", required: true },
+      { key: "abogadoNombre", label: "Abogado (nombre)", type: "text" },
+      { key: "tribunal.nombre", label: "Fiscalía / Juzgado de Instrucción", type: "text", required: true },
+      { key: "hechos", label: "Hechos constitutivos de la infracción", type: "textarea", required: true },
+      { key: "tipificacion", label: "Tipificación penal", type: "textarea", required: true, help: "Artículos del Código Penal aplicables." },
+      { key: "danos", label: "Daños sufridos (materiales/morales)", type: "textarea" },
+      { key: "monto", label: "Indemnización solicitada (RD$)", type: "currency" },
+      { key: "pretensiones", label: "Pretensiones (condena penal, reparación)", type: "textarea", required: true },
+      { key: "anexos", label: "Anexos (certificado médico, fotos, pruebas)", type: "textarea" }
+    ]
+  },
+  {
+    id: "EMBARGO_INMOBILIARIO",
+    titulo: "Embargo Inmobiliario",
+    materia: "Civil",
+    accion: "Embargo Inmobiliario",
+    fields: [
+      { key: "demandante", label: "Acreedor embargante", type: "text", required: true },
+      { key: "demandado", label: "Deudor embargado", type: "text", required: true },
+      { key: "abogadoNombre", label: "Abogado (nombre)", type: "text" },
+      { key: "tribunal.nombre", label: "Tribunal de Primera Instancia", type: "text", required: true },
+      { key: "credito", label: "Crédito (monto, origen)", type: "textarea", required: true },
+      { key: "monto", label: "Monto del crédito (RD$)", type: "currency", required: true },
+      { key: "inmueble", label: "Inmueble a embargar (identificación completa)", type: "textarea", required: true },
+      { key: "hechos", label: "Hechos", type: "textarea", required: true },
+      { key: "fundamentos", label: "Fundamentos legales", type: "textarea" },
+      { key: "pretensiones", label: "Pretensiones", type: "textarea", required: true },
+      { key: "anexos", label: "Anexos (título ejecutorio, certificaciones)", type: "textarea" }
+    ]
+  },
+  {
+    id: "RECURSO_APELACION",
+    titulo: "Recurso de Apelación",
+    materia: "Procedimiento",
+    accion: "Recurso de Apelación",
+    fields: [
+      { key: "apelante", label: "Apelante", type: "text", required: true },
+      { key: "apelado", label: "Apelado", type: "text", required: true },
+      { key: "abogadoNombre", label: "Abogado (nombre)", type: "text" },
+      { key: "tribunal.nombre", label: "Corte de Apelación competente", type: "text", required: true },
+      { key: "sentenciaApelada", label: "Sentencia apelada (tribunal, fecha, número)", type: "textarea", required: true },
+      { key: "agravios", label: "Agravios / Motivos de apelación", type: "textarea", required: true },
+      { key: "hechos", label: "Hechos y antecedentes", type: "textarea", required: true },
+      { key: "fundamentos", label: "Fundamentos", type: "textarea", required: true },
+      { key: "pretensiones", label: "Pretensiones (reformar, revocar)", type: "textarea", required: true },
+      { key: "anexos", label: "Anexos (sentencia, expediente)", type: "textarea" }
+    ]
+  },
+  {
+    id: "RECURSO_CASACION",
+    titulo: "Recurso de Casación",
+    materia: "Procedimiento",
+    accion: "Recurso de Casación",
+    fields: [
+      { key: "recurrente", label: "Recurrente", type: "text", required: true },
+      { key: "recurrido", label: "Recurrido", type: "text", required: true },
+      { key: "abogadoNombre", label: "Abogado (nombre)", type: "text" },
+      { key: "sentenciaRecurrida", label: "Sentencia recurrida (corte, fecha, número)", type: "textarea", required: true },
+      { key: "medios", label: "Medios de casación", type: "textarea", required: true, help: "Vicios de forma, violación de la ley, desnaturalización de hechos." },
+      { key: "fundamentos", label: "Fundamentos y jurisprudencia", type: "textarea", required: true },
+      { key: "pretensiones", label: "Pretensiones (casación total/parcial)", type: "textarea", required: true },
+      { key: "anexos", label: "Anexos (sentencia, expediente)", type: "textarea" }
     ]
   }
 ];
