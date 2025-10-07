@@ -89,6 +89,13 @@ export type Database = {
             referencedRelation: "clients"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "cases_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "firm_accounting_summary"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       client_credits: {
@@ -98,6 +105,7 @@ export type Database = {
           created_at: string | null
           fecha: string
           id: string
+          interes: number | null
           monto: number
           notas: string | null
           referencia: string | null
@@ -111,6 +119,7 @@ export type Database = {
           created_at?: string | null
           fecha?: string
           id?: string
+          interes?: number | null
           monto: number
           notas?: string | null
           referencia?: string | null
@@ -124,6 +133,7 @@ export type Database = {
           created_at?: string | null
           fecha?: string
           id?: string
+          interes?: number | null
           monto?: number
           notas?: string | null
           referencia?: string | null
@@ -183,6 +193,20 @@ export type Database = {
             referencedRelation: "clients"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "client_invitations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "firm_accounting_summary"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "client_invitations_used_by_fkey"
+            columns: ["used_by"]
+            isOneToOne: false
+            referencedRelation: "firm_accounting_summary"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       clients: {
@@ -237,7 +261,22 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "clients_auth_user_id_fkey"
+            columns: ["auth_user_id"]
+            isOneToOne: false
+            referencedRelation: "firm_accounting_summary"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "clients_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "firm_accounting_summary"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       data_access_audit: {
         Row: {
@@ -270,7 +309,15 @@ export type Database = {
           user_agent?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "data_access_audit_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "firm_accounting_summary"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       deadlines: {
         Row: {
@@ -317,6 +364,13 @@ export type Database = {
             referencedRelation: "cases"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "deadlines_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "firm_accounting_summary"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       expenses: {
@@ -328,6 +382,7 @@ export type Database = {
           created_at: string | null
           fecha: string
           id: string
+          itbis: number | null
           metodo_pago: string | null
           monto: number
           notas: string | null
@@ -335,6 +390,7 @@ export type Database = {
           reembolsable: boolean | null
           reembolsado: boolean | null
           referencia: string | null
+          subtotal: number | null
           updated_at: string | null
           user_id: string
         }
@@ -346,6 +402,7 @@ export type Database = {
           created_at?: string | null
           fecha?: string
           id?: string
+          itbis?: number | null
           metodo_pago?: string | null
           monto: number
           notas?: string | null
@@ -353,6 +410,7 @@ export type Database = {
           reembolsable?: boolean | null
           reembolsado?: boolean | null
           referencia?: string | null
+          subtotal?: number | null
           updated_at?: string | null
           user_id: string
         }
@@ -364,6 +422,7 @@ export type Database = {
           created_at?: string | null
           fecha?: string
           id?: string
+          itbis?: number | null
           metodo_pago?: string | null
           monto?: number
           notas?: string | null
@@ -371,6 +430,7 @@ export type Database = {
           reembolsable?: boolean | null
           reembolsado?: boolean | null
           referencia?: string | null
+          subtotal?: number | null
           updated_at?: string | null
           user_id?: string
         }
@@ -442,6 +502,13 @@ export type Database = {
             referencedRelation: "cases"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "hearings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "firm_accounting_summary"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       invoices: {
@@ -452,8 +519,11 @@ export type Database = {
           estado: string | null
           fecha: string
           id: string
+          interes: number | null
+          itbis: number | null
           monto: number
           numero_factura: string
+          subtotal: number | null
           updated_at: string | null
           user_id: string
         }
@@ -464,8 +534,11 @@ export type Database = {
           estado?: string | null
           fecha: string
           id?: string
+          interes?: number | null
+          itbis?: number | null
           monto: number
           numero_factura: string
+          subtotal?: number | null
           updated_at?: string | null
           user_id: string
         }
@@ -476,8 +549,11 @@ export type Database = {
           estado?: string | null
           fecha?: string
           id?: string
+          interes?: number | null
+          itbis?: number | null
           monto?: number
           numero_factura?: string
+          subtotal?: number | null
           updated_at?: string | null
           user_id?: string
         }
@@ -488,6 +564,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "firm_accounting_summary"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -546,7 +629,15 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "law_firm_profile_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "firm_accounting_summary"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       legal_documents: {
         Row: {
@@ -597,10 +688,19 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "legal_documents_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "firm_accounting_summary"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       payments: {
         Row: {
+          aplicado_interes: number | null
           client_id: string | null
           concepto: string
           created_at: string | null
@@ -615,6 +715,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          aplicado_interes?: number | null
           client_id?: string | null
           concepto: string
           created_at?: string | null
@@ -629,6 +730,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          aplicado_interes?: number | null
           client_id?: string | null
           concepto?: string
           created_at?: string | null
@@ -678,7 +780,15 @@ export type Database = {
           id?: string
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "firm_accounting_summary"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       role_audit_log: {
         Row: {
@@ -770,6 +880,13 @@ export type Database = {
             referencedRelation: "clients"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "user_clients_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "firm_accounting_summary"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       user_roles: {
@@ -791,11 +908,32 @@ export type Database = {
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "firm_accounting_summary"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
     }
     Views: {
-      [_ in never]: never
+      firm_accounting_summary: {
+        Row: {
+          balance_neto: number | null
+          total_gastos: number | null
+          total_ingresos_facturas: number | null
+          total_ingresos_pagos: number | null
+          total_intereses_cobrados: number | null
+          total_intereses_creditos: number | null
+          total_itbis_gastos: number | null
+          total_itbis_ingresos: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       accept_invitation_token_secure: {

@@ -33,6 +33,7 @@ import {
   ArrowLeft,
   CreditCard,
   Receipt,
+  Building2,
 } from "lucide-react";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { ESTADOS_PAGO } from "@/lib/constants";
@@ -425,6 +426,10 @@ const Accounting = () => {
           </div>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" className="gap-2" onClick={() => navigate('/contabilidad-general')}>
+            <Building2 className="h-4 w-4" />
+            Contabilidad General
+          </Button>
           <Button variant="outline" className="gap-2" onClick={() => navigate('/creditos-pagos')}>
             <CreditCard className="h-4 w-4" />
             Créditos y Pagos
