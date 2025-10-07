@@ -267,25 +267,37 @@ export default function Auth() {
       });
 
       if (error) {
-        // Check if it's a rate limit error
-        if (error.message.includes("18 seconds") || error.message.includes("security purposes")) {
-          setCooldownSeconds(20); // Set 20 seconds to be safe
-          throw new Error("Por seguridad, debes esperar 20 segundos antes de solicitar otro correo");
+        // Check if it's a rate limit error - Supabase returns this exact message
+        const errorMsg = error.message.toLowerCase();
+        if (errorMsg.includes("18 seconds") || 
+            errorMsg.includes("security purposes") || 
+            errorMsg.includes("only request this after")) {
+          setCooldownSeconds(20);
+          setErrors({ 
+            form: "Por seguridad, debes esperar 20 segundos entre solicitudes. El correo anterior ya fue enviado, revisa tu bandeja." 
+          });
+          toast({
+            title: "Límite de seguridad",
+            description: "Ya enviamos un correo recientemente. Revisa tu bandeja de entrada y spam.",
+            variant: "destructive",
+          });
+          return;
         }
         throw error;
       }
 
       setResetEmailSent(true);
-      setCooldownSeconds(20); // Set cooldown after successful send
+      setCooldownSeconds(20);
       toast({
         title: "Correo enviado",
         description: "Revisa tu correo para restablecer tu contraseña.",
       });
     } catch (error: any) {
-      setErrors({ form: error.message });
+      const errorMsg = error.message || "Error desconocido";
+      setErrors({ form: errorMsg });
       toast({
         title: "Error",
-        description: error.message,
+        description: errorMsg,
         variant: "destructive",
       });
     } finally {
@@ -553,12 +565,20 @@ export default function Auth() {
                   )}
                 </button>
 
+                {cooldownSeconds > 0 && (
+                  <div className="mt-4 rounded-xl border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700">
+                    <p className="font-medium mb-1">⏱️ Límite de seguridad activo</p>
+                    <p>Si ya solicitaste el correo, revisa tu bandeja de entrada (incluyendo spam). El enlace es válido por 1 hora.</p>
+                  </div>
+                )}
+
                 <div className="mt-4 text-center text-sm text-slate-500">
                   <button
                     type="button"
                     onClick={() => {
                       setIsForgotPassword(false);
                       setResetEmailSent(false);
+                      setCooldownSeconds(0);
                       setErrors({});
                     }}
                     className="font-medium text-[#0E6B4E] hover:underline"
