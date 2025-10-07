@@ -18,6 +18,7 @@ export default function Upgrade() {
   const [selectedPlan, setSelectedPlan] = useState<string>("");
   const [showContactDialog, setShowContactDialog] = useState(false);
   const [contactType, setContactType] = useState<"demo" | "sales" | "comparison">("demo");
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("monthly");
 
   const handleUpgrade = (planName: string) => {
     setSelectedPlan(planName);
@@ -55,11 +56,22 @@ export default function Upgrade() {
     setShowContactDialog(false);
   };
 
+  const getPrice = (monthlyPrice: number) => {
+    if (billingCycle === "annual") {
+      const annualPrice = monthlyPrice * 12 * 0.8; // 20% descuento
+      return `$${Math.round(annualPrice)}`;
+    }
+    return `$${monthlyPrice}`;
+  };
+
+  const getPeriod = () => {
+    return billingCycle === "annual" ? "/año" : "/mes";
+  };
+
   const plans = [
     {
       name: "Plan Gratuito",
-      price: "$0",
-      period: "/mes",
+      monthlyPrice: 0,
       description: "Perfecto para comenzar",
       features: [
         "Hasta 5 casos activos",
@@ -74,8 +86,7 @@ export default function Upgrade() {
     },
     {
       name: "Plan Pro",
-      price: "$49",
-      period: "/mes",
+      monthlyPrice: 49,
       description: "Para despachos profesionales",
       badge: "Más popular",
       features: [
@@ -96,8 +107,8 @@ export default function Upgrade() {
     },
     {
       name: "Plan Empresarial",
-      price: "Personalizado",
-      period: "",
+      monthlyPrice: null,
+      customPrice: "Personalizado",
       description: "Para grandes despachos",
       features: [
         "Todo lo incluido en Pro",
@@ -155,10 +166,13 @@ export default function Upgrade() {
         </p>
       </div>
 
-      <Tabs defaultValue="monthly" className="mb-8">
+      <Tabs value={billingCycle} onValueChange={(value) => setBillingCycle(value as "monthly" | "annual")} className="mb-8">
         <TabsList className="grid w-full max-w-md mx-auto grid-cols-2">
           <TabsTrigger value="monthly">Mensual</TabsTrigger>
-          <TabsTrigger value="annual">Anual (20% descuento)</TabsTrigger>
+          <TabsTrigger value="annual">
+            Anual
+            <Badge variant="secondary" className="ml-2 text-xs">-20%</Badge>
+          </TabsTrigger>
         </TabsList>
       </Tabs>
 
@@ -194,10 +208,19 @@ export default function Upgrade() {
               <CardDescription>{plan.description}</CardDescription>
               <div className="mt-4">
                 <span className="text-5xl font-extrabold text-card-foreground">
-                  {plan.price}
+                  {plan.customPrice || getPrice(plan.monthlyPrice)}
                 </span>
-                {plan.period && (
-                  <span className="text-muted-foreground text-lg">{plan.period}</span>
+                {!plan.customPrice && (
+                  <>
+                    <span className="text-muted-foreground text-lg">{getPeriod()}</span>
+                    {billingCycle === "annual" && plan.monthlyPrice > 0 && (
+                      <div className="mt-2">
+                        <span className="text-sm text-muted-foreground line-through">
+                          ${plan.monthlyPrice * 12}/año
+                        </span>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             </CardHeader>
@@ -295,7 +318,9 @@ export default function Upgrade() {
               </ul>
             </div>
             <p className="text-sm text-muted-foreground">
-              Precio: <span className="font-semibold text-foreground">$49/mes</span>
+              Precio: <span className="font-semibold text-foreground">
+                {billingCycle === "monthly" ? "$49/mes" : "$470/año (ahorra $108)"}
+              </span>
             </p>
           </div>
           <DialogFooter>
