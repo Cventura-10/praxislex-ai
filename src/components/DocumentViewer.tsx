@@ -32,10 +32,44 @@ export const DocumentViewer = ({
       const formatted = lines.map((line, index) => {
         const trimmed = line.trim();
         
-        // Detectar títulos principales (mayúsculas completas)
-        if (trimmed === trimmed.toUpperCase() && trimmed.length > 0 && trimmed.length < 100) {
+        // Detectar espacio para logo
+        if (trimmed.includes('[ESPACIO PARA LOGO]')) {
           return (
-            <div key={index} className="font-bold text-base mt-4 mb-2 text-center">
+            <div key={index} className="text-center mb-6 mt-4">
+              <div className="border-2 border-dashed border-muted-foreground/30 rounded-lg p-8 mx-auto w-48 h-24 flex items-center justify-center">
+                <span className="text-xs text-muted-foreground">ESPACIO PARA LOGO</span>
+              </div>
+            </div>
+          );
+        }
+        
+        // Detectar encabezado de firma (líneas después del logo y antes de PRESENTACIÓN)
+        if (index < 10 && (
+          trimmed.includes('RNC:') || 
+          trimmed.includes('Matrícula CARD:') || 
+          trimmed.includes('@') ||
+          /^\d{3}-?\d{3}-?\d{4}/.test(trimmed)
+        )) {
+          return (
+            <div key={index} className="text-center text-sm font-medium mb-1">
+              {trimmed}
+            </div>
+          );
+        }
+        
+        // Detectar títulos principales numerados (1. PRESENTACIÓN, 2. RELATO FÁCTICO, etc.)
+        if (/^[1-5]\.\s+[A-ZÁÉÍÓÚÑ\s]+$/.test(trimmed)) {
+          return (
+            <div key={index} className="font-bold text-base mt-6 mb-3 text-center">
+              {trimmed}
+            </div>
+          );
+        }
+        
+        // Detectar títulos secundarios en mayúsculas completas
+        if (trimmed === trimmed.toUpperCase() && trimmed.length > 0 && trimmed.length < 100 && /[A-Z]/.test(trimmed)) {
+          return (
+            <div key={index} className="font-bold text-sm mt-4 mb-2 text-center">
               {trimmed}
             </div>
           );

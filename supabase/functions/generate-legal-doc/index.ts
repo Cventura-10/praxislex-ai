@@ -145,12 +145,18 @@ serve(async (req) => {
 
     ESTRUCTURA OBLIGATORIA DEL DOCUMENTO (TEXTO PLANO, SIN MARKDOWN):
     
+    ENCABEZADO (Primera página - centrado y con espacio para logo):
+    [ESPACIO PARA LOGO]
+    ${firmaNombre}${rncFirma ? ` - RNC: ${rncFirma}` : ''}
+    ${abogadoNombre} - Matrícula CARD: ${matriculaCard}
+    ${direccionFirma}
+    ${telefonoFirma} | ${emailFirma}
+    
     1. PRESENTACIÓN
     1.1. Designación Protocolar del Alguacil
     1.2. No. [número], Folios [folios] y [folios] año [año]
-    1.3. Ciudad de la Actuación
-    1.4. En la Ciudad de [ciudad], a los [día] ([día en letras]) de [mes] del año [año en letras] ([año]);
-    1.5. Requeriente
+    1.3. En la Ciudad de [ciudad donde se hace el acto] de la provincia [provincia] de la República Dominicana, a los [día] días del mes [mes] del año [año de la instrumentación del acto];
+    1.4. Requeriente
     1.6. [Nombre completo del demandante], [nacionalidad], mayor de edad, [estado civil], portador de la cédula No. [cédula] o RNC [RNC si aplica], [domicilio completo]
     1.7. Firma Apoderada
     1.8. [Nombre de la firma], entidad jurídica organizada conforme a las leyes de RD, RNC [número], representada por [representante], quien otorga poder al [abogado], [datos completos del abogado], matrícula No. [matrícula], con estudio profesional en [dirección], teléfonos [teléfonos], email: [email]
@@ -161,18 +167,21 @@ serve(async (req) => {
     3. Proceso verbal de Traslado
     3.1. PRIMERO: [descripción del traslado al domicilio del demandado]
     4. Mención de la Notificación
-    4.1. Por medio del presente acto LE NOTIFICO Y DENUNCIO...
+    1.10. Por medio del presente acto LE NOTIFICO Y DENUNCIO...
     
     2. RELATO FÁCTICO
-    2.1. Sucesos motivadores (narración cronológica)
+    (centrado, narración cronológica)
     
-    3. ASPECTOS REGULATORIOS (EN ORDEN JERÁRQUICO ESTRICTO)
+    3. ASPECTOS REGULATORIOS
+    (centrado, EN ORDEN JERÁRQUICO ESTRICTO)
     ${normasAplicables.map((n, i) => `3.${i + 1}. ${n} - citar artículos específicos CON TEXTO ÍNTEGRO cuando sea clave`).join('\n')}
     
     4. TESIS DE DERECHO
+    (centrado)
     4.1. Metodología de subsunción (vincular hechos con normas jerárquicas)
     
     5. DISPOSITIVOS
+    (centrado)
     5.1. Motivación
     5.2. Declaratoria de validez procesal
     5.3. Peticiones de fondo (COMPROBAR/DECLARAR/ORDENAR/CONDENAR con montos específicos)
@@ -186,8 +195,10 @@ serve(async (req) => {
     4) Normas en ORDEN JERÁRQUICO según la materia
     5) Citas con texto íntegro del artículo cuando sea fundamental
     6) Formato para Word: texto plano, sin Markdown, justificado
-    7) SIEMPRE incluir información completa de la firma (nombre, RNC, abogado, matrícula) en la carátula
-    8) SIEMPRE incluir cédula o RNC del cliente según corresponda (persona física o jurídica)
+    7) NO incluir "ACTO NÚMERO [número]" como título separado - el número va en la sección 1.2
+    8) Los títulos "1. PRESENTACIÓN", "2. RELATO FÁCTICO", "3. ASPECTOS REGULATORIOS", "4. TESIS DE DERECHO", "5. DISPOSITIVOS" deben estar CENTRADOS
+    9) El encabezado con la firma debe estar centrado en la primera página con espacio para logo
+    10) Cambiar "Santo Domingo, Distrito Nacional" por la fórmula: "En la Ciudad de [ciudad] de la provincia [provincia] de la República Dominicana, a los [día] días del mes [mes] del año [año]"
 
     Genera documentos COMPLETOS y PROFESIONALES.`;
 
@@ -242,18 +253,19 @@ ${legislacion ? `LEGISLACIÓN ADICIONAL: ${legislacion}` : ''}
 ${jurisprudencia ? `JURISPRUDENCIA: ${jurisprudencia}` : ''}
 
 INSTRUCCIONES IMPERATIVAS:
-1. Genera TODO el documento desde 1.1 hasta 5.19
-2. En la sección 1 (PRESENTACIÓN): incluye todos los datos formales del acto, incluyendo FIRMA COMPLETA (nombre, RNC, abogado, matrícula)
-3. En la sección 2 (RELATO FACTICO): desarrolla los hechos proporcionados de forma cronológica y detallada con numeración 2.1, 2.2, etc.
-4. En la sección 3 (ASPECTOS REGULATORIOS): incluye TODOS los artículos con TEXTO COMPLETO según la jerarquía normativa de ${materia}
-5. En la sección 4 (TESIS DE DERECHO): realiza la subsunción jurídica vinculando los hechos con las normas citadas
-6. En la sección 5 (DISPOSITIVOS): incluye todas las peticiones (declarar válida, comprobar, ordenar, condenar, costas, astreinte)
-7. Usa lenguaje jurídico formal dominicano
-8. NO dejes "N/D" si hay datos reales proporcionados - TODOS los datos del cliente y firma deben aparecer
-9. La elección de domicilio es en la dirección del estudio del abogado
-10. El proceso verbal de traslado debe incluir PRIMERO, SEGUNDO, etc., para cada demandado
-11. CRÍTICO: Incluye la cédula o RNC del demandante según corresponda (persona física o jurídica)
-12. CRÍTICO: La carátula del documento debe incluir TODOS los datos de la firma legal (nombre, RNC, abogado, matrícula, dirección, teléfono, email)
+1. ENCABEZADO: Inicia el documento con el encabezado centrado mostrando la firma de abogados (nombre, RNC, abogado, matrícula, dirección, teléfono, email) con la nota [ESPACIO PARA LOGO]
+2. NO incluir "ACTO NÚMERO [número]" como título independiente
+3. En la sección 1 (PRESENTACIÓN - título centrado): incluye todos los datos formales del acto
+4. En la sección 1.3: usa la fórmula "En la Ciudad de [ciudad] de la provincia [provincia] de la República Dominicana, a los [día] días del mes [mes] del año [año]"
+5. En la sección 2 (RELATO FÁCTICO - título centrado): desarrolla los hechos proporcionados de forma cronológica y detallada con numeración 2.1, 2.2, etc.
+6. En la sección 3 (ASPECTOS REGULATORIOS - título centrado): incluye TODOS los artículos con TEXTO COMPLETO según la jerarquía normativa de ${materia}
+7. En la sección 4 (TESIS DE DERECHO - título centrado): realiza la subsunción jurídica vinculando los hechos con las normas citadas
+8. En la sección 5 (DISPOSITIVOS - título centrado): incluye todas las peticiones (declarar válida, comprobar, ordenar, condenar, costas, astreinte)
+9. Usa lenguaje jurídico formal dominicano
+10. NO dejes "N/D" si hay datos reales proporcionados - TODOS los datos del cliente y firma deben aparecer
+11. La elección de domicilio es en la dirección del estudio del abogado
+12. El proceso verbal de traslado debe incluir PRIMERO, SEGUNDO, etc., para cada demandado
+13. CRÍTICO: TODOS los títulos principales (1. PRESENTACIÓN, 2. RELATO FÁCTICO, 3. ASPECTOS REGULATORIOS, 4. TESIS DE DERECHO, 5. DISPOSITIVOS) deben estar CENTRADOS
 
 Genera ahora el documento COMPLETO y PROFESIONAL:`;
 
