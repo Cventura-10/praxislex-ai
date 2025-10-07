@@ -797,6 +797,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      link_client_to_auth_user: {
+        Args: {
+          p_auth_user_id: string
+          p_client_id: string
+          p_invitation_token: string
+        }
+        Returns: boolean
+      }
       reveal_client_pii: {
         Args: { p_client_id: string }
         Returns: {
@@ -807,6 +815,10 @@ export type Database = {
           nombre_completo: string
           telefono: string
         }[]
+      }
+      user_can_access_client: {
+        Args: { p_client_id: string; p_user_id: string }
+        Returns: boolean
       }
       user_owns_case: {
         Args: { p_case_id: string; p_user_id: string }
