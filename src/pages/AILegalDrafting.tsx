@@ -771,15 +771,15 @@ const AILegalDrafting = () => {
                 <div>
                   <Label>Cliente (opcional - auto-completa datos del demandante)</Label>
                   <Select 
-                    value={selectedClientId} 
-                    onValueChange={setSelectedClientId}
+                    value={selectedClientId || "none"} 
+                    onValueChange={(v) => setSelectedClientId(v === "none" ? "" : v)}
                     disabled={loadingClients}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder={loadingClients ? "Cargando clientes..." : "Seleccionar cliente existente..."} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Ninguno (ingresar manualmente)</SelectItem>
+                      <SelectItem value="none">Ninguno (ingresar manualmente)</SelectItem>
                       {clients.map((client) => (
                         <SelectItem key={client.id} value={client.id}>
                           {client.nombre_completo} - {client.cedula_rnc}
