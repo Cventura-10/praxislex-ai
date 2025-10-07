@@ -54,31 +54,66 @@ const emailRegex = /^(?:[a-zA-Z0-9_'^&/+-])+(?:\.(?:[a-zA-Z0-9_'^&/+-])+)*@(?:[a
 export default function Auth() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [isResetPassword, setIsResetPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [showPass, setShowPass] = useState(false);
+  const [showConfirmPass, setShowConfirmPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
-  const [errors, setErrors] = useState<{ email?: string; password?: string; fullName?: string; form?: string }>({});
+  const [errors, setErrors] = useState<{ email?: string; password?: string; confirmPassword?: string; fullName?: string; form?: string }>({});
   const [passwordStrength, setPasswordStrength] = useState(calculatePasswordStrength(""));
   const [resetEmailSent, setResetEmailSent] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
-    // Only control loading state; avoid redirects here to prevent loops
-    supabase.auth.getSession().then(() => {
+    // Check for existing session and handle auth state changes
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session) {
+        // User is already logged in, redirect to dashboard
+        navigate("/dashboard");
+      }
+      
       setCheckingAuth(false);
-    });
-  }, []);
+    };
 
-  // Update password strength on change - MUST be before early return
+    checkSession();
+
+    // Listen for auth state changes, especially PASSWORD_RECOVERY
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Auth event:", event);
+      
+      if (event === "PASSWORD_RECOVERY") {
+        // User clicked the reset password link
+        setIsResetPassword(true);
+        setIsForgotPassword(false);
+        setIsSignUp(false);
+        toast({
+          title: "Restablecer contraseña",
+          description: "Por favor, introduce tu nueva contraseña",
+        });
+      } else if (event === "SIGNED_IN" && session) {
+        // User successfully signed in
+        navigate("/dashboard");
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [navigate, toast]);
+
+  // Update password strength on change
   useEffect(() => {
-    if (isSignUp) {
+    if (isSignUp || isResetPassword) {
       setPasswordStrength(calculatePasswordStrength(password));
     }
-  }, [password, isSignUp]);
+  }, [password, isSignUp, isResetPassword]);
 
   if (checkingAuth) {
     return (
@@ -92,13 +127,15 @@ export default function Auth() {
   }
 
   const validate = () => {
-    const e: { email?: string; password?: string; fullName?: string } = {};
+    const e: { email?: string; password?: string; confirmPassword?: string; fullName?: string } = {};
     
-    // Email validation
-    if (!emailRegex.test(email)) e.email = "Por favor introduce un correo válido";
+    // Email validation (not needed for reset password)
+    if (!isResetPassword && !emailRegex.test(email)) {
+      e.email = "Por favor introduce un correo válido";
+    }
     
-    // Password validation - enforce 12 char minimum for both signup and signin
-    if (isSignUp) {
+    // Password validation
+    if (isSignUp || isResetPassword) {
       try {
         passwordSchema.parse(password);
       } catch (err) {
@@ -106,19 +143,27 @@ export default function Auth() {
           e.password = err.issues[0].message;
         }
       }
-    } else {
-      // Sign-in also requires 12+ characters for UX parity
+      
+      // Confirm password validation for reset password
+      if (isResetPassword && password !== confirmPassword) {
+        e.confirmPassword = "Las contraseñas no coinciden";
+      }
+    } else if (!isForgotPassword) {
+      // Sign-in requires 12+ characters
       if (!password || password.length < 12) {
         e.password = "La contraseña debe tener al menos 12 caracteres";
       }
     }
     
     // Full name validation
-    if (isSignUp && (!fullName || fullName.trim().length === 0)) e.fullName = "El nombre es requerido";
+    if (isSignUp && (!fullName || fullName.trim().length === 0)) {
+      e.fullName = "El nombre es requerido";
+    }
     
     setErrors(e);
     return Object.keys(e).length === 0;
   };
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
@@ -219,6 +264,45 @@ export default function Auth() {
     }
   };
 
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validate()) return;
+    setLoading(true);
+
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: password,
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "¡Contraseña actualizada!",
+        description: "Tu contraseña ha sido cambiada exitosamente.",
+      });
+
+      // Reset form and redirect to sign in
+      setIsResetPassword(false);
+      setPassword("");
+      setConfirmPassword("");
+      setErrors({});
+      
+      // Navigate to dashboard
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 1000);
+    } catch (error: any) {
+      setErrors({ form: error.message });
+      toast({
+        title: "Error al actualizar contraseña",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[linear-gradient(120deg,#F7F5EF,white)] text-slate-800">
       {/* Decoración de fondo */}
@@ -268,14 +352,22 @@ export default function Auth() {
         <div className="flex items-center justify-center">
           <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl ring-1 ring-slate-200/70">
             <h2 className="text-3xl font-extrabold text-slate-900">
-              {isForgotPassword ? "Recuperar contraseña" : isSignUp ? "Crear despacho" : "Entrar a PraxisLex"}
+              {isResetPassword 
+                ? "Nueva contraseña" 
+                : isForgotPassword 
+                  ? "Recuperar contraseña" 
+                  : isSignUp 
+                    ? "Crear despacho" 
+                    : "Entrar a PraxisLex"}
             </h2>
             <p className="mt-1 text-sm text-slate-600">
-              {isForgotPassword 
-                ? "Te enviaremos un correo para restablecer tu contraseña" 
-                : isSignUp 
-                  ? "Comienza tu prueba gratuita hoy" 
-                  : "Accede a tu escritorio jurídico en la nube"}
+              {isResetPassword
+                ? "Introduce tu nueva contraseña para restablecer el acceso"
+                : isForgotPassword 
+                  ? "Te enviaremos un correo para restablecer tu contraseña" 
+                  : isSignUp 
+                    ? "Comienza tu prueba gratuita hoy" 
+                    : "Accede a tu escritorio jurídico en la nube"}
             </p>
 
             {errors.form && (
@@ -290,7 +382,108 @@ export default function Auth() {
               </div>
             )}
 
-            {isForgotPassword ? (
+            {isResetPassword ? (
+              // Formulario de nueva contraseña
+              <form className="mt-6 flex flex-col gap-4" onSubmit={handleResetPassword}>
+                <div className="w-full">
+                  <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-1">
+                    Nueva Contraseña
+                  </label>
+                  <div className="relative flex items-center">
+                    <input
+                      id="password"
+                      type={showPass ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      autoComplete="new-password"
+                      className={`w-full rounded-xl border bg-white px-4 py-3 pr-20 text-slate-800 placeholder-slate-400 shadow-sm focus:outline-none focus:ring-4 transition-all ${
+                        errors.password ? "border-red-400 ring-2 ring-red-100" : "border-slate-200 focus:ring-[#0E6B4E]/20 focus:border-[#0E6B4E]"
+                      }`}
+                      aria-invalid={!!errors.password}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPass((v) => !v)}
+                      className="absolute right-2 rounded-lg px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50"
+                      aria-label={showPass ? "Ocultar contraseña" : "Mostrar contraseña"}
+                    >
+                      {showPass ? "Ocultar" : "Mostrar"}
+                    </button>
+                  </div>
+                  {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
+                  
+                  {password && (
+                    <div className="mt-2">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs text-slate-600">Fortaleza de contraseña:</span>
+                        <span className={`text-xs font-medium ${
+                          passwordStrength.score < 3 ? 'text-red-600' :
+                          passwordStrength.score < 5 ? 'text-orange-600' :
+                          passwordStrength.score < 6 ? 'text-yellow-600' :
+                          'text-green-600'
+                        }`}>
+                          {passwordStrength.label}
+                        </span>
+                      </div>
+                      <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full ${passwordStrength.color} transition-all duration-300`}
+                          style={{ width: `${(passwordStrength.score / 7) * 100}%` }}
+                        />
+                      </div>
+                      <p className="text-xs text-slate-500 mt-1">
+                        Usa al menos 12 caracteres con mayúsculas, minúsculas, números y símbolos
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="w-full">
+                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-700 mb-1">
+                    Confirmar Nueva Contraseña
+                  </label>
+                  <div className="relative flex items-center">
+                    <input
+                      id="confirmPassword"
+                      type={showConfirmPass ? "text" : "password"}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="••••••••"
+                      autoComplete="new-password"
+                      className={`w-full rounded-xl border bg-white px-4 py-3 pr-20 text-slate-800 placeholder-slate-400 shadow-sm focus:outline-none focus:ring-4 transition-all ${
+                        errors.confirmPassword ? "border-red-400 ring-2 ring-red-100" : "border-slate-200 focus:ring-[#0E6B4E]/20 focus:border-[#0E6B4E]"
+                      }`}
+                      aria-invalid={!!errors.confirmPassword}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPass((v) => !v)}
+                      className="absolute right-2 rounded-lg px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50"
+                      aria-label={showConfirmPass ? "Ocultar contraseña" : "Mostrar contraseña"}
+                    >
+                      {showConfirmPass ? "Ocultar" : "Mostrar"}
+                    </button>
+                  </div>
+                  {errors.confirmPassword && <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>}
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="mt-2 inline-flex items-center justify-center rounded-xl bg-[#0E6B4E] px-4 py-3 font-semibold text-white shadow-sm transition hover:brightness-110 focus:outline-none focus:ring-4 focus:ring-[#0E6B4E]/30 disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {loading ? (
+                    <span className="inline-flex items-center gap-2">
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                      Actualizando…
+                    </span>
+                  ) : (
+                    "Actualizar contraseña"
+                  )}
+                </button>
+              </form>
+            ) : isForgotPassword ? (
               // Formulario de recuperación de contraseña
               <form className="mt-6 flex flex-col gap-4" onSubmit={handleForgotPassword}>
                 <div className="w-full">
