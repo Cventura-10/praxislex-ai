@@ -30,6 +30,7 @@ import {
   DollarSign,
   ShoppingCart,
   Trash2,
+  Printer,
 } from "lucide-react";
 
 export default function AccountingNew() {
@@ -888,14 +889,14 @@ export default function AccountingNew() {
 
       <Dialog open={showStatementDialog} onOpenChange={setShowStatementDialog}>
         <DialogContent className="max-w-4xl max-h-[80vh]">
-          <DialogHeader>
+          <DialogHeader className="print:hidden">
             <DialogTitle>Estado de Cuenta - {selectedClientName}</DialogTitle>
             <DialogDescription>
               Historial completo de transacciones
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 overflow-y-auto">
-            <Card>
+          <div id="statement-content" className="space-y-4 overflow-y-auto print:overflow-visible">
+            <Card className="print:shadow-none">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -912,8 +913,8 @@ export default function AccountingNew() {
               </CardContent>
             </Card>
 
-            <div className="border rounded-lg overflow-hidden">
-              <div className="overflow-x-auto max-h-96 overflow-y-auto">
+            <div className="border rounded-lg overflow-hidden print:border-none">
+              <div className="overflow-x-auto max-h-96 overflow-y-auto print:overflow-visible print:max-h-none">
                 <table className="w-full">
                   <thead className="bg-muted sticky top-0">
                     <tr>
@@ -962,6 +963,16 @@ export default function AccountingNew() {
                   </tbody>
                 </table>
               </div>
+            </div>
+            
+            <div className="flex justify-end gap-2 print:hidden">
+              <Button variant="outline" onClick={() => window.print()} className="gap-2">
+                <Printer className="h-4 w-4" />
+                Imprimir
+              </Button>
+              <Button onClick={() => setShowStatementDialog(false)}>
+                Cerrar
+              </Button>
             </div>
           </div>
         </DialogContent>

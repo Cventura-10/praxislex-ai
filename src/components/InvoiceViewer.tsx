@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Download, X, Printer } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import * as XLSX from 'xlsx';
-import './InvoiceViewer.css';
 
 interface InvoiceViewerProps {
   open: boolean;

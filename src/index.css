@@ -146,3 +146,59 @@ All colors MUST be HSL.
     transition: var(--transition-base);
   }
 }
+
+@media print {
+  @page {
+    margin: 1cm;
+    size: letter;
+  }
+  
+  body * {
+    visibility: hidden;
+  }
+  
+  #invoice-content,
+  #invoice-content *,
+  #document-content,
+  #document-content *,
+  #document-preview,
+  #document-preview *,
+  #statement-content,
+  #statement-content * {
+    visibility: visible;
+  }
+  
+  #invoice-content,
+  #document-content,
+  #document-preview,
+  #statement-content {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+  
+  .print\:hidden {
+    display: none !important;
+  }
+  
+  .print\:shadow-none {
+    box-shadow: none !important;
+  }
+  
+  .print\:overflow-visible {
+    overflow: visible !important;
+  }
+  
+  .print\:max-h-none {
+    max-height: none !important;
+  }
+  
+  .print\:border-none {
+    border: none !important;
+  }
+  
+  .print\:h-auto {
+    height: auto !important;
+  }
+}

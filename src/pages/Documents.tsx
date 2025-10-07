@@ -19,6 +19,7 @@ import {
   ArrowLeft,
   Send,
   FileCheck,
+  Printer,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { TIPOS_DOCUMENTO, MATERIAS_JURIDICAS } from "@/lib/constants";
@@ -551,13 +552,21 @@ const Documents = () => {
           
           {selectedDoc && (
             <div className="space-y-4">
-              <div className="prose max-w-none max-h-[500px] overflow-y-auto border rounded-lg p-6 bg-slate-50">
+              <div id="document-preview" className="prose max-w-none max-h-[500px] overflow-y-auto border rounded-lg p-6 bg-slate-50 print:overflow-visible print:max-h-none print:shadow-none">
                 <pre className="whitespace-pre-wrap font-serif text-sm leading-relaxed text-justify">
                   {selectedDoc.contenido}
                 </pre>
               </div>
               
-              <div className="flex gap-2 justify-end">
+              <div className="flex gap-2 justify-end print:hidden">
+                <Button
+                  variant="outline"
+                  onClick={() => window.print()}
+                  className="gap-2"
+                >
+                  <Printer className="h-4 w-4" />
+                  Imprimir
+                </Button>
                 <Button
                   variant="outline"
                   onClick={() => handleDownloadDocument(selectedDoc)}

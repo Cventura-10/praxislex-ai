@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Download, Send } from "lucide-react";
+import { FileText, Download, Send, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
@@ -76,15 +76,28 @@ export const DocumentViewer = ({
     }
   }, [content]);
 
+  const handlePrint = () => {
+    window.print();
+  };
+
   return (
     <Card className="h-full shadow-medium">
-      <CardHeader className="border-b bg-muted/20">
+      <CardHeader className="border-b bg-muted/20 print:hidden">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5 text-primary" />
             {title}
           </CardTitle>
           <div className="flex gap-2">
+            <Button 
+              size="sm" 
+              variant="outline" 
+              onClick={handlePrint}
+              className="gap-2"
+            >
+              <Printer className="h-4 w-4" />
+              Imprimir
+            </Button>
             {onDownload && (
               <Button 
                 size="sm" 
@@ -113,8 +126,8 @@ export const DocumentViewer = ({
         </Badge>
       </CardHeader>
       <CardContent className="p-0">
-        <ScrollArea className="h-[600px]">
-          <div className="p-8 bg-white" style={{ 
+        <ScrollArea className="h-[600px] print:h-auto print:overflow-visible">
+          <div id="document-content" className="p-8 bg-white print:shadow-none" style={{ 
             width: '8.5in',
             minHeight: '11in',
             margin: '0 auto',
