@@ -821,12 +821,12 @@ const AILegalDrafting = () => {
 
               <div>
                 <Label>Acción Legal (Opcional)</Label>
-                <Select value={formData.accion_legal} onValueChange={(v) => handleInputChange("accion_legal", v)}>
+                <Select value={formData.accion_legal || "none"} onValueChange={(v) => handleInputChange("accion_legal", v === "none" ? "" : v)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Seleccionar acción específica..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Sin acción específica</SelectItem>
+                    <SelectItem value="none">Sin acción específica</SelectItem>
                     {TIPOS_ACCION_LEGAL.map((a) => (
                       <SelectItem key={a.value} value={a.value}>{a.label}</SelectItem>
                     ))}
