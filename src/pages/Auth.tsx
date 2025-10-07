@@ -71,18 +71,9 @@ export default function Auth() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         navigate("/");
-      } else {
-        setCheckingAuth(false);
       }
+      setCheckingAuth(false);
     });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session) {
-        navigate("/");
-      }
-    });
-
-    return () => subscription.unsubscribe();
   }, [navigate]);
 
   if (checkingAuth) {
