@@ -73,6 +73,13 @@ export default function Auth() {
     });
   }, []);
 
+  // Update password strength on change - MUST be before early return
+  useEffect(() => {
+    if (isSignUp) {
+      setPasswordStrength(calculatePasswordStrength(password));
+    }
+  }, [password, isSignUp]);
+
   if (checkingAuth) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -112,14 +119,6 @@ export default function Auth() {
     setErrors(e);
     return Object.keys(e).length === 0;
   };
-
-  // Update password strength on change
-  useEffect(() => {
-    if (isSignUp) {
-      setPasswordStrength(calculatePasswordStrength(password));
-    }
-  }, [password, isSignUp]);
-
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
