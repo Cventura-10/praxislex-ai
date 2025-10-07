@@ -808,6 +808,18 @@ export type Database = {
           telefono: string
         }[]
       }
+      user_owns_case: {
+        Args: { p_case_id: string; p_user_id: string }
+        Returns: boolean
+      }
+      user_owns_client: {
+        Args: { p_client_id: string; p_user_id: string }
+        Returns: boolean
+      }
+      user_owns_invoice: {
+        Args: { p_invoice_id: string; p_user_id: string }
+        Returns: boolean
+      }
       validate_invitation_token: {
         Args: { p_token: string }
         Returns: {
