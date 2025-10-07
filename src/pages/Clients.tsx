@@ -63,7 +63,7 @@ const Clients = () => {
 
   const [newClient, setNewClient] = useState({
     nombre_completo: "",
-    cedula_rnc: "",
+    cedula_rnc_encrypted: "",
     email: "",
     telefono: "",
     direccion: "",
@@ -71,7 +71,7 @@ const Clients = () => {
 
   const [editClient, setEditClient] = useState({
     nombre_completo: "",
-    cedula_rnc: "",
+    cedula_rnc_encrypted: "",
     email: "",
     telefono: "",
     direccion: "",
@@ -110,40 +110,28 @@ const Clients = () => {
 
   const handleCreateClient = async () => {
     try {
-      // Validate input data
-      const clientData = {
-        nombre_completo: newClient.nombre_completo,
-        cedula_rnc: newClient.cedula_rnc,
-        email: newClient.email || undefined,
-        telefono: newClient.telefono || undefined,
-        direccion: newClient.direccion || undefined,
-      };
-
-      const validationResult = clientSchema.safeParse(clientData);
-      if (!validationResult.success) {
-        const errors = validationResult.error.issues;
-        const errorMessages = errors.map(err => `• ${err.message}`).join('\n');
-        toast({
-          title: "Datos inválidos",
-          description: errors.length > 1 
-            ? `Por favor corrija los siguientes errores:\n${errorMessages}`
-            : errors[0].message,
-          variant: "destructive",
-        });
-        return;
-      }
-
       const {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) throw new Error("Usuario no autenticado");
 
-      // Insertar cliente
+      // Encrypt cedula before saving
+      const { data: encryptedCedula, error: encryptError } = await supabase.rpc('encrypt_cedula', {
+        p_cedula: newClient.cedula_rnc_encrypted
+      });
+
+      if (encryptError) throw encryptError;
+
+      // Insertar cliente con cédula encriptada
       const { data: newClientData, error: clientError } = await supabase
         .from("clients")
         .insert([
           {
-            ...validationResult.data,
+            nombre_completo: newClient.nombre_completo,
+            cedula_rnc_encrypted: encryptedCedula,
+            email: newClient.email || null,
+            telefono: newClient.telefono || null,
+            direccion: newClient.direccion || null,
             user_id: user.id,
           },
         ])
@@ -177,7 +165,7 @@ const Clients = () => {
       setShowNewClientDialog(false);
       setNewClient({
         nombre_completo: "",
-        cedula_rnc: "",
+        cedula_rnc_encrypted: "",
         email: "",
         telefono: "",
         direccion: "",
@@ -230,7 +218,7 @@ const Clients = () => {
         
         setEditClient({
           nombre_completo: revealedData.nombre_completo,
-          cedula_rnc: revealedData.cedula_rnc,
+          cedula_rnc_encrypted: revealedData.cedula_rnc,
           email: revealedData.email || "",
           telefono: revealedData.telefono || "",
           direccion: revealedData.direccion || "",
@@ -247,7 +235,7 @@ const Clients = () => {
       const revealedData = revealedClientsData.get(client.id)!;
       setEditClient({
         nombre_completo: revealedData.nombre_completo,
-        cedula_rnc: revealedData.cedula_rnc,
+        cedula_rnc_encrypted: revealedData.cedula_rnc,
         email: revealedData.email || "",
         telefono: revealedData.telefono || "",
         direccion: revealedData.direccion || "",
@@ -261,31 +249,22 @@ const Clients = () => {
     if (!selectedClient) return;
 
     try {
-      const clientData = {
-        nombre_completo: editClient.nombre_completo,
-        cedula_rnc: editClient.cedula_rnc,
-        email: editClient.email || undefined,
-        telefono: editClient.telefono || undefined,
-        direccion: editClient.direccion || undefined,
-      };
+      // Encrypt cedula before updating
+      const { data: encryptedCedula, error: encryptError } = await supabase.rpc('encrypt_cedula', {
+        p_cedula: editClient.cedula_rnc_encrypted
+      });
 
-      const validationResult = clientSchema.safeParse(clientData);
-      if (!validationResult.success) {
-        const errors = validationResult.error.issues;
-        const errorMessages = errors.map(err => `• ${err.message}`).join('\n');
-        toast({
-          title: "Datos inválidos",
-          description: errors.length > 1 
-            ? `Por favor corrija los siguientes errores:\n${errorMessages}`
-            : errors[0].message,
-          variant: "destructive",
-        });
-        return;
-      }
+      if (encryptError) throw encryptError;
 
       const { error } = await supabase
         .from("clients")
-        .update(validationResult.data)
+        .update({
+          nombre_completo: editClient.nombre_completo,
+          cedula_rnc_encrypted: encryptedCedula,
+          email: editClient.email || null,
+          telefono: editClient.telefono || null,
+          direccion: editClient.direccion || null,
+        })
         .eq("id", selectedClient.id);
 
       if (error) throw error;
@@ -437,11 +416,11 @@ const Clients = () => {
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="cedula_rnc">Cédula/RNC *</Label>
+                <Label htmlFor="cedula_rnc_encrypted">Cédula/RNC *</Label>
                 <Input
-                  id="cedula_rnc"
-                  value={newClient.cedula_rnc}
-                  onChange={(e) => setNewClient({ ...newClient, cedula_rnc: e.target.value })}
+                  id="cedula_rnc_encrypted"
+                  value={newClient.cedula_rnc_encrypted}
+                  onChange={(e) => setNewClient({ ...newClient, cedula_rnc_encrypted: e.target.value })}
                   placeholder="Ej: 001-1234567-8"
                 />
               </div>
@@ -478,7 +457,7 @@ const Clients = () => {
               <Button variant="outline" onClick={() => setShowNewClientDialog(false)}>
                 Cancelar
               </Button>
-              <Button onClick={handleCreateClient} disabled={!newClient.nombre_completo || !newClient.cedula_rnc}>
+              <Button onClick={handleCreateClient} disabled={!newClient.nombre_completo || !newClient.cedula_rnc_encrypted}>
                 Crear Cliente
               </Button>
             </div>
@@ -731,11 +710,11 @@ const Clients = () => {
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="edit_cedula_rnc">Cédula/RNC *</Label>
+              <Label htmlFor="edit_cedula_rnc_encrypted">Cédula/RNC *</Label>
               <Input
-                id="edit_cedula_rnc"
-                value={editClient.cedula_rnc}
-                onChange={(e) => setEditClient({ ...editClient, cedula_rnc: e.target.value })}
+                id="edit_cedula_rnc_encrypted"
+                value={editClient.cedula_rnc_encrypted}
+                onChange={(e) => setEditClient({ ...editClient, cedula_rnc_encrypted: e.target.value })}
                 placeholder="Ej: 001-1234567-8"
               />
             </div>
@@ -772,7 +751,7 @@ const Clients = () => {
             <Button variant="outline" onClick={() => setShowEditClientDialog(false)}>
               Cancelar
             </Button>
-            <Button onClick={handleUpdateClient} disabled={!editClient.nombre_completo || !editClient.cedula_rnc}>
+            <Button onClick={handleUpdateClient} disabled={!editClient.nombre_completo || !editClient.cedula_rnc_encrypted}>
               Guardar Cambios
             </Button>
           </div>

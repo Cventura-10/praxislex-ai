@@ -22,7 +22,7 @@ export const clientSchema = z.object({
     .min(2, "El nombre debe tener al menos 2 caracteres")
     .max(100, "El nombre no puede exceder 100 caracteres")
     .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, "El nombre solo puede contener letras"),
-  cedula_rnc: z
+  cedula_rnc_encrypted: z
     .string()
     .trim()
     .regex(cedulaRncRegex, "Formato de cédula o RNC inválido (XXX-XXXXXXX-X)"),

@@ -213,7 +213,6 @@ export type Database = {
         Row: {
           accepted_terms: boolean | null
           auth_user_id: string | null
-          cedula_rnc: string
           cedula_rnc_encrypted: string | null
           created_at: string | null
           direccion: string | null
@@ -230,7 +229,6 @@ export type Database = {
         Insert: {
           accepted_terms?: boolean | null
           auth_user_id?: string | null
-          cedula_rnc: string
           cedula_rnc_encrypted?: string | null
           created_at?: string | null
           direccion?: string | null
@@ -247,7 +245,6 @@ export type Database = {
         Update: {
           accepted_terms?: boolean | null
           auth_user_id?: string | null
-          cedula_rnc?: string
           cedula_rnc_encrypted?: string | null
           created_at?: string | null
           direccion?: string | null
@@ -994,6 +991,19 @@ export type Database = {
           nombre_completo: string
           telefono_masked: string
           updated_at: string
+        }[]
+      }
+      get_my_client_data_masked: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          accepted_terms: boolean
+          cedula_rnc_masked: string
+          created_at: string
+          direccion_masked: string
+          email_masked: string
+          id: string
+          nombre_completo: string
+          telefono_masked: string
         }[]
       }
       has_admin_verification: {
