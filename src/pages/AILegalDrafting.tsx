@@ -825,7 +825,7 @@ const AILegalDrafting = () => {
                   <SelectTrigger>
                     <SelectValue placeholder="Seleccionar acción específica..." />
                   </SelectTrigger>
-                  <SelectContent className="max-h-[400px]">
+                  <SelectContent>
                     <SelectItem value="">Sin acción específica</SelectItem>
                     {TIPOS_ACCION_LEGAL.map((a) => (
                       <SelectItem key={a.value} value={a.value}>{a.label}</SelectItem>
