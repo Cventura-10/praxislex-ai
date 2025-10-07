@@ -795,6 +795,19 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_clients_masked: {
+        Args: { p_user_id?: string }
+        Returns: {
+          cedula_rnc_masked: string
+          created_at: string
+          direccion_masked: string
+          email_masked: string
+          id: string
+          nombre_completo: string
+          telefono_masked: string
+          updated_at: string
+        }[]
+      }
       has_admin_verification: {
         Args: { _user_id: string }
         Returns: boolean

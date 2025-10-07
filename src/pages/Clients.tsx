@@ -32,12 +32,21 @@ import { maskEmail, maskPhone, maskCedula } from "@/lib/dataMasking";
 interface Client {
   id: string;
   nombre_completo: string;
-  cedula_rnc: string;
-  email: string | null;
-  telefono: string | null;
-  direccion: string | null;
+  cedula_rnc_masked: string | null;
+  email_masked: string | null;
+  telefono_masked: string | null;
+  direccion_masked: string | null;
   created_at: string;
   updated_at: string;
+}
+
+interface RevealedClientData {
+  id: string;
+  nombre_completo: string;
+  cedula_rnc: string;
+  email: string;
+  telefono: string;
+  direccion: string;
 }
 
 const Clients = () => {
@@ -50,7 +59,7 @@ const Clients = () => {
   const [showViewClientDialog, setShowViewClientDialog] = useState(false);
   const [showEditClientDialog, setShowEditClientDialog] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
-  const [revealedClients, setRevealedClients] = useState<Set<string>>(new Set());
+  const [revealedClientsData, setRevealedClientsData] = useState<Map<string, RevealedClientData>>(new Map());
 
   const [newClient, setNewClient] = useState({
     nombre_completo: "",
@@ -80,11 +89,10 @@ const Clients = () => {
       } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data, error } = await supabase
-        .from("clients")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
+      // Use secure masked data function - all PII is masked by default
+      const { data, error } = await supabase.rpc('get_clients_masked', {
+        p_user_id: user.id
+      });
 
       if (error) throw error;
       setClients(data || []);
@@ -198,15 +206,54 @@ const Clients = () => {
     setShowViewClientDialog(true);
   };
 
-  const handleEditClient = (client: Client) => {
+  const handleEditClient = async (client: Client) => {
     setSelectedClient(client);
-    setEditClient({
-      nombre_completo: client.nombre_completo,
-      cedula_rnc: client.cedula_rnc,
-      email: client.email || "",
-      telefono: client.telefono || "",
-      direccion: client.direccion || "",
-    });
+    
+    // Need to reveal data first to edit
+    if (!revealedClientsData.has(client.id)) {
+      try {
+        const { data, error } = await supabase.rpc('reveal_client_pii', {
+          p_client_id: client.id
+        });
+        
+        if (error) throw error;
+        if (!data || data.length === 0) {
+          throw new Error("No se pudo acceder a los datos del cliente");
+        }
+
+        const revealedData = data[0] as RevealedClientData;
+        setRevealedClientsData(prev => {
+          const newMap = new Map(prev);
+          newMap.set(client.id, revealedData);
+          return newMap;
+        });
+        
+        setEditClient({
+          nombre_completo: revealedData.nombre_completo,
+          cedula_rnc: revealedData.cedula_rnc,
+          email: revealedData.email || "",
+          telefono: revealedData.telefono || "",
+          direccion: revealedData.direccion || "",
+        });
+      } catch (error: any) {
+        toast({
+          title: "Error",
+          description: error.message || "No se pudieron cargar los datos del cliente",
+          variant: "destructive",
+        });
+        return;
+      }
+    } else {
+      const revealedData = revealedClientsData.get(client.id)!;
+      setEditClient({
+        nombre_completo: revealedData.nombre_completo,
+        cedula_rnc: revealedData.cedula_rnc,
+        email: revealedData.email || "",
+        telefono: revealedData.telefono || "",
+        direccion: revealedData.direccion || "",
+      });
+    }
+    
     setShowEditClientDialog(true);
   };
 
@@ -272,7 +319,13 @@ const Clients = () => {
         throw new Error("No se pudo acceder a los datos del cliente");
       }
 
-      setRevealedClients(prev => new Set(prev).add(clientId));
+      // Store the revealed data
+      const revealedData = data[0] as RevealedClientData;
+      setRevealedClientsData(prev => {
+        const newMap = new Map(prev);
+        newMap.set(clientId, revealedData);
+        return newMap;
+      });
 
       toast({
         title: "Datos revelados",
@@ -345,8 +398,8 @@ const Clients = () => {
     (client) =>
       searchQuery === "" ||
       client.nombre_completo.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      client.cedula_rnc.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (client.email || "").toLowerCase().includes(searchQuery.toLowerCase())
+      (client.cedula_rnc_masked || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (client.email_masked || "").toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -483,27 +536,33 @@ const Clients = () => {
                       </div>
                     </TableCell>
                     <TableCell className="font-mono text-xs">
-                      {revealedClients.has(client.id) ? client.cedula_rnc : maskCedula(client.cedula_rnc)}
+                      {revealedClientsData.has(client.id) 
+                        ? revealedClientsData.get(client.id)!.cedula_rnc 
+                        : (client.cedula_rnc_masked || '***')}
                     </TableCell>
                     <TableCell>
                       <div className="space-y-1">
-                        {client.email && (
+                        {(client.email_masked || revealedClientsData.has(client.id)) && (
                           <div className="flex items-center gap-2 text-xs text-muted-foreground">
                             <Mail className="h-3 w-3" />
-                            {revealedClients.has(client.id) ? client.email : maskEmail(client.email)}
+                            {revealedClientsData.has(client.id) 
+                              ? revealedClientsData.get(client.id)!.email 
+                              : client.email_masked}
                           </div>
                         )}
-                        {client.telefono && (
+                        {(client.telefono_masked || revealedClientsData.has(client.id)) && (
                           <div className="flex items-center gap-2 text-xs text-muted-foreground">
                             <Phone className="h-3 w-3" />
-                            {revealedClients.has(client.id) ? client.telefono : maskPhone(client.telefono)}
+                            {revealedClientsData.has(client.id) 
+                              ? revealedClientsData.get(client.id)!.telefono 
+                              : client.telefono_masked}
                           </div>
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="text-right">
+                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">
-                        {!revealedClients.has(client.id) && (
+                        {!revealedClientsData.has(client.id) && (
                           <Button variant="ghost" size="icon" onClick={() => handleRevealClient(client.id)} title="Revelar datos enmascarados">
                             <EyeOff className="h-4 w-4" />
                           </Button>
@@ -527,7 +586,20 @@ const Clients = () => {
                         <Button 
                           variant="ghost" 
                           size="icon" 
-                          onClick={() => handleSendInvitation(client.id, client.email || '', client.nombre_completo)}
+                          onClick={() => {
+                            const email = revealedClientsData.has(client.id) 
+                              ? revealedClientsData.get(client.id)!.email 
+                              : null;
+                            if (email) {
+                              handleSendInvitation(client.id, email, client.nombre_completo);
+                            } else {
+                              toast({
+                                title: "Error",
+                                description: "Debe revelar los datos del cliente primero",
+                                variant: "destructive",
+                              });
+                            }
+                          }}
                           title="Enviar invitación al portal"
                         >
                           <Send className="h-4 w-4" />
@@ -575,33 +647,49 @@ const Clients = () => {
               <div className="grid gap-4">
                 <div>
                   <Label className="text-muted-foreground">Cédula/RNC</Label>
-                  <p className="font-mono text-sm mt-1">{selectedClient.cedula_rnc}</p>
+                  <p className="font-mono text-sm mt-1">
+                    {revealedClientsData.has(selectedClient.id) 
+                      ? revealedClientsData.get(selectedClient.id)!.cedula_rnc 
+                      : selectedClient.cedula_rnc_masked}
+                  </p>
                 </div>
                 
-                {selectedClient.email && (
+                {(selectedClient.email_masked || revealedClientsData.has(selectedClient.id)) && (
                   <div>
                     <Label className="text-muted-foreground">Email</Label>
                     <div className="flex items-center gap-2 mt-1">
                       <Mail className="h-4 w-4 text-muted-foreground" />
-                      <p className="text-sm">{selectedClient.email}</p>
+                      <p className="text-sm">
+                        {revealedClientsData.has(selectedClient.id) 
+                          ? revealedClientsData.get(selectedClient.id)!.email 
+                          : selectedClient.email_masked}
+                      </p>
                     </div>
                   </div>
                 )}
                 
-                {selectedClient.telefono && (
+                {(selectedClient.telefono_masked || revealedClientsData.has(selectedClient.id)) && (
                   <div>
                     <Label className="text-muted-foreground">Teléfono</Label>
                     <div className="flex items-center gap-2 mt-1">
                       <Phone className="h-4 w-4 text-muted-foreground" />
-                      <p className="text-sm">{selectedClient.telefono}</p>
+                      <p className="text-sm">
+                        {revealedClientsData.has(selectedClient.id) 
+                          ? revealedClientsData.get(selectedClient.id)!.telefono 
+                          : selectedClient.telefono_masked}
+                      </p>
                     </div>
                   </div>
                 )}
                 
-                {selectedClient.direccion && (
+                {(selectedClient.direccion_masked || revealedClientsData.has(selectedClient.id)) && (
                   <div>
                     <Label className="text-muted-foreground">Dirección</Label>
-                    <p className="text-sm mt-1">{selectedClient.direccion}</p>
+                    <p className="text-sm mt-1">
+                      {revealedClientsData.has(selectedClient.id) 
+                        ? revealedClientsData.get(selectedClient.id)!.direccion 
+                        : selectedClient.direccion_masked}
+                    </p>
                   </div>
                 )}
                 
@@ -609,6 +697,13 @@ const Clients = () => {
                   <Label className="text-muted-foreground">Última actualización</Label>
                   <p className="text-sm mt-1">{new Date(selectedClient.updated_at).toLocaleString('es-DO')}</p>
                 </div>
+                
+                {!revealedClientsData.has(selectedClient.id) && (
+                  <Button onClick={() => handleRevealClient(selectedClient.id)} className="w-full">
+                    <Eye className="h-4 w-4 mr-2" />
+                    Revelar Datos Completos
+                  </Button>
+                )}
               </div>
             </div>
           )}
