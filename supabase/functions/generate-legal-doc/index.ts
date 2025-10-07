@@ -180,7 +180,22 @@ serve(async (req) => {
     
     4. TESIS DE DERECHO
     (centrado)
-    4.1. Metodología de subsunción (vincular hechos con normas jerárquicas)
+    4.1. IDENTIFICACIÓN DE ELEMENTOS CONSTITUTIVOS
+        - Identificar claramente los elementos constitutivos de la acción/infracción según la norma aplicable
+        - Enumerar cada elemento requerido por la legislación
+    4.2. SUBSUNCIÓN DE LOS HECHOS AL DERECHO
+        - Para CADA elemento constitutivo identificado, demostrar cómo los hechos del caso satisfacen ese elemento
+        - Hacer el análisis de encaje entre los hechos narrados y cada requisito legal
+    4.3. INTERPRETACIÓN DOCTRINAL
+        - Citar autores y doctrinarios reconocidos que sustenten la interpretación de las normas
+        - Incluir referencias a tratadistas dominicanos y extranjeros aplicables
+    4.4. INTERPRETACIÓN JURISPRUDENCIAL
+        - Citar sentencias relevantes (SCJ, TC) que hayan interpretado las normas aplicables
+        - Mostrar cómo la jurisprudencia respalda la pretensión
+        - Incluir número de sentencia, fecha, sala y extracto del razonamiento
+    4.5. CONCLUSIÓN DE LA SUBSUNCIÓN
+        - Demostrar que los hechos probados configuran plenamente la hipótesis normativa
+        - Justificar por qué procede la demanda según el derecho aplicable
     
     5. DISPOSITIVOS
     (centrado)
@@ -200,7 +215,8 @@ serve(async (req) => {
     7) NO incluir "ACTO NÚMERO [número]" como título independiente - el número va SOLO en la sección 1.2
     8) Los títulos "1. PRESENTACIÓN", "2. RELATO FÁCTICO", "3. ASPECTOS REGULATORIOS", "4. TESIS DE DERECHO", "5. DISPOSITIVOS" deben estar CENTRADOS
     9) El encabezado con la firma debe estar CENTRADO con espaciado de 2 líneas entre cada línea de texto
-    10) Cambiar "Santo Domingo, Distrito Nacional" por: "En la Ciudad de [ciudad] de la provincia [provincia] de la República Dominicana, a los [día] días del mes [mes] del año [año]"
+    10) En la sección 4 (TESIS DE DERECHO): hacer subsunción rigurosa identificando elementos constitutivos, demostrando cómo cada hecho cumple cada elemento, citando doctrina y jurisprudencia específica
+    11) Cambiar "Santo Domingo, Distrito Nacional" por: "En la Ciudad de [ciudad] de la provincia [provincia] de la República Dominicana, a los [día] días del mes [mes] del año [año]"
 
     Genera documentos COMPLETOS y PROFESIONALES.`;
 
@@ -262,12 +278,18 @@ INSTRUCCIONES IMPERATIVAS:
 5. En la sección 1.3: usa "En la Ciudad de [ciudad] de la provincia [provincia] de la República Dominicana, a los [día] días del mes [mes] del año [año]"
 6. En la sección 2 (RELATO FÁCTICO - título centrado): desarrolla los hechos proporcionados cronológicamente con numeración 2.1, 2.2, etc.
 7. En la sección 3 (ASPECTOS REGULATORIOS - título centrado): incluye artículos con TEXTO COMPLETO según jerarquía normativa de ${materia}
-8. En la sección 4 (TESIS DE DERECHO - título centrado): subsunción jurídica vinculando hechos con normas
-9. En la sección 5 (DISPOSITIVOS - título centrado): peticiones completas (declarar válida, comprobar, ordenar, condenar, costas, astreinte)
-10. Lenguaje jurídico formal dominicano
+8. En la sección 4 (TESIS DE DERECHO - título centrado): 
+   - SUBSECCIÓN 4.1: Identifica los elementos constitutivos de la acción/infracción según las normas aplicables
+   - SUBSECCIÓN 4.2: Para CADA elemento, demuestra cómo los hechos del caso lo satisfacen (subsunción detallada)
+   - SUBSECCIÓN 4.3: Cita doctrina relevante (autores como Jorge Subero Isa, Froilán Tavares, Wenceslao Vega B., etc.)
+   - SUBSECCIÓN 4.4: Cita jurisprudencia específica con número de sentencia, fecha, sala y extracto del razonamiento
+   - SUBSECCIÓN 4.5: Concluye demostrando que los hechos configuran la hipótesis normativa y justifica la procedencia de la demanda
+9. En la sección 5 (DISPOSITIVOS - título centrado): peticiones completas
+10. Lenguaje jurídico formal dominicano con razonamiento profundo
 11. NO dejes "N/D" si hay datos reales
-12. CRÍTICO: Encabezado con espaciado de 2 líneas entre cada línea de información de la firma
-13. CRÍTICO: NUNCA incluir "ACTO NÚMERO" como título separado - solo va en 1.2
+12. CRÍTICO: En 4. TESIS DE DERECHO hacer subsunción RIGUROSA: elementos constitutivos + encaje de hechos + doctrina + jurisprudencia
+13. CRÍTICO: Encabezado con espaciado de 2 líneas entre cada línea
+14. CRÍTICO: NUNCA incluir "ACTO NÚMERO" como título separado
 
 Genera ahora el documento COMPLETO y PROFESIONAL:`;
 
