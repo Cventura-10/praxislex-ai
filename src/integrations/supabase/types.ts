@@ -735,6 +735,16 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_accessible_clients_safe: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          created_at: string
+          id: string
+          nombre_completo: string
+          updated_at: string
+          user_id: string
+        }[]
+      }
       has_admin_verification: {
         Args: { _user_id: string }
         Returns: boolean
