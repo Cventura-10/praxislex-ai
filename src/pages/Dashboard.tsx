@@ -31,6 +31,7 @@ const Dashboard = () => {
   const [hearings, setHearings] = useState<any[]>([]);
   const [recentCases, setRecentCases] = useState<any[]>([]);
   const [userName, setUserName] = useState("");
+  const [notifications, setNotifications] = useState<any[]>([]);
 
   useEffect(() => {
     fetchDashboardData();
@@ -40,14 +41,23 @@ const Dashboard = () => {
     try {
       setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        console.log("No user found");
+        return;
+      }
+
+      console.log("Fetching dashboard data for user:", user.id);
 
       // Fetch user profile
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("full_name")
         .eq("id", user.id)
         .single();
+      
+      if (profileError) {
+        console.error("Error fetching profile:", profileError);
+      }
       
       if (profile?.full_name) {
         setUserName(profile.full_name);
@@ -61,7 +71,11 @@ const Dashboard = () => {
         .order("created_at", { ascending: false })
         .limit(5);
 
-      if (casesError) throw casesError;
+      if (casesError) {
+        console.error("Error fetching cases:", casesError);
+      } else {
+        console.log("Cases fetched:", casesData?.length || 0);
+      }
 
       // Fetch deadlines
       const { data: deadlinesData, error: deadlinesError } = await supabase
@@ -72,7 +86,11 @@ const Dashboard = () => {
         .order("fecha_vencimiento", { ascending: true })
         .limit(3);
 
-      if (deadlinesError) throw deadlinesError;
+      if (deadlinesError) {
+        console.error("Error fetching deadlines:", deadlinesError);
+      } else {
+        console.log("Deadlines fetched:", deadlinesData?.length || 0);
+      }
 
       // Fetch hearings
       const { data: hearingsData, error: hearingsError } = await supabase
@@ -83,16 +101,29 @@ const Dashboard = () => {
         .order("fecha", { ascending: true })
         .limit(3);
 
-      if (hearingsError) throw hearingsError;
+      if (hearingsError) {
+        console.error("Error fetching hearings:", hearingsError);
+      } else {
+        console.log("Hearings fetched:", hearingsData?.length || 0);
+      }
 
       // Fetch documents count
-      const { count: docsCount } = await supabase
+      const { count: docsCount, error: docsError } = await supabase
         .from("legal_documents")
         .select("*", { count: "exact", head: true })
         .eq("user_id", user.id);
 
+      if (docsError) {
+        console.error("Error fetching documents:", docsError);
+      } else {
+        console.log("Documents count:", docsCount || 0);
+      }
+
+      // Calculate active cases (not archived or closed)
+      const activeCasesCount = casesData?.filter(c => c.estado === 'activo').length || 0;
+
       setStats({
-        activeCases: casesData?.length || 0,
+        activeCases: activeCasesCount,
         upcomingDeadlines: deadlinesData?.length || 0,
         upcomingHearings: hearingsData?.length || 0,
         generatedDocuments: docsCount || 0,
@@ -101,6 +132,53 @@ const Dashboard = () => {
       setDeadlines(deadlinesData || []);
       setHearings(hearingsData || []);
       setRecentCases(casesData || []);
+
+      // Build notifications from real data
+      const newNotifications = [];
+      
+      // Add deadline notifications (upcoming in next 7 days)
+      deadlinesData?.forEach((deadline) => {
+        const daysLeft = getDaysLeft(deadline.fecha_vencimiento);
+        if (daysLeft >= 0 && daysLeft <= 7) {
+          newNotifications.push({
+            id: `deadline-${deadline.id}`,
+            type: 'deadline',
+            title: daysLeft === 0 ? 'Vencimiento HOY' : daysLeft === 1 ? 'Vencimiento mañana' : `Vencimiento en ${daysLeft} días`,
+            message: `${deadline.tipo}: ${deadline.caso}`,
+            timestamp: new Date(deadline.created_at),
+            priority: daysLeft <= 2 ? 'high' : 'medium',
+          });
+        }
+      });
+
+      // Add hearing notifications (upcoming in next 7 days)
+      hearingsData?.forEach((hearing) => {
+        const hearingDate = new Date(hearing.fecha);
+        const today = new Date();
+        const daysUntil = Math.ceil((hearingDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        
+        if (daysUntil >= 0 && daysUntil <= 7) {
+          newNotifications.push({
+            id: `hearing-${hearing.id}`,
+            type: 'hearing',
+            title: daysUntil === 0 ? 'Audiencia HOY' : daysUntil === 1 ? 'Audiencia mañana' : `Audiencia en ${daysUntil} días`,
+            message: `${hearing.juzgado} - ${hearing.hora}`,
+            timestamp: new Date(hearing.created_at),
+            priority: daysUntil <= 1 ? 'high' : 'medium',
+          });
+        }
+      });
+
+      // Sort notifications by priority and timestamp
+      newNotifications.sort((a, b) => {
+        if (a.priority === 'high' && b.priority !== 'high') return -1;
+        if (a.priority !== 'high' && b.priority === 'high') return 1;
+        return b.timestamp.getTime() - a.timestamp.getTime();
+      });
+
+      setNotifications(newNotifications);
+      console.log("Notifications generated:", newNotifications.length);
+
     } catch (error: any) {
       console.error("Error fetching dashboard data:", error);
       toast({
@@ -145,10 +223,17 @@ const Dashboard = () => {
             Resumen de tu práctica.
           </p>
         </div>
-        <Button className="gap-2" onClick={handleNewCase}>
-          <Briefcase className="h-4 w-4" />
-          Nuevo caso
-        </Button>
+        <div className="flex gap-2">
+          {notifications.length > 0 && (
+            <Badge variant="destructive" className="px-3 py-1">
+              {notifications.length} {notifications.length === 1 ? 'notificación' : 'notificaciones'}
+            </Badge>
+          )}
+          <Button className="gap-2" onClick={handleNewCase}>
+            <Briefcase className="h-4 w-4" />
+            Nuevo caso
+          </Button>
+        </div>
       </div>
 
       {loading ? (
@@ -185,6 +270,51 @@ const Dashboard = () => {
           </div>
 
           <div className="grid gap-6 md:grid-cols-2">
+            {/* Notifications Panel */}
+            {notifications.length > 0 && (
+              <Card className="shadow-medium border-l-4 border-l-warning md:col-span-2">
+                <CardHeader className="flex flex-row items-center justify-between pb-3">
+                  <CardTitle className="flex items-center gap-2">
+                    <AlertTriangle className="h-5 w-5 text-warning" />
+                    Notificaciones importantes
+                  </CardTitle>
+                  <Badge variant="destructive">{notifications.length}</Badge>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {notifications.slice(0, 5).map((notif) => (
+                      <div
+                        key={notif.id}
+                        className={`flex items-start gap-3 p-3 rounded-lg border ${
+                          notif.priority === 'high' 
+                            ? 'bg-destructive/5 border-destructive/20' 
+                            : 'bg-card'
+                        } hover:bg-accent/5 transition-base`}
+                      >
+                        <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
+                          notif.priority === 'high' ? 'bg-destructive/10' : 'bg-primary/10'
+                        }`}>
+                          {notif.type === 'deadline' ? (
+                            <Clock className={`h-4 w-4 ${notif.priority === 'high' ? 'text-destructive' : 'text-primary'}`} />
+                          ) : (
+                            <Calendar className={`h-4 w-4 ${notif.priority === 'high' ? 'text-destructive' : 'text-primary'}`} />
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <p className={`font-medium text-sm ${notif.priority === 'high' ? 'text-destructive' : 'text-foreground'}`}>
+                            {notif.title}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {notif.message}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             <Card className="shadow-medium">
               <CardHeader className="flex flex-row items-center justify-between pb-3">
                 <CardTitle className="flex items-center gap-2">
@@ -198,9 +328,15 @@ const Dashboard = () => {
               </CardHeader>
               <CardContent>
                 {deadlines.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-4">
-                    No hay vencimientos próximos
-                  </p>
+                  <div className="text-center py-6">
+                    <AlertTriangle className="h-10 w-10 text-muted-foreground mx-auto mb-2 opacity-50" />
+                    <p className="text-sm text-muted-foreground mb-3">
+                      No hay vencimientos próximos
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Cuando tengas plazos pendientes aparecerán aquí
+                    </p>
+                  </div>
                 ) : (
                   <div className="space-y-3">
                     {deadlines.map((item) => {
@@ -228,7 +364,7 @@ const Dashboard = () => {
                               }
                               className="text-xs"
                             >
-                              {daysLeft} días
+                              {daysLeft === 0 ? 'HOY' : daysLeft === 1 ? 'Mañana' : `${daysLeft} días`}
                             </Badge>
                             <span className="text-xs text-muted-foreground">
                               {new Date(item.fecha_vencimiento).toLocaleDateString('es-DO')}
@@ -255,9 +391,15 @@ const Dashboard = () => {
               </CardHeader>
               <CardContent>
                 {hearings.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-4">
-                    No hay audiencias programadas
-                  </p>
+                  <div className="text-center py-6">
+                    <Calendar className="h-10 w-10 text-muted-foreground mx-auto mb-2 opacity-50" />
+                    <p className="text-sm text-muted-foreground mb-3">
+                      No hay audiencias programadas
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Programa una audiencia desde la sección de Audiencias
+                    </p>
+                  </div>
                 ) : (
                   <div className="space-y-3">
                     {hearings.map((item) => (

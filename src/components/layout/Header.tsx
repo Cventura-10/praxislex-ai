@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Scale, Bell, Search, User, LogOut, Settings, CreditCard, UserCircle, Crown } from "lucide-react";
+import { Scale, Bell, Search, User, LogOut, Settings, CreditCard, UserCircle, Crown, Clock, Calendar as CalendarIcon, AlertTriangle } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useNotifications } from "@/hooks/useNotifications";
 import logo from "@/assets/praxislex-logo-horizontal.svg";
 
 export function Header() {
@@ -22,6 +23,7 @@ export function Header() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { role, isPro, isAdmin } = useUserRole();
+  const { notifications, unreadCount, markAsRead } = useNotifications();
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -63,6 +65,18 @@ export function Header() {
       });
     }
   };
+
+  const getTimeSince = (timestamp: Date) => {
+    const now = new Date();
+    const diff = now.getTime() - timestamp.getTime();
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    
+    if (days > 0) return `Hace ${days} ${days === 1 ? 'día' : 'días'}`;
+    if (hours > 0) return `Hace ${hours} ${hours === 1 ? 'hora' : 'horas'}`;
+    return 'Hace un momento';
+  };
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-card shadow-soft">
       <div className="container flex h-16 items-center justify-between px-4">
@@ -81,12 +95,14 @@ export function Header() {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="relative">
                 <Bell className="h-5 w-5" />
-                <Badge 
-                  variant="destructive" 
-                  className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-[10px]"
-                >
-                  3
-                </Badge>
+                {unreadCount > 0 && (
+                  <Badge 
+                    variant="destructive" 
+                    className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-[10px]"
+                  >
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </Badge>
+                )}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent 
@@ -95,41 +111,73 @@ export function Header() {
               sideOffset={5}
             >
               <DropdownMenuLabel className="text-base font-semibold">
-                Notificaciones
+                Notificaciones {unreadCount > 0 && `(${unreadCount})`}
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <div className="max-h-[400px] overflow-y-auto">
-                <DropdownMenuItem className="flex flex-col items-start gap-1 p-3 cursor-pointer hover:bg-accent focus:bg-accent">
-                  <p className="text-sm font-medium text-foreground">Vencimiento próximo</p>
-                  <p className="text-xs text-muted-foreground">
-                    Caso "Cobro de pesos" vence en 2 días
-                  </p>
-                  <span className="text-[10px] text-muted-foreground mt-1">Hace 2 horas</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem className="flex flex-col items-start gap-1 p-3 cursor-pointer hover:bg-accent focus:bg-accent">
-                  <p className="text-sm font-medium text-foreground">Audiencia mañana</p>
-                  <p className="text-xs text-muted-foreground">
-                    Primera Instancia DN - 10:00 AM
-                  </p>
-                  <span className="text-[10px] text-muted-foreground mt-1">Hace 5 horas</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem className="flex flex-col items-start gap-1 p-3 cursor-pointer hover:bg-accent focus:bg-accent">
-                  <p className="text-sm font-medium text-foreground">Documento pendiente</p>
-                  <p className="text-xs text-muted-foreground">
-                    Demanda requiere firma del cliente
-                  </p>
-                  <span className="text-[10px] text-muted-foreground mt-1">Hace 1 día</span>
-                </DropdownMenuItem>
+                {notifications.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Bell className="h-10 w-10 text-muted-foreground mx-auto mb-2 opacity-50" />
+                    <p className="text-sm text-muted-foreground">
+                      No hay notificaciones
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Cuando tengas avisos importantes aparecerán aquí
+                    </p>
+                  </div>
+                ) : (
+                  notifications.map((notif, index) => (
+                    <div key={notif.id}>
+                      {index > 0 && <DropdownMenuSeparator />}
+                      <DropdownMenuItem 
+                        className={`flex flex-col items-start gap-1 p-3 cursor-pointer hover:bg-accent focus:bg-accent ${
+                          !notif.read ? 'bg-primary/5' : ''
+                        }`}
+                        onClick={() => {
+                          markAsRead(notif.id);
+                          if (notif.type === 'deadline' || notif.type === 'hearing') {
+                            navigate('/audiencias');
+                          }
+                        }}
+                      >
+                        <div className="flex items-start gap-2 w-full">
+                          {notif.type === 'deadline' && (
+                            <Clock className={`h-4 w-4 mt-0.5 ${notif.priority === 'high' ? 'text-destructive' : 'text-primary'}`} />
+                          )}
+                          {notif.type === 'hearing' && (
+                            <CalendarIcon className={`h-4 w-4 mt-0.5 ${notif.priority === 'high' ? 'text-destructive' : 'text-primary'}`} />
+                          )}
+                          <div className="flex-1">
+                            <p className={`text-sm font-medium ${notif.priority === 'high' ? 'text-destructive' : 'text-foreground'}`}>
+                              {notif.title}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              {notif.message}
+                            </p>
+                            <span className="text-[10px] text-muted-foreground mt-1 inline-block">
+                              {getTimeSince(notif.timestamp)}
+                            </span>
+                          </div>
+                          {!notif.read && (
+                            <div className="h-2 w-2 rounded-full bg-primary mt-1.5"></div>
+                          )}
+                        </div>
+                      </DropdownMenuItem>
+                    </div>
+                  ))
+                )}
               </div>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem 
-                className="text-center justify-center text-primary hover:text-primary cursor-pointer"
-                onClick={() => navigate("/dashboard")}
-              >
-                Ver todas las notificaciones
-              </DropdownMenuItem>
+              {notifications.length > 0 && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    className="text-center justify-center text-primary hover:text-primary cursor-pointer"
+                    onClick={() => navigate("/audiencias")}
+                  >
+                    Ver todas las notificaciones
+                  </DropdownMenuItem>
+                </>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
 
