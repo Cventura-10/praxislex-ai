@@ -34,8 +34,8 @@ export default function InvitationAccept() {
     }
 
     try {
-      // Call the validation function (without consuming the token yet)
-      const { data, error } = await supabase.rpc("validate_invitation_token", {
+      // Use new read-only validation function (doesn't consume the token)
+      const { data, error } = await supabase.rpc("check_invitation_token_validity", {
         p_token: token,
       });
 
@@ -83,6 +83,25 @@ export default function InvitationAccept() {
     try {
       const token = searchParams.get("token");
       
+      if (!token) {
+        throw new Error("Token de invitación no encontrado");
+      }
+
+      // First, get the client_id from token validation
+      const { data: checkData, error: checkError } = await supabase.rpc(
+        "check_invitation_token_validity",
+        { p_token: token }
+      );
+
+      if (checkError) throw checkError;
+
+      const validationResult = checkData[0];
+      if (!validationResult.is_valid) {
+        throw new Error(validationResult.error_message);
+      }
+
+      const clientId = validationResult.client_id;
+      
       // Create the user account
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email: clientEmail,
@@ -98,18 +117,20 @@ export default function InvitationAccept() {
         throw new Error("No se pudo crear la cuenta");
       }
 
-      // Now consume the token and link to the client
-      const { data: validationData, error: validationError } = await supabase.rpc(
-        "validate_invitation_token",
-        { p_token: token }
+      // Now link the client to the authenticated user using the secure function
+      const { data: linkData, error: linkError } = await supabase.rpc(
+        "link_client_to_auth_user",
+        {
+          p_client_id: clientId,
+          p_auth_user_id: authData.user.id,
+          p_invitation_token: token
+        }
       );
 
-      if (validationError) throw validationError;
+      if (linkError) throw linkError;
 
-      const result = validationData[0];
-      
-      if (!result.is_valid) {
-        throw new Error(result.error_message);
+      if (!linkData) {
+        throw new Error("No se pudo vincular la cuenta");
       }
 
       toast({

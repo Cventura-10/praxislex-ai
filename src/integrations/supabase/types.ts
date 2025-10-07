@@ -772,6 +772,15 @@ export type Database = {
         Args: { _client_id: string; _user_id: string }
         Returns: boolean
       }
+      check_invitation_token_validity: {
+        Args: { p_token: string }
+        Returns: {
+          client_email: string
+          client_id: string
+          error_message: string
+          is_valid: boolean
+        }[]
+      }
       generate_case_number: {
         Args: Record<PropertyKey, never>
         Returns: string
