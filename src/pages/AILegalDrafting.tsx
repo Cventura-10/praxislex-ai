@@ -487,6 +487,10 @@ const AILegalDrafting = () => {
   const [intakeData, setIntakeData] = useState<Record<string, any>>({ accion: schema.accion });
 
   const [formData, setFormData] = useState({
+    // Logo de la firma
+    logo_firma: "",
+    
+    // Tipo y materia
     tipo_documento: "demanda",
     materia: "civil",
     accion_legal: "",
@@ -1056,6 +1060,29 @@ const AILegalDrafting = () => {
                         No tienes clientes registrados. Puedes agregar clientes desde el módulo de Clientes.
                       </div>
                     )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-medium">
+                <CardHeader>
+                  <CardTitle>Logo de la Firma (Primera Hoja)</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label>URL del Logo (opcional)</Label>
+                    <div className="flex gap-2">
+                      <Input 
+                        type="url"
+                        placeholder="https://ejemplo.com/logo.png" 
+                        value={formData.logo_firma || ""} 
+                        onChange={(e) => handleInputChange("logo_firma", e.target.value)} 
+                      />
+                      <VoiceInput onTranscribed={(text) => handleVoiceInput("logo_firma", text)} />
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      El logo aparecerá centralizado en la primera hoja del documento
+                    </p>
                   </div>
                 </CardContent>
               </Card>
