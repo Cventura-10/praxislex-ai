@@ -145,18 +145,20 @@ serve(async (req) => {
 
     ESTRUCTURA OBLIGATORIA DEL DOCUMENTO (TEXTO PLANO, SIN MARKDOWN):
     
-    ENCABEZADO (Primera página - centrado y con espacio para logo):
+    ENCABEZADO (Primera página - centrado, espaciado de 2 líneas):
     [ESPACIO PARA LOGO]
+    
     ${firmaNombre}${rncFirma ? ` - RNC: ${rncFirma}` : ''}
     ${abogadoNombre} - Matrícula CARD: ${matriculaCard}
     ${direccionFirma}
     ${telefonoFirma} | ${emailFirma}
     
+    
     1. PRESENTACIÓN
     1.1. Designación Protocolar del Alguacil
     1.2. No. [número], Folios [folios] y [folios] año [año]
     1.3. En la Ciudad de [ciudad donde se hace el acto] de la provincia [provincia] de la República Dominicana, a los [día] días del mes [mes] del año [año de la instrumentación del acto];
-    1.4. Requeriente
+    1.4. Requerente
     1.6. [Nombre completo del demandante], [nacionalidad], mayor de edad, [estado civil], portador de la cédula No. [cédula] o RNC [RNC si aplica], [domicilio completo]
     1.7. Firma Apoderada
     1.8. [Nombre de la firma], entidad jurídica organizada conforme a las leyes de RD, RNC [número], representada por [representante], quien otorga poder al [abogado], [datos completos del abogado], matrícula No. [matrícula], con estudio profesional en [dirección], teléfonos [teléfonos], email: [email]
@@ -195,10 +197,10 @@ serve(async (req) => {
     4) Normas en ORDEN JERÁRQUICO según la materia
     5) Citas con texto íntegro del artículo cuando sea fundamental
     6) Formato para Word: texto plano, sin Markdown, justificado
-    7) NO incluir "ACTO NÚMERO [número]" como título separado - el número va en la sección 1.2
+    7) NO incluir "ACTO NÚMERO [número]" como título independiente - el número va SOLO en la sección 1.2
     8) Los títulos "1. PRESENTACIÓN", "2. RELATO FÁCTICO", "3. ASPECTOS REGULATORIOS", "4. TESIS DE DERECHO", "5. DISPOSITIVOS" deben estar CENTRADOS
-    9) El encabezado con la firma debe estar centrado en la primera página con espacio para logo
-    10) Cambiar "Santo Domingo, Distrito Nacional" por la fórmula: "En la Ciudad de [ciudad] de la provincia [provincia] de la República Dominicana, a los [día] días del mes [mes] del año [año]"
+    9) El encabezado con la firma debe estar CENTRADO con espaciado de 2 líneas entre cada línea de texto
+    10) Cambiar "Santo Domingo, Distrito Nacional" por: "En la Ciudad de [ciudad] de la provincia [provincia] de la República Dominicana, a los [día] días del mes [mes] del año [año]"
 
     Genera documentos COMPLETOS y PROFESIONALES.`;
 
@@ -253,19 +255,19 @@ ${legislacion ? `LEGISLACIÓN ADICIONAL: ${legislacion}` : ''}
 ${jurisprudencia ? `JURISPRUDENCIA: ${jurisprudencia}` : ''}
 
 INSTRUCCIONES IMPERATIVAS:
-1. ENCABEZADO: Inicia el documento con el encabezado centrado mostrando la firma de abogados (nombre, RNC, abogado, matrícula, dirección, teléfono, email) con la nota [ESPACIO PARA LOGO]
-2. NO incluir "ACTO NÚMERO [número]" como título independiente
-3. En la sección 1 (PRESENTACIÓN - título centrado): incluye todos los datos formales del acto
-4. En la sección 1.3: usa la fórmula "En la Ciudad de [ciudad] de la provincia [provincia] de la República Dominicana, a los [día] días del mes [mes] del año [año]"
-5. En la sección 2 (RELATO FÁCTICO - título centrado): desarrolla los hechos proporcionados de forma cronológica y detallada con numeración 2.1, 2.2, etc.
-6. En la sección 3 (ASPECTOS REGULATORIOS - título centrado): incluye TODOS los artículos con TEXTO COMPLETO según la jerarquía normativa de ${materia}
-7. En la sección 4 (TESIS DE DERECHO - título centrado): realiza la subsunción jurídica vinculando los hechos con las normas citadas
-8. En la sección 5 (DISPOSITIVOS - título centrado): incluye todas las peticiones (declarar válida, comprobar, ordenar, condenar, costas, astreinte)
-9. Usa lenguaje jurídico formal dominicano
-10. NO dejes "N/D" si hay datos reales proporcionados - TODOS los datos del cliente y firma deben aparecer
-11. La elección de domicilio es en la dirección del estudio del abogado
-12. El proceso verbal de traslado debe incluir PRIMERO, SEGUNDO, etc., para cada demandado
-13. CRÍTICO: TODOS los títulos principales (1. PRESENTACIÓN, 2. RELATO FÁCTICO, 3. ASPECTOS REGULATORIOS, 4. TESIS DE DERECHO, 5. DISPOSITIVOS) deben estar CENTRADOS
+1. ENCABEZADO: Inicia el documento con [ESPACIO PARA LOGO] seguido del encabezado centrado con la firma (nombre, RNC, abogado, matrícula, dirección, teléfono, email). Cada línea del encabezado debe estar separada con 2 líneas en blanco
+2. NO incluir "ACTO NÚMERO [número]" como título separado o independiente en ninguna parte
+3. El número de acto va ÚNICAMENTE en la sección 1.2 como "No. [número], Folios [folios] y [folios] año [año]"
+4. En la sección 1 (PRESENTACIÓN - título centrado): incluye todos los datos formales del acto sin título "ACTO NÚMERO"
+5. En la sección 1.3: usa "En la Ciudad de [ciudad] de la provincia [provincia] de la República Dominicana, a los [día] días del mes [mes] del año [año]"
+6. En la sección 2 (RELATO FÁCTICO - título centrado): desarrolla los hechos proporcionados cronológicamente con numeración 2.1, 2.2, etc.
+7. En la sección 3 (ASPECTOS REGULATORIOS - título centrado): incluye artículos con TEXTO COMPLETO según jerarquía normativa de ${materia}
+8. En la sección 4 (TESIS DE DERECHO - título centrado): subsunción jurídica vinculando hechos con normas
+9. En la sección 5 (DISPOSITIVOS - título centrado): peticiones completas (declarar válida, comprobar, ordenar, condenar, costas, astreinte)
+10. Lenguaje jurídico formal dominicano
+11. NO dejes "N/D" si hay datos reales
+12. CRÍTICO: Encabezado con espaciado de 2 líneas entre cada línea de información de la firma
+13. CRÍTICO: NUNCA incluir "ACTO NÚMERO" como título separado - solo va en 1.2
 
 Genera ahora el documento COMPLETO y PROFESIONAL:`;
 

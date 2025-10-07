@@ -44,17 +44,23 @@ export const DocumentViewer = ({
         }
         
         // Detectar encabezado de firma (líneas después del logo y antes de PRESENTACIÓN)
-        if (index < 10 && (
+        if (index < 15 && !trimmed.match(/^[1-5]\.\s+[A-Z]/) && (
           trimmed.includes('RNC:') || 
           trimmed.includes('Matrícula CARD:') || 
           trimmed.includes('@') ||
-          /^\d{3}-?\d{3}-?\d{4}/.test(trimmed)
+          /^\d{3}-?\d{3}-?\d{4}/.test(trimmed) ||
+          (index > 0 && index < 10 && trimmed.length > 10 && !trimmed.includes('ACTO NÚMERO'))
         )) {
           return (
-            <div key={index} className="text-center text-sm font-medium mb-1">
+            <div key={index} className="text-center text-sm font-medium mb-4">
               {trimmed}
             </div>
           );
+        }
+        
+        // Ignorar líneas con "ACTO NÚMERO" como título independiente
+        if (trimmed.match(/^ACTO\s+NÚMERO/i) && !trimmed.includes('1.2')) {
+          return null;
         }
         
         // Detectar títulos principales numerados (1. PRESENTACIÓN, 2. RELATO FÁCTICO, etc.)
