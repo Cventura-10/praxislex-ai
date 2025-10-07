@@ -151,7 +151,7 @@ serve(async (req) => {
     1.3. Ciudad de la Actuación
     1.4. En la Ciudad de [ciudad], a los [día] ([día en letras]) de [mes] del año [año en letras] ([año]);
     1.5. Requeriente
-    1.6. [Nombre completo del demandante], [nacionalidad], mayor de edad, [estado civil], portador de la cédula No. [cédula], [domicilio completo]
+    1.6. [Nombre completo del demandante], [nacionalidad], mayor de edad, [estado civil], portador de la cédula No. [cédula] o RNC [RNC si aplica], [domicilio completo]
     1.7. Firma Apoderada
     1.8. [Nombre de la firma], entidad jurídica organizada conforme a las leyes de RD, RNC [número], representada por [representante], quien otorga poder al [abogado], [datos completos del abogado], matrícula No. [matrícula], con estudio profesional en [dirección], teléfonos [teléfonos], email: [email]
     1.9. Elección de Domicilio
@@ -186,6 +186,8 @@ serve(async (req) => {
     4) Normas en ORDEN JERÁRQUICO según la materia
     5) Citas con texto íntegro del artículo cuando sea fundamental
     6) Formato para Word: texto plano, sin Markdown, justificado
+    7) SIEMPRE incluir información completa de la firma (nombre, RNC, abogado, matrícula) en la carátula
+    8) SIEMPRE incluir cédula o RNC del cliente según corresponda (persona física o jurídica)
 
     Genera documentos COMPLETOS y PROFESIONALES.`;
 
@@ -203,8 +205,9 @@ DEMANDANTE/REQUERIENTE:
 - Nombre completo: ${demandante?.nombre || 'N/D'}
 - Nacionalidad: ${demandante?.nacionalidad || 'dominicano'}
 - Estado Civil: ${demandante?.estado_civil || 'N/D'}
-- Cédula: ${demandante?.cedula || 'N/D'}
+- Cédula/RNC: ${demandante?.cedula || 'N/D'}
 - Domicilio: ${demandante?.domicilio || 'N/D'}
+- Tipo: ${demandante?.cedula?.includes('-') && demandante.cedula.length > 11 ? 'Persona Física' : 'Persona Jurídica'}
 
 FIRMA APODERADA:
 - Razón social: ${firma_apoderada?.nombre || 'N/D'}
@@ -240,15 +243,17 @@ ${jurisprudencia ? `JURISPRUDENCIA: ${jurisprudencia}` : ''}
 
 INSTRUCCIONES IMPERATIVAS:
 1. Genera TODO el documento desde 1.1 hasta 5.19
-2. En la sección 1 (PRESENTACIÓN): incluye todos los datos formales del acto
+2. En la sección 1 (PRESENTACIÓN): incluye todos los datos formales del acto, incluyendo FIRMA COMPLETA (nombre, RNC, abogado, matrícula)
 3. En la sección 2 (RELATO FACTICO): desarrolla los hechos proporcionados de forma cronológica y detallada con numeración 2.1, 2.2, etc.
 4. En la sección 3 (ASPECTOS REGULATORIOS): incluye TODOS los artículos con TEXTO COMPLETO según la jerarquía normativa de ${materia}
 5. En la sección 4 (TESIS DE DERECHO): realiza la subsunción jurídica vinculando los hechos con las normas citadas
 6. En la sección 5 (DISPOSITIVOS): incluye todas las peticiones (declarar válida, comprobar, ordenar, condenar, costas, astreinte)
 7. Usa lenguaje jurídico formal dominicano
-8. NO dejes "N/D" si hay datos reales proporcionados
+8. NO dejes "N/D" si hay datos reales proporcionados - TODOS los datos del cliente y firma deben aparecer
 9. La elección de domicilio es en la dirección del estudio del abogado
 10. El proceso verbal de traslado debe incluir PRIMERO, SEGUNDO, etc., para cada demandado
+11. CRÍTICO: Incluye la cédula o RNC del demandante según corresponda (persona física o jurídica)
+12. CRÍTICO: La carátula del documento debe incluir TODOS los datos de la firma legal (nombre, RNC, abogado, matrícula, dirección, teléfono, email)
 
 Genera ahora el documento COMPLETO y PROFESIONAL:`;
 

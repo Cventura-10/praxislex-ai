@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, Loader2, Send, Download, ClipboardList, ArrowLeft } from "lucide-react";
+import { Sparkles, Loader2, Send, Download, ClipboardList, ArrowLeft, Briefcase } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { MATERIAS_JURIDICAS, TIPOS_DOCUMENTO, TIPOS_ACCION_LEGAL } from "@/lib/constants";
@@ -224,6 +224,11 @@ const AILegalDrafting = () => {
   const [chatInput, setChatInput] = useState("");
   const [intakeMode, setIntakeMode] = useState<'manual' | 'structured'>('structured');
   
+  // Estado para gestión de clientes
+  const [clients, setClients] = useState<any[]>([]);
+  const [selectedClientId, setSelectedClientId] = useState<string>("");
+  const [loadingClients, setLoadingClients] = useState(true);
+  
   // Intake Forms state
   const [schemaId, setSchemaId] = useState<string>(SCHEMAS[0].id);
   const schema = useMemo(() => SCHEMAS.find(s => s.id === schemaId)!, [schemaId]);
@@ -289,6 +294,36 @@ const AILegalDrafting = () => {
     jurisprudencia: "",
   });
 
+  // Cargar lista de clientes
+  useEffect(() => {
+    const fetchClients = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data, error } = await supabase
+          .from("clients")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("nombre_completo");
+
+        if (error) throw error;
+        setClients(data || []);
+      } catch (error) {
+        console.error("Error cargando clientes:", error);
+        toast({
+          title: "Error",
+          description: "No se pudieron cargar los clientes",
+          variant: "destructive",
+        });
+      } finally {
+        setLoadingClients(false);
+      }
+    };
+
+    fetchClients();
+  }, [toast]);
+
   // Auto-rellenar información de la firma legal cuando se carga el perfil
   useEffect(() => {
     if (lawFirmProfile && !profileLoading) {
@@ -307,6 +342,34 @@ const AILegalDrafting = () => {
       }));
     }
   }, [lawFirmProfile, profileLoading]);
+
+  // Auto-rellenar información del cliente cuando se selecciona
+  useEffect(() => {
+    if (selectedClientId) {
+      const selectedClient = clients.find(c => c.id === selectedClientId);
+      if (selectedClient) {
+        // Determinar si es persona física (cédula) o jurídica (RNC)
+        const isPersonaFisica = selectedClient.cedula_rnc?.includes('-') || 
+                                (selectedClient.cedula_rnc?.length === 11 && !selectedClient.cedula_rnc.includes('-'));
+        
+        setFormData(prev => ({
+          ...prev,
+          demandante_nombre: selectedClient.nombre_completo || "",
+          demandante_cedula: isPersonaFisica ? selectedClient.cedula_rnc || "" : "",
+          demandante_domicilio: selectedClient.direccion || "",
+          // Si es empresa/persona jurídica, llenamos también firma_rnc si no está lleno
+          ...((!isPersonaFisica && selectedClient.cedula_rnc) ? {
+            firma_rnc: prev.firma_rnc || selectedClient.cedula_rnc
+          } : {})
+        }));
+
+        toast({
+          title: "✓ Cliente cargado",
+          description: `Datos de ${selectedClient.nombre_completo} aplicados al formulario`,
+        });
+      }
+    }
+  }, [selectedClientId, clients, toast]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -695,6 +758,48 @@ const AILegalDrafting = () => {
             <TabsContent value="manual" className="space-y-6 mt-6">
               {/* Formulario manual original */}
 
+          {/* Selector de Cliente */}
+          <Card className="shadow-medium border-primary/20">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Briefcase className="h-5 w-5" />
+                Seleccionar Cliente
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <Label>Cliente (opcional - auto-completa datos del demandante)</Label>
+                  <Select 
+                    value={selectedClientId} 
+                    onValueChange={setSelectedClientId}
+                    disabled={loadingClients}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={loadingClients ? "Cargando clientes..." : "Seleccionar cliente existente..."} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Ninguno (ingresar manualmente)</SelectItem>
+                      {clients.map((client) => (
+                        <SelectItem key={client.id} value={client.id}>
+                          {client.nombre_completo} - {client.cedula_rnc}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Los datos del cliente seleccionado se aplicarán automáticamente al campo "Demandante"
+                  </p>
+                </div>
+                {clients.length === 0 && !loadingClients && (
+                  <div className="text-sm text-muted-foreground p-3 bg-muted rounded-md">
+                    No tienes clientes registrados. Puedes agregar clientes desde el módulo de Clientes.
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
           <Card className="shadow-medium">
             <CardHeader>
               <CardTitle>Tipo de Documento, Acción Legal y Materia</CardTitle>
@@ -831,11 +936,18 @@ const AILegalDrafting = () => {
               </div>
 
               <div>
-                <Label>Cédula</Label>
+                <Label>Cédula o RNC</Label>
                 <div className="flex gap-2">
-                  <Input placeholder="001-0000000-0" value={formData.demandante_cedula} onChange={(e) => handleInputChange("demandante_cedula", e.target.value)} />
+                  <Input 
+                    placeholder="001-0000000-0 o 000-00000-0 (RNC)" 
+                    value={formData.demandante_cedula} 
+                    onChange={(e) => handleInputChange("demandante_cedula", e.target.value)} 
+                  />
                   <VoiceInput onTranscribed={(text) => handleVoiceInput("demandante_cedula", text)} />
                 </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Ingrese cédula para persona física o RNC para persona jurídica
+                </p>
               </div>
 
               <div>
