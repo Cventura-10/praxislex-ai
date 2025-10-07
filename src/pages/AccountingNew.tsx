@@ -383,7 +383,7 @@ export default function AccountingNew() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/accounting')}>
+          <Button variant="ghost" size="icon" onClick={() => navigate('/contabilidad')}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
