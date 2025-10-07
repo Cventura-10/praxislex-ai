@@ -89,26 +89,46 @@ export function Header() {
                 </Badge>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-80">
-              <DropdownMenuLabel>Notificaciones</DropdownMenuLabel>
+            <DropdownMenuContent 
+              align="end" 
+              className="w-80 z-50 bg-popover border shadow-strong"
+              sideOffset={5}
+            >
+              <DropdownMenuLabel className="text-base font-semibold">
+                Notificaciones
+              </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="flex flex-col items-start gap-1 p-3">
-                <p className="text-sm font-medium">Vencimiento próximo</p>
-                <p className="text-xs text-muted-foreground">
-                  Caso "Cobro de pesos" vence en 2 días
-                </p>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="flex flex-col items-start gap-1 p-3">
-                <p className="text-sm font-medium">Audiencia mañana</p>
-                <p className="text-xs text-muted-foreground">
-                  Primera Instancia DN - 10:00 AM
-                </p>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="flex flex-col items-start gap-1 p-3">
-                <p className="text-sm font-medium">Documento pendiente</p>
-                <p className="text-xs text-muted-foreground">
-                  Demanda requiere firma del cliente
-                </p>
+              <div className="max-h-[400px] overflow-y-auto">
+                <DropdownMenuItem className="flex flex-col items-start gap-1 p-3 cursor-pointer hover:bg-accent focus:bg-accent">
+                  <p className="text-sm font-medium text-foreground">Vencimiento próximo</p>
+                  <p className="text-xs text-muted-foreground">
+                    Caso "Cobro de pesos" vence en 2 días
+                  </p>
+                  <span className="text-[10px] text-muted-foreground mt-1">Hace 2 horas</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="flex flex-col items-start gap-1 p-3 cursor-pointer hover:bg-accent focus:bg-accent">
+                  <p className="text-sm font-medium text-foreground">Audiencia mañana</p>
+                  <p className="text-xs text-muted-foreground">
+                    Primera Instancia DN - 10:00 AM
+                  </p>
+                  <span className="text-[10px] text-muted-foreground mt-1">Hace 5 horas</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="flex flex-col items-start gap-1 p-3 cursor-pointer hover:bg-accent focus:bg-accent">
+                  <p className="text-sm font-medium text-foreground">Documento pendiente</p>
+                  <p className="text-xs text-muted-foreground">
+                    Demanda requiere firma del cliente
+                  </p>
+                  <span className="text-[10px] text-muted-foreground mt-1">Hace 1 día</span>
+                </DropdownMenuItem>
+              </div>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem 
+                className="text-center justify-center text-primary hover:text-primary cursor-pointer"
+                onClick={() => navigate("/dashboard")}
+              >
+                Ver todas las notificaciones
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -118,11 +138,11 @@ export function Header() {
               <Button variant="ghost" size="icon" className="relative">
                 <User className="h-5 w-5" />
                 {isPro && (
-                  <Crown className="h-3 w-3 absolute -top-1 -right-1 text-yellow-500" />
+                  <Crown className="h-3 w-3 absolute -top-1 -right-1 text-accent" />
                 )}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuContent align="end" className="w-56 z-50 bg-popover border shadow-strong" sideOffset={5}>
               <DropdownMenuLabel>
                 <div className="flex flex-col gap-1">
                   <span>{userName}</span>
