@@ -8,6 +8,7 @@ import { Navigation } from "@/components/layout/Navigation";
 import { AuthGuard } from "@/components/AuthGuard";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { LoadingFallback } from "@/components/LoadingFallback";
+import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 
 // Eager load critical routes (auth and dashboard)
 import Auth from "./pages/Auth";
@@ -38,6 +39,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <PWAInstallPrompt />
       <BrowserRouter>
         <Routes>
           {/* Public routes */}
