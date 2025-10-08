@@ -15,6 +15,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useUserRole } from "@/hooks/useUserRole";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
+import { ConnectionBadge } from "@/components/pwa/OfflineIndicator";
+import { InstallButton, InstalledBadge } from "@/components/pwa/InstallButton";
 import logo from "@/assets/praxislex-logo-horizontal.svg";
 
 export function Header() {
@@ -86,6 +88,10 @@ export function Header() {
         </div>
 
         <div className="flex items-center gap-3">
+          <ConnectionBadge />
+          <InstalledBadge />
+          <InstallButton />
+          
           <Button variant="ghost" size="icon" className="relative">
             <Search className="h-5 w-5" />
           </Button>
