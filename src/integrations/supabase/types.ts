@@ -1010,6 +1010,24 @@ export type Database = {
           },
         ]
       }
+      pii_access_rate_limit: {
+        Row: {
+          access_count: number | null
+          user_id: string
+          window_start: string
+        }
+        Insert: {
+          access_count?: number | null
+          user_id: string
+          window_start?: string
+        }
+        Update: {
+          access_count?: number | null
+          user_id?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string | null
@@ -1297,6 +1315,10 @@ export type Database = {
           is_valid: boolean
         }[]
       }
+      check_pii_access_rate_limit: {
+        Args: { p_user_id: string }
+        Returns: boolean
+      }
       check_search_rate_limit: {
         Args: { p_user_id: string }
         Returns: boolean
@@ -1306,6 +1328,10 @@ export type Database = {
         Returns: boolean
       }
       cleanup_old_notifications: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      cleanup_old_rate_limits: {
         Args: Record<PropertyKey, never>
         Returns: number
       }
@@ -1582,6 +1608,10 @@ export type Database = {
       }
       user_owns_invoice: {
         Args: { p_invoice_id: string; p_user_id: string }
+        Returns: boolean
+      }
+      validate_client_access: {
+        Args: { p_client_id: string; p_operation?: string; p_user_id: string }
         Returns: boolean
       }
       validate_invitation_token: {
