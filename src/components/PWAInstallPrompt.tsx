@@ -58,24 +58,35 @@ export function PWAInstallPrompt() {
   if (!showPrompt) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 max-w-sm">
-      <Card>
+    <div className="fixed bottom-4 right-4 z-50 max-w-sm animate-in slide-in-from-bottom-5">
+      <Card className="shadow-lg border-primary/20">
         <CardHeader className="pb-3">
-          <div className="flex items-start justify-between">
-            <div>
-              <CardTitle className="text-base">Instalar PraxisLex AI</CardTitle>
-              <CardDescription className="text-sm mt-1">
-                Accede rápidamente desde tu dispositivo
-              </CardDescription>
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 mt-1">
+              <img 
+                src="/icon-192.png" 
+                alt="PraxisLex" 
+                className="w-12 h-12 rounded-lg shadow-sm"
+              />
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6 -mt-1 -mr-1"
-              onClick={handleDismiss}
-            >
-              <X className="h-4 w-4" />
-            </Button>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <CardTitle className="text-base">Instalar PraxisLex</CardTitle>
+                  <CardDescription className="text-sm mt-1">
+                    Accede rápidamente desde tu dispositivo
+                  </CardDescription>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 -mt-1"
+                  onClick={handleDismiss}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="pt-0">
