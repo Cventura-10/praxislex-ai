@@ -797,6 +797,117 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_preferences: {
+        Row: {
+          case_updates: boolean
+          client_messages: boolean
+          created_at: string
+          deadline_reminders: boolean
+          email_enabled: boolean
+          hearing_reminders: boolean
+          id: string
+          in_app_enabled: boolean
+          payment_reminders: boolean
+          push_enabled: boolean
+          quiet_hours_end: string | null
+          quiet_hours_start: string | null
+          reminder_advance_hours: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          case_updates?: boolean
+          client_messages?: boolean
+          created_at?: string
+          deadline_reminders?: boolean
+          email_enabled?: boolean
+          hearing_reminders?: boolean
+          id?: string
+          in_app_enabled?: boolean
+          payment_reminders?: boolean
+          push_enabled?: boolean
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          reminder_advance_hours?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          case_updates?: boolean
+          client_messages?: boolean
+          created_at?: string
+          deadline_reminders?: boolean
+          email_enabled?: boolean
+          hearing_reminders?: boolean
+          id?: string
+          in_app_enabled?: boolean
+          payment_reminders?: boolean
+          push_enabled?: boolean
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          reminder_advance_hours?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          action_label: string | null
+          action_url: string | null
+          category: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          is_read: boolean
+          message: string
+          metadata: Json | null
+          priority: string
+          read_at: string | null
+          related_id: string | null
+          related_table: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          action_label?: string | null
+          action_url?: string | null
+          category: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_read?: boolean
+          message: string
+          metadata?: Json | null
+          priority?: string
+          read_at?: string | null
+          related_id?: string | null
+          related_table?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          action_label?: string | null
+          action_url?: string | null
+          category?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_read?: boolean
+          message?: string
+          metadata?: Json | null
+          priority?: string
+          read_at?: string | null
+          related_id?: string | null
+          related_table?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           aplicado_interes: number | null
@@ -878,6 +989,63 @@ export type Database = {
           full_name?: string | null
           id?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      reminders: {
+        Row: {
+          channels: string[] | null
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          is_sent: boolean
+          metadata: Json | null
+          related_id: string | null
+          related_table: string | null
+          remind_at: string
+          repeat_type: string | null
+          repeat_until: string | null
+          sent_at: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          channels?: string[] | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_sent?: boolean
+          metadata?: Json | null
+          related_id?: string | null
+          related_table?: string | null
+          remind_at: string
+          repeat_type?: string | null
+          repeat_until?: string | null
+          sent_at?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          channels?: string[] | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_sent?: boolean
+          metadata?: Json | null
+          related_id?: string | null
+          related_table?: string | null
+          remind_at?: string
+          repeat_type?: string | null
+          repeat_until?: string | null
+          sent_at?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -1026,6 +1194,26 @@ export type Database = {
       check_token_rate_limit: {
         Args: { p_token_hash: string }
         Returns: boolean
+      }
+      cleanup_old_notifications: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      create_notification: {
+        Args: {
+          p_action_label?: string
+          p_action_url?: string
+          p_category?: string
+          p_message: string
+          p_metadata?: Json
+          p_priority?: string
+          p_related_id?: string
+          p_related_table?: string
+          p_title: string
+          p_type?: string
+          p_user_id: string
+        }
+        Returns: string
       }
       decrypt_cedula: {
         Args: { p_encrypted_cedula: string }
@@ -1196,6 +1384,14 @@ export type Database = {
           p_token_hash: string
         }
         Returns: undefined
+      }
+      mark_all_notifications_read: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      mark_notification_read: {
+        Args: { p_notification_id: string }
+        Returns: boolean
       }
       reveal_client_pii: {
         Args: { p_client_id: string }
