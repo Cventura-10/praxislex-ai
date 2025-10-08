@@ -232,5 +232,21 @@ export const CATEGORIAS_GASTOS = [
   { value: "documentacion", label: "Obtención de Documentos" },
   { value: "mensajeria", label: "Mensajería y Courier" },
   { value: "papeleria", label: "Papelería y Materiales" },
+  { value: "oficina", label: "Gastos de Oficina" },
+  { value: "alquiler", label: "Alquiler" },
+  { value: "servicios", label: "Servicios Públicos" },
+  { value: "personal", label: "Nómina y Personal" },
+  { value: "tecnologia", label: "Tecnología y Software" },
+  { value: "marketing", label: "Marketing y Publicidad" },
+  { value: "seguros", label: "Seguros" },
+  { value: "impuestos", label: "Impuestos y Tasas" },
   { value: "otros", label: "Otros Gastos" },
+] as const;
+
+// Tipos de transacciones de crédito/débito
+export const TIPOS_CREDITO = [
+  { value: "credito", label: "Crédito a Cliente" },
+  { value: "debito", label: "Débito a Cliente" },
+  { value: "ingreso_general", label: "Ingreso General" },
+  { value: "gasto_general", label: "Gasto General" },
 ] as const;

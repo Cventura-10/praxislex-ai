@@ -192,6 +192,79 @@ export const invoiceSchema = z.object({
     ),
 });
 
+// Payment validation schema
+export const paymentSchema = z.object({
+  client_id: z.string().uuid("ID de cliente inválido").optional().nullable(),
+  invoice_id: z.string().uuid("ID de factura inválido").optional().nullable(),
+  concepto: z
+    .string()
+    .trim()
+    .min(3, "El concepto debe tener al menos 3 caracteres")
+    .max(500, "El concepto no puede exceder 500 caracteres"),
+  monto: z
+    .number()
+    .positive("El monto debe ser mayor a 0")
+    .max(999999999, "El monto es demasiado grande"),
+  metodo_pago: z
+    .string()
+    .trim()
+    .min(1, "El método de pago es requerido")
+    .max(50, "El método de pago no puede exceder 50 caracteres"),
+  fecha: z.string().refine((date) => !isNaN(Date.parse(date)), "Fecha inválida"),
+  referencia: z.string().max(100, "La referencia no puede exceder 100 caracteres").optional().or(z.literal("")),
+  notas: z.string().max(1000, "Las notas no pueden exceder 1000 caracteres").optional().or(z.literal("")),
+});
+
+// Expense validation schema
+export const expenseSchema = z.object({
+  client_id: z.string().uuid("ID de cliente inválido").optional().nullable(),
+  case_id: z.string().uuid("ID de caso inválido").optional().nullable(),
+  concepto: z
+    .string()
+    .trim()
+    .min(3, "El concepto debe tener al menos 3 caracteres")
+    .max(500, "El concepto no puede exceder 500 caracteres"),
+  categoria: z
+    .string()
+    .trim()
+    .min(1, "La categoría es requerida")
+    .max(50, "La categoría no puede exceder 50 caracteres"),
+  monto: z
+    .number()
+    .positive("El monto debe ser mayor a 0")
+    .max(999999999, "El monto es demasiado grande"),
+  fecha: z.string().refine((date) => !isNaN(Date.parse(date)), "Fecha inválida"),
+  metodo_pago: z.string().max(50, "El método de pago no puede exceder 50 caracteres").optional().or(z.literal("")),
+  proveedor: z.string().max(200, "El proveedor no puede exceder 200 caracteres").optional().or(z.literal("")),
+  referencia: z.string().max(100, "La referencia no puede exceder 100 caracteres").optional().or(z.literal("")),
+  notas: z.string().max(1000, "Las notas no pueden exceder 1000 caracteres").optional().or(z.literal("")),
+  reembolsable: z.boolean().optional(),
+});
+
+// Client credit/debit validation schema
+export const clientCreditSchema = z.object({
+  client_id: z.string().uuid("ID de cliente inválido").optional().nullable(),
+  concepto: z
+    .string()
+    .trim()
+    .min(3, "El concepto debe tener al menos 3 caracteres")
+    .max(500, "El concepto no puede exceder 500 caracteres"),
+  tipo: z
+    .string()
+    .refine(
+      (val) => ["credito", "debito", "ingreso_general", "gasto_general"].includes(val),
+      "Tipo de transacción inválido"
+    ),
+  monto: z
+    .number()
+    .positive("El monto debe ser mayor a 0")
+    .max(999999999, "El monto es demasiado grande"),
+  fecha: z.string().refine((date) => !isNaN(Date.parse(date)), "Fecha inválida"),
+  referencia: z.string().max(100, "La referencia no puede exceder 100 caracteres").optional().or(z.literal("")),
+  notas: z.string().max(1000, "Las notas no pueden exceder 1000 caracteres").optional().or(z.literal("")),
+  interes: z.number().min(0, "El interés no puede ser negativo").optional(),
+});
+
 // Legal document validation schema
 export const legalDocumentSchema = z.object({
   tipo_documento: z

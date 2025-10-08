@@ -134,7 +134,26 @@ export default function FirmAccounting() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No autenticado");
 
+      // Validate required fields
+      if (!newIncome.concepto || newIncome.concepto.trim().length < 3) {
+        toast({
+          title: "Concepto inválido",
+          description: "El concepto debe tener al menos 3 caracteres",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const montoBase = parseFloat(newIncome.monto);
+      if (isNaN(montoBase) || montoBase <= 0) {
+        toast({
+          title: "Monto inválido",
+          description: "El monto debe ser mayor a 0",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const itbis = newIncome.incluir_itbis ? parseFloat(newIncome.itbis || "0") : 0;
       const interes = newIncome.incluir_interes ? parseFloat(newIncome.interes || "0") : 0;
       const montoTotal = montoBase + itbis + interes;
@@ -146,8 +165,8 @@ export default function FirmAccounting() {
           monto: montoTotal,
           interes: interes,
           fecha: newIncome.fecha,
-          referencia: newIncome.referencia,
-          notas: newIncome.notas,
+          referencia: newIncome.referencia || null,
+          notas: newIncome.notas || null,
           user_id: user.id,
           client_id: null,
         },
@@ -156,7 +175,7 @@ export default function FirmAccounting() {
       if (error) throw error;
 
       toast({
-        title: "Ingreso registrado",
+        title: "✓ Ingreso registrado",
         description: "El ingreso general ha sido registrado exitosamente",
       });
 
@@ -187,7 +206,35 @@ export default function FirmAccounting() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No autenticado");
 
+      // Validate required fields
+      if (!newExpense.concepto || newExpense.concepto.trim().length < 3) {
+        toast({
+          title: "Concepto inválido",
+          description: "El concepto debe tener al menos 3 caracteres",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!newExpense.categoria) {
+        toast({
+          title: "Categoría requerida",
+          description: "Debe seleccionar una categoría",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const montoBase = parseFloat(newExpense.monto);
+      if (isNaN(montoBase) || montoBase <= 0) {
+        toast({
+          title: "Monto inválido",
+          description: "El monto debe ser mayor a 0",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const itbis = newExpense.incluir_itbis ? parseFloat(newExpense.itbis || "0") : 0;
       const montoTotal = montoBase + itbis;
 
@@ -198,10 +245,10 @@ export default function FirmAccounting() {
           monto: montoTotal,
           itbis: itbis,
           fecha: newExpense.fecha,
-          proveedor: newExpense.proveedor,
-          metodo_pago: newExpense.metodo_pago,
-          referencia: newExpense.referencia,
-          notas: newExpense.notas,
+          proveedor: newExpense.proveedor || null,
+          metodo_pago: newExpense.metodo_pago || null,
+          referencia: newExpense.referencia || null,
+          notas: newExpense.notas || null,
           reembolsable: false,
           user_id: user.id,
           client_id: null,
@@ -212,7 +259,7 @@ export default function FirmAccounting() {
       if (error) throw error;
 
       toast({
-        title: "Gasto registrado",
+        title: "✓ Gasto registrado",
         description: "El gasto de oficina ha sido registrado exitosamente",
       });
 

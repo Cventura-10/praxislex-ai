@@ -141,18 +141,56 @@ export default function AccountingNew() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No autenticado");
 
+      // Validate required fields
+      if (!newExpense.client_id) {
+        toast({
+          title: "Cliente requerido",
+          description: "Debe seleccionar un cliente para el gasto",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!newExpense.categoria) {
+        toast({
+          title: "Categoría requerida",
+          description: "Debe seleccionar una categoría",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!newExpense.concepto || newExpense.concepto.trim().length < 3) {
+        toast({
+          title: "Concepto inválido",
+          description: "El concepto debe tener al menos 3 caracteres",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!newExpense.monto || parseFloat(newExpense.monto) <= 0) {
+        toast({
+          title: "Monto inválido",
+          description: "El monto debe ser mayor a 0",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const { error } = await supabase.from("expenses").insert([
         {
           ...newExpense,
           monto: parseFloat(newExpense.monto),
           user_id: user.id,
+          case_id: newExpense.case_id || null,
         },
       ]);
 
       if (error) throw error;
 
       toast({
-        title: "Gasto registrado",
+        title: "✓ Gasto registrado",
         description: "El gasto ha sido registrado exitosamente",
       });
 
@@ -209,6 +247,34 @@ export default function AccountingNew() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No autenticado");
 
+      // Validate required fields
+      if (!newCredit.client_id) {
+        toast({
+          title: "Campos requeridos",
+          description: "Debe seleccionar un cliente",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!newCredit.monto || parseFloat(newCredit.monto) <= 0) {
+        toast({
+          title: "Monto inválido",
+          description: "El monto debe ser mayor a 0",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!newCredit.concepto || newCredit.concepto.trim().length < 3) {
+        toast({
+          title: "Concepto inválido",
+          description: "El concepto debe tener al menos 3 caracteres",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const { error } = await supabase.from("client_credits").insert([
         {
           ...newCredit,
@@ -220,7 +286,7 @@ export default function AccountingNew() {
       if (error) throw error;
 
       toast({
-        title: "Crédito creado",
+        title: "✓ Crédito creado",
         description: "El crédito ha sido registrado exitosamente",
       });
 
@@ -248,6 +314,43 @@ export default function AccountingNew() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No autenticado");
 
+      // Validate required fields
+      if (!newPayment.client_id) {
+        toast({
+          title: "Campos requeridos",
+          description: "Debe seleccionar un cliente",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!newPayment.monto || parseFloat(newPayment.monto) <= 0) {
+        toast({
+          title: "Monto inválido",
+          description: "El monto debe ser mayor a 0",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!newPayment.metodo_pago) {
+        toast({
+          title: "Método de pago requerido",
+          description: "Debe seleccionar un método de pago",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!newPayment.concepto || newPayment.concepto.trim().length < 3) {
+        toast({
+          title: "Concepto inválido",
+          description: "El concepto debe tener al menos 3 caracteres",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const { error } = await supabase.from("payments").insert([
         {
           ...newPayment,
@@ -260,7 +363,7 @@ export default function AccountingNew() {
       if (error) throw error;
 
       toast({
-        title: "Pago registrado",
+        title: "✓ Pago registrado",
         description: "El pago ha sido registrado exitosamente",
       });
 
