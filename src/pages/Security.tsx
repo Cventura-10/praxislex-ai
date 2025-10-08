@@ -1,10 +1,13 @@
 import { useState, useEffect } from "react";
-import { Shield, Lock, Eye, FileText, AlertTriangle } from "lucide-react";
+import { Shield, Lock, Eye, FileText, AlertTriangle, ScanLine, Activity } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { AuditLogViewer } from "@/components/admin/AuditLogViewer";
+import { TwoFactorSetup } from "@/components/security/TwoFactorSetup";
+import { SessionManagement } from "@/components/security/SessionManagement";
+import { SecurityScanner } from "@/components/security/SecurityScanner";
 import { isAdmin } from "@/lib/security";
 import { useToast } from "@/hooks/use-toast";
 
@@ -25,7 +28,7 @@ const Security = () => {
     if (!adminStatus) {
       toast({
         title: "Acceso limitado",
-        description: "Solo administradores pueden ver esta sección completa",
+        description: "Solo administradores pueden ver logs completos",
         variant: "default"
       });
     }
@@ -49,7 +52,7 @@ const Security = () => {
             Seguridad y Auditoría
           </h1>
           <p className="text-muted-foreground mt-2">
-            Registro de auditoría inmutable y verificación de integridad
+            Gestiona la seguridad de tu cuenta y revisa logs de auditoría
           </p>
         </div>
         <Badge variant="outline" className="text-lg px-4 py-2">
@@ -106,33 +109,55 @@ const Security = () => {
         </Card>
       </div>
 
-      {/* Admin Notice */}
-      {!hasAdminAccess && (
-        <Alert>
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Vista limitada</AlertTitle>
-          <AlertDescription>
-            Solo puedes ver tus propios eventos de auditoría. Los administradores tienen acceso completo.
-          </AlertDescription>
-        </Alert>
-      )}
-
       {/* Main Tabs */}
-      <Tabs defaultValue="audit" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="audit">
-            <FileText className="h-4 w-4 mr-2" />
-            Registro de Auditoría
+      <Tabs defaultValue="scanner" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="scanner" className="flex items-center gap-2">
+            <ScanLine className="h-4 w-4" />
+            Escaneo
+          </TabsTrigger>
+          <TabsTrigger value="2fa" className="flex items-center gap-2">
+            <Lock className="h-4 w-4" />
+            2FA
+          </TabsTrigger>
+          <TabsTrigger value="sessions" className="flex items-center gap-2">
+            <Activity className="h-4 w-4" />
+            Sesiones
+          </TabsTrigger>
+          <TabsTrigger value="audit" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            Auditoría
           </TabsTrigger>
           {hasAdminAccess && (
-            <TabsTrigger value="policies">
-              <Shield className="h-4 w-4 mr-2" />
-              Políticas de Seguridad
+            <TabsTrigger value="policies" className="flex items-center gap-2">
+              <Shield className="h-4 w-4" />
+              Políticas
             </TabsTrigger>
           )}
         </TabsList>
 
+        <TabsContent value="scanner" className="space-y-4">
+          <SecurityScanner />
+        </TabsContent>
+
+        <TabsContent value="2fa" className="space-y-4">
+          <TwoFactorSetup />
+        </TabsContent>
+
+        <TabsContent value="sessions" className="space-y-4">
+          <SessionManagement />
+        </TabsContent>
+
         <TabsContent value="audit" className="space-y-4">
+          {!hasAdminAccess && (
+            <Alert>
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>Vista limitada</AlertTitle>
+              <AlertDescription>
+                Solo puedes ver tus propios eventos de auditoría. Los administradores tienen acceso completo.
+              </AlertDescription>
+            </Alert>
+          )}
           <AuditLogViewer />
         </TabsContent>
 
