@@ -1085,6 +1085,39 @@ export type Database = {
         }
         Relationships: []
       }
+      saved_searches: {
+        Row: {
+          created_at: string | null
+          entity_type: string
+          filters: Json
+          id: string
+          is_favorite: boolean | null
+          name: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          entity_type: string
+          filters?: Json
+          id?: string
+          is_favorite?: boolean | null
+          name: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          entity_type?: string
+          filters?: Json
+          id?: string
+          is_favorite?: boolean | null
+          name?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       token_validation_attempts: {
         Row: {
           attempted_at: string
@@ -1164,7 +1197,19 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      search_index: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          entity_id: string | null
+          entity_type: string | null
+          reference: string | null
+          search_vector: unknown | null
+          title: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       accept_invitation_token_secure: {
@@ -1393,6 +1438,10 @@ export type Database = {
         Args: { p_notification_id: string }
         Returns: boolean
       }
+      refresh_search_index: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       reveal_client_pii: {
         Args: { p_client_id: string }
         Returns: {
@@ -1402,6 +1451,23 @@ export type Database = {
           id: string
           nombre_completo: string
           telefono: string
+        }[]
+      }
+      search_entities: {
+        Args: {
+          p_entity_types?: string[]
+          p_limit?: number
+          p_query: string
+          p_user_id: string
+        }
+        Returns: {
+          created_at: string
+          description: string
+          entity_id: string
+          entity_type: string
+          rank: number
+          reference: string
+          title: string
         }[]
       }
       search_jurisprudence: {
