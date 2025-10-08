@@ -92,21 +92,21 @@ export default function Analytics() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <KPICard
           title="Ingresos Totales"
-          value={formatCurrency(data?.revenue.total || 0)}
+          value={formatCurrency(data?.financial.totalRevenue || 0)}
           icon={DollarSign}
           subtitle="Ingresos del período"
         />
         <KPICard
           title="Gastos Totales"
-          value={formatCurrency(data?.expenses.total || 0)}
+          value={formatCurrency(data?.financial.totalExpenses || 0)}
           icon={TrendingDown}
           subtitle="Gastos del período"
         />
         <KPICard
           title="Utilidad Neta"
-          value={formatCurrency(data?.netProfit || 0)}
+          value={formatCurrency(data?.financial.netProfit || 0)}
           icon={TrendingUp}
-          subtitle={`Margen: ${((data?.netProfit || 0) / (data?.revenue.total || 1) * 100).toFixed(1)}%`}
+          subtitle={`Margen: ${data?.financial.profitMargin || 0}%`}
         />
         <KPICard
           title="Casos Activos"
@@ -136,7 +136,15 @@ export default function Analytics() {
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={data?.trends.revenue || []}>
+                  <LineChart 
+                    data={
+                      data?.trends.revenue.map((rev, idx) => ({
+                        month: rev.month,
+                        ingresos: rev.value,
+                        gastos: data?.trends.expenses[idx]?.value || 0
+                      })) || []
+                    }
+                  >
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                     <XAxis 
                       dataKey="month" 
@@ -159,7 +167,7 @@ export default function Analytics() {
                     <Legend />
                     <Line 
                       type="monotone" 
-                      dataKey="revenue" 
+                      dataKey="ingresos" 
                       stroke="hsl(var(--success))" 
                       strokeWidth={2}
                       name="Ingresos"
@@ -167,7 +175,7 @@ export default function Analytics() {
                     />
                     <Line 
                       type="monotone" 
-                      dataKey="expenses" 
+                      dataKey="gastos" 
                       stroke="hsl(var(--warning))" 
                       strokeWidth={2}
                       name="Gastos"
@@ -188,10 +196,10 @@ export default function Analytics() {
                 <ResponsiveContainer width="100%" height={250}>
                   <BarChart 
                       data={[
-                      { category: 'Corriente', amount: data?.arAging.current || 0 },
-                      { category: '1-30 días', amount: data?.arAging.overdue30 || 0 },
-                      { category: '31-60 días', amount: data?.arAging.overdue60 || 0 },
-                      { category: '+60 días', amount: data?.arAging.overdue90 || 0 },
+                      { category: 'Corriente', amount: data?.financial.arAging.current || 0 },
+                      { category: '1-30 días', amount: data?.financial.arAging.overdue30 || 0 },
+                      { category: '31-60 días', amount: data?.financial.arAging.overdue60 || 0 },
+                      { category: '+60 días', amount: data?.financial.arAging.overdue90 || 0 },
                     ]}
                   >
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
