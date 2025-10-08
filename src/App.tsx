@@ -30,6 +30,7 @@ const Billing = lazy(() => import("./pages/Billing"));
 const Profile = lazy(() => import("./pages/Profile"));
 const Settings = lazy(() => import("./pages/Settings"));
 const Upgrade = lazy(() => import("./pages/Upgrade"));
+const Security = lazy(() => import("./pages/Security"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const App = () => (
@@ -72,6 +73,7 @@ const App = () => (
                           <Route path="/perfil" element={<Profile />} />
                           <Route path="/configuracion" element={<Settings />} />
                           <Route path="/upgrade" element={<Upgrade />} />
+                          <Route path="/seguridad" element={<Security />} />
                           <Route path="*" element={<NotFound />} />
                         </Routes>
                       </Suspense>

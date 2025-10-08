@@ -319,6 +319,45 @@ export type Database = {
           },
         ]
       }
+      events_audit: {
+        Row: {
+          action: string
+          actor_id: string | null
+          changes: Json | null
+          created_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+          ip_address: unknown | null
+          payload_hash: string
+          user_agent: string | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          changes?: Json | null
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          ip_address?: unknown | null
+          payload_hash: string
+          user_agent?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          changes?: Json | null
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          ip_address?: unknown | null
+          payload_hash?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       expenses: {
         Row: {
           case_id: string | null
@@ -918,6 +957,10 @@ export type Database = {
         Args: { p_token: string }
         Returns: string
       }
+      hash_payload: {
+        Args: { data: Json }
+        Returns: string
+      }
       link_client_to_auth_user: {
         Args: {
           p_auth_user_id: string
@@ -925,6 +968,17 @@ export type Database = {
           p_invitation_token: string
         }
         Returns: boolean
+      }
+      log_audit_event: {
+        Args: {
+          p_action: string
+          p_changes?: Json
+          p_entity_id: string
+          p_entity_type: string
+          p_ip_address?: unknown
+          p_user_agent?: string
+        }
+        Returns: string
       }
       log_token_validation: {
         Args: {
@@ -978,6 +1032,10 @@ export type Database = {
           error_message: string
           is_valid: boolean
         }[]
+      }
+      verify_audit_integrity: {
+        Args: { p_event_id: string }
+        Returns: boolean
       }
       verify_invitation_token: {
         Args: { p_hash: string; p_token: string }

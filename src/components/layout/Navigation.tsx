@@ -12,6 +12,7 @@ import {
   UserCircle,
   Receipt,
   Sparkles,
+  Shield,
 } from "lucide-react";
 
 const navItems = [
@@ -25,6 +26,7 @@ const navItems = [
   { href: "/contabilidad", icon: Receipt, label: "Contabilidad" },
   { href: "/portal", icon: UserCircle, label: "Portal Cliente" },
   { href: "/facturacion", icon: CreditCard, label: "Facturación" },
+  { href: "/seguridad", icon: Shield, label: "Seguridad" },
 ];
 
 export function Navigation() {
