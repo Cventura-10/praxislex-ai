@@ -1118,6 +1118,24 @@ export type Database = {
         }
         Relationships: []
       }
+      search_rate_limit: {
+        Row: {
+          search_count: number | null
+          user_id: string
+          window_start: string
+        }
+        Insert: {
+          search_count?: number | null
+          user_id: string
+          window_start?: string
+        }
+        Update: {
+          search_count?: number | null
+          user_id?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       token_validation_attempts: {
         Row: {
           attempted_at: string
@@ -1227,6 +1245,10 @@ export type Database = {
         Args: { _client_id: string; _user_id: string }
         Returns: boolean
       }
+      can_refresh_search_index: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       check_invitation_token_validity: {
         Args: { p_token: string }
         Returns: {
@@ -1235,6 +1257,10 @@ export type Database = {
           error_message: string
           is_valid: boolean
         }[]
+      }
+      check_search_rate_limit: {
+        Args: { p_user_id: string }
+        Returns: boolean
       }
       check_token_rate_limit: {
         Args: { p_token_hash: string }
