@@ -35,6 +35,7 @@ const Settings = lazy(() => import("./pages/Settings"));
 const Upgrade = lazy(() => import("./pages/Upgrade"));
 const Security = lazy(() => import("./pages/Security"));
 const Analytics = lazy(() => import("./pages/Analytics"));
+const LegalModels = lazy(() => import("./pages/LegalModels"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const App = () => (
@@ -81,7 +82,8 @@ const App = () => (
                           <Route path="/configuracion" element={<Settings />} />
                           <Route path="/upgrade" element={<Upgrade />} />
                           <Route path="/seguridad" element={<Security />} />
-                          <Route path="/analytics" element={<Analytics />} />
+            <Route path="/analytics" element={<Analytics />} />
+            <Route path="/modelos-juridicos" element={<LegalModels />} />
                           <Route path="*" element={<NotFound />} />
                         </Routes>
                       </Suspense>

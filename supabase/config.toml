@@ -21,3 +21,6 @@ verify_jwt = true
 [functions.search-jurisprudence-rag]
 verify_jwt = true
 
+[functions.process-legal-model]
+verify_jwt = true
+

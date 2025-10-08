@@ -797,6 +797,45 @@ export type Database = {
         }
         Relationships: []
       }
+      legal_model_templates: {
+        Row: {
+          created_at: string | null
+          fields_schema: Json
+          id: string
+          materia: string
+          storage_path: string
+          template_id: string
+          tipo_documento: string
+          titulo: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          fields_schema?: Json
+          id?: string
+          materia: string
+          storage_path: string
+          template_id: string
+          tipo_documento: string
+          titulo: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          fields_schema?: Json
+          id?: string
+          materia?: string
+          storage_path?: string
+          template_id?: string
+          tipo_documento?: string
+          titulo?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       notification_preferences: {
         Row: {
           case_updates: boolean
