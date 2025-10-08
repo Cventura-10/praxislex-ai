@@ -35,6 +35,42 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_usage: {
+        Row: {
+          cost_usd: number | null
+          created_at: string | null
+          id: string
+          model_used: string | null
+          operation_type: string
+          request_metadata: Json | null
+          response_metadata: Json | null
+          tokens_used: number | null
+          user_id: string
+        }
+        Insert: {
+          cost_usd?: number | null
+          created_at?: string | null
+          id?: string
+          model_used?: string | null
+          operation_type: string
+          request_metadata?: Json | null
+          response_metadata?: Json | null
+          tokens_used?: number | null
+          user_id: string
+        }
+        Update: {
+          cost_usd?: number | null
+          created_at?: string | null
+          id?: string
+          model_used?: string | null
+          operation_type?: string
+          request_metadata?: Json | null
+          response_metadata?: Json | null
+          tokens_used?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       cases: {
         Row: {
           client_id: string | null
@@ -319,6 +355,54 @@ export type Database = {
           },
         ]
       }
+      document_citations: {
+        Row: {
+          cited_text: string
+          context_paragraph: string | null
+          created_at: string | null
+          document_id: string | null
+          id: string
+          jurisprudence_id: string | null
+          position_in_doc: number | null
+          similarity_score: number | null
+        }
+        Insert: {
+          cited_text: string
+          context_paragraph?: string | null
+          created_at?: string | null
+          document_id?: string | null
+          id?: string
+          jurisprudence_id?: string | null
+          position_in_doc?: number | null
+          similarity_score?: number | null
+        }
+        Update: {
+          cited_text?: string
+          context_paragraph?: string | null
+          created_at?: string | null
+          document_id?: string | null
+          id?: string
+          jurisprudence_id?: string | null
+          position_in_doc?: number | null
+          similarity_score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_citations_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "legal_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_citations_jurisprudence_id_fkey"
+            columns: ["jurisprudence_id"]
+            isOneToOne: false
+            referencedRelation: "jurisprudence_embeddings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       events_audit: {
         Row: {
           action: string
@@ -544,6 +628,66 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      jurisprudence_embeddings: {
+        Row: {
+          contenido: string
+          created_at: string | null
+          embedding: string | null
+          fecha_sentencia: string | null
+          id: string
+          indexed_at: string | null
+          materia: string
+          numero_sentencia: string | null
+          relevancia_score: number | null
+          resumen: string | null
+          sala: string | null
+          tags: string[] | null
+          titulo: string
+          tribunal: string | null
+          updated_at: string | null
+          url_fuente: string | null
+          user_id: string | null
+        }
+        Insert: {
+          contenido: string
+          created_at?: string | null
+          embedding?: string | null
+          fecha_sentencia?: string | null
+          id?: string
+          indexed_at?: string | null
+          materia: string
+          numero_sentencia?: string | null
+          relevancia_score?: number | null
+          resumen?: string | null
+          sala?: string | null
+          tags?: string[] | null
+          titulo: string
+          tribunal?: string | null
+          updated_at?: string | null
+          url_fuente?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          contenido?: string
+          created_at?: string | null
+          embedding?: string | null
+          fecha_sentencia?: string | null
+          id?: string
+          indexed_at?: string | null
+          materia?: string
+          numero_sentencia?: string | null
+          relevancia_score?: number | null
+          resumen?: string | null
+          sala?: string | null
+          tags?: string[] | null
+          titulo?: string
+          tribunal?: string | null
+          updated_at?: string | null
+          url_fuente?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
       }
       law_firm_profile: {
         Row: {
@@ -862,6 +1006,10 @@ export type Database = {
           success: boolean
         }[]
       }
+      binary_quantize: {
+        Args: { "": string } | { "": unknown }
+        Returns: unknown
+      }
       can_access_client: {
         Args: { _client_id: string; _user_id: string }
         Returns: boolean
@@ -929,6 +1077,15 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_monthly_ai_usage: {
+        Args: { p_user_id?: string }
+        Returns: {
+          by_operation: Json
+          operations_count: number
+          total_cost: number
+          total_tokens: number
+        }[]
+      }
       get_my_client_data_masked: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -941,6 +1098,22 @@ export type Database = {
           nombre_completo: string
           telefono_masked: string
         }[]
+      }
+      halfvec_avg: {
+        Args: { "": number[] }
+        Returns: unknown
+      }
+      halfvec_out: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      halfvec_send: {
+        Args: { "": unknown }
+        Returns: string
+      }
+      halfvec_typmod_in: {
+        Args: { "": unknown[] }
+        Returns: number
       }
       has_admin_verification: {
         Args: { _user_id: string }
@@ -959,6 +1132,42 @@ export type Database = {
       }
       hash_payload: {
         Args: { data: Json }
+        Returns: string
+      }
+      hnsw_bit_support: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      hnsw_halfvec_support: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      hnsw_sparsevec_support: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      hnswhandler: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      ivfflat_bit_support: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      ivfflat_halfvec_support: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      ivfflathandler: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      l2_norm: {
+        Args: { "": unknown } | { "": unknown }
+        Returns: number
+      }
+      l2_normalize: {
+        Args: { "": string } | { "": unknown } | { "": unknown }
         Returns: string
       }
       link_client_to_auth_user: {
@@ -999,6 +1208,39 @@ export type Database = {
           telefono: string
         }[]
       }
+      search_jurisprudence: {
+        Args: {
+          filter_materia?: string
+          filter_user_id?: string
+          match_count?: number
+          match_threshold?: number
+          query_embedding: string
+        }
+        Returns: {
+          contenido: string
+          fecha_sentencia: string
+          id: string
+          materia: string
+          numero_sentencia: string
+          resumen: string
+          similarity: number
+          titulo: string
+          tribunal: string
+          url_fuente: string
+        }[]
+      }
+      sparsevec_out: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      sparsevec_send: {
+        Args: { "": unknown }
+        Returns: string
+      }
+      sparsevec_typmod_in: {
+        Args: { "": unknown[] }
+        Returns: number
+      }
       user_can_access_client: {
         Args: { p_client_id: string; p_user_id: string }
         Returns: boolean
@@ -1032,6 +1274,30 @@ export type Database = {
           error_message: string
           is_valid: boolean
         }[]
+      }
+      vector_avg: {
+        Args: { "": number[] }
+        Returns: string
+      }
+      vector_dims: {
+        Args: { "": string } | { "": unknown }
+        Returns: number
+      }
+      vector_norm: {
+        Args: { "": string }
+        Returns: number
+      }
+      vector_out: {
+        Args: { "": string }
+        Returns: unknown
+      }
+      vector_send: {
+        Args: { "": string }
+        Returns: string
+      }
+      vector_typmod_in: {
+        Args: { "": unknown[] }
+        Returns: number
       }
       verify_audit_integrity: {
         Args: { p_event_id: string }
