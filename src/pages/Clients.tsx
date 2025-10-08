@@ -122,15 +122,37 @@ const Clients = () => {
 
       if (encryptError) throw encryptError;
 
-      // Insertar cliente con cédula encriptada
+      // Encrypt email if provided
+      let encryptedEmail = null;
+      if (newClient.email) {
+        const { data: emailEnc, error: emailError } = await supabase.rpc('encrypt_email', {
+          p_email: newClient.email
+        });
+        if (emailError) console.error("Error encrypting email:", emailError);
+        else encryptedEmail = emailEnc;
+      }
+
+      // Encrypt phone if provided
+      let encryptedPhone = null;
+      if (newClient.telefono) {
+        const { data: phoneEnc, error: phoneError } = await supabase.rpc('encrypt_phone', {
+          p_phone: newClient.telefono
+        });
+        if (phoneError) console.error("Error encrypting phone:", phoneError);
+        else encryptedPhone = phoneEnc;
+      }
+
+      // Insertar cliente con datos encriptados
       const { data: newClientData, error: clientError } = await supabase
         .from("clients")
         .insert([
           {
             nombre_completo: newClient.nombre_completo,
             cedula_rnc_encrypted: encryptedCedula,
-            email: newClient.email || null,
-            telefono: newClient.telefono || null,
+            email_encrypted: encryptedEmail,
+            telefono_encrypted: encryptedPhone,
+            email: newClient.email || null, // Keep for backward compatibility
+            telefono: newClient.telefono || null, // Keep for backward compatibility
             direccion: newClient.direccion || null,
             user_id: user.id,
           },
@@ -256,13 +278,35 @@ const Clients = () => {
 
       if (encryptError) throw encryptError;
 
+      // Encrypt email if provided
+      let encryptedEmail = null;
+      if (editClient.email) {
+        const { data: emailEnc, error: emailError } = await supabase.rpc('encrypt_email', {
+          p_email: editClient.email
+        });
+        if (emailError) console.error("Error encrypting email:", emailError);
+        else encryptedEmail = emailEnc;
+      }
+
+      // Encrypt phone if provided
+      let encryptedPhone = null;
+      if (editClient.telefono) {
+        const { data: phoneEnc, error: phoneError } = await supabase.rpc('encrypt_phone', {
+          p_phone: editClient.telefono
+        });
+        if (phoneError) console.error("Error encrypting phone:", phoneError);
+        else encryptedPhone = phoneEnc;
+      }
+
       const { error } = await supabase
         .from("clients")
         .update({
           nombre_completo: editClient.nombre_completo,
           cedula_rnc_encrypted: encryptedCedula,
-          email: editClient.email || null,
-          telefono: editClient.telefono || null,
+          email_encrypted: encryptedEmail,
+          telefono_encrypted: encryptedPhone,
+          email: editClient.email || null, // Keep for backward compatibility
+          telefono: editClient.telefono || null, // Keep for backward compatibility
           direccion: editClient.direccion || null,
         })
         .eq("id", selectedClient.id);
