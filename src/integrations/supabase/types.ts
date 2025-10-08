@@ -1423,6 +1423,15 @@ export type Database = {
           telefono_masked: string
         }[]
       }
+      get_my_profile: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          created_at: string
+          full_name: string
+          id: string
+          updated_at: string
+        }[]
+      }
       halfvec_avg: {
         Args: { "": number[] }
         Returns: unknown
