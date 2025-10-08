@@ -32,27 +32,17 @@ export const DocumentViewer = ({
       const formatted = lines.map((line, index) => {
         const trimmed = line.trim();
         
-        // Detectar espacio para logo
-        if (trimmed.includes('[ESPACIO PARA LOGO]')) {
-          return (
-            <div key={index} className="text-center mb-6 mt-4">
-              <div className="border-2 border-dashed border-muted-foreground/30 rounded-lg p-8 mx-auto w-48 h-24 flex items-center justify-center">
-                <span className="text-xs text-muted-foreground">ESPACIO PARA LOGO</span>
-              </div>
-            </div>
-          );
-        }
-        
-        // Detectar encabezado de firma (líneas después del logo y antes de PRESENTACIÓN)
-        if (index < 15 && !trimmed.match(/^[1-5]\.\s+[A-Z]/) && (
-          trimmed.includes('RNC:') || 
-          trimmed.includes('Matrícula CARD:') || 
-          trimmed.includes('@') ||
-          /^\d{3}-?\d{3}-?\d{4}/.test(trimmed) ||
-          (index > 0 && index < 10 && trimmed.length > 10 && !trimmed.includes('ACTO NÚMERO'))
+        // Detectar encabezado del documento (TÍTULO, DEMANDANTE, DEMANDADO, TRIBUNAL, EXPEDIENTE)
+        if (index < 15 && (
+          trimmed.includes('[TÍTULO DEL DOCUMENTO]') ||
+          trimmed.startsWith('DEMANDANTE:') || 
+          trimmed.startsWith('DEMANDADO:') || 
+          trimmed.startsWith('TRIBUNAL:') || 
+          trimmed.startsWith('EXPEDIENTE') ||
+          (index < 10 && trimmed === trimmed.toUpperCase() && trimmed.length > 5 && trimmed.length < 100 && !trimmed.match(/^[1-5]\.\s+/))
         )) {
           return (
-            <div key={index} className="text-center text-sm font-medium mb-4">
+            <div key={index} className="text-center text-sm font-bold mb-3 mt-2">
               {trimmed}
             </div>
           );

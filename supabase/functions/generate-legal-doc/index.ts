@@ -146,12 +146,12 @@ serve(async (req) => {
     ESTRUCTURA OBLIGATORIA DEL DOCUMENTO (TEXTO PLANO, SIN MARKDOWN):
     
     ENCABEZADO (Primera página - centrado, espaciado de 2 líneas):
-    [ESPACIO PARA LOGO]
+    [TÍTULO DEL DOCUMENTO]
     
-    ${firmaNombre}${rncFirma ? ` - RNC: ${rncFirma}` : ''}
-    ${abogadoNombre} - Matrícula CARD: ${matriculaCard}
-    ${direccionFirma}
-    ${telefonoFirma} | ${emailFirma}
+    DEMANDANTE: [Nombre completo del demandante]
+    DEMANDADO: [Nombre completo del demandado]
+    TRIBUNAL: [Nombre del tribunal/juzgado]
+    EXPEDIENTE No.: [Número de expediente]
     
     
     1. PRESENTACIÓN
@@ -271,7 +271,7 @@ ${legislacion ? `LEGISLACIÓN ADICIONAL: ${legislacion}` : ''}
 ${jurisprudencia ? `JURISPRUDENCIA: ${jurisprudencia}` : ''}
 
 INSTRUCCIONES IMPERATIVAS:
-1. ENCABEZADO: Inicia el documento con [ESPACIO PARA LOGO] seguido del encabezado centrado con la firma (nombre, RNC, abogado, matrícula, dirección, teléfono, email). Cada línea del encabezado debe estar separada con 2 líneas en blanco
+1. ENCABEZADO: Inicia el documento con el TÍTULO DEL DOCUMENTO (tipo de documento en mayúsculas), seguido de DEMANDANTE, DEMANDADO, TRIBUNAL y EXPEDIENTE No., todo centralizado con separación de 1 línea entre cada elemento
 2. NO incluir "ACTO NÚMERO [número]" como título separado o independiente en ninguna parte
 3. El número de acto va ÚNICAMENTE en la sección 1.2 como "No. [número], Folios [folios] y [folios] año [año]"
 4. En la sección 1 (PRESENTACIÓN - título centrado): incluye todos los datos formales del acto sin título "ACTO NÚMERO"
@@ -284,12 +284,13 @@ INSTRUCCIONES IMPERATIVAS:
    - SUBSECCIÓN 4.3: Cita doctrina relevante (autores como Jorge Subero Isa, Froilán Tavares, Wenceslao Vega B., etc.)
    - SUBSECCIÓN 4.4: Cita jurisprudencia específica con número de sentencia, fecha, sala y extracto del razonamiento
    - SUBSECCIÓN 4.5: Concluye demostrando que los hechos configuran la hipótesis normativa y justifica la procedencia de la demanda
-9. En la sección 5 (DISPOSITIVOS - título centrado): peticiones completas
-10. Lenguaje jurídico formal dominicano con razonamiento profundo
-11. NO dejes "N/D" si hay datos reales
-12. CRÍTICO: En 4. TESIS DE DERECHO hacer subsunción RIGUROSA: elementos constitutivos + encaje de hechos + doctrina + jurisprudencia
-13. CRÍTICO: Encabezado con espaciado de 2 líneas entre cada línea
-14. CRÍTICO: NUNCA incluir "ACTO NÚMERO" como título separado
+    9. En la sección 5 (DISPOSITIVOS - título centrado): peticiones completas
+    10. Lenguaje jurídico formal dominicano con razonamiento profundo
+    11. NO dejes "N/D" si hay datos reales
+    12. CRÍTICO: En 4. TESIS DE DERECHO hacer subsunción RIGUROSA: elementos constitutivos + encaje de hechos + doctrina + jurisprudencia
+    13. CRÍTICO: El encabezado debe mostrar: TÍTULO (tipo de documento), DEMANDANTE, DEMANDADO, TRIBUNAL, EXPEDIENTE No., todo centrado
+    14. CRÍTICO: NUNCA incluir "ACTO NÚMERO" como título separado
+    15. CRÍTICO: Al final del documento, incluir firma del abogado con: ${abogadoNombre}, Matrícula: ${matriculaCard}, Firma: ${firmaNombre}
 
 Genera ahora el documento COMPLETO y PROFESIONAL:`;
 
