@@ -36,7 +36,7 @@ export function Header() {
           .from("profiles")
           .select("full_name")
           .eq("id", user.id)
-          .single();
+          .maybeSingle();
         
         if (profile) {
           setUserName(profile.full_name || "Usuario");

@@ -48,7 +48,7 @@ export default function Profile() {
         .from("profiles")
         .select("full_name")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       if (data) setFullName(data.full_name || "");

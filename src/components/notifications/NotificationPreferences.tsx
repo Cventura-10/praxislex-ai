@@ -49,7 +49,7 @@ export function NotificationPreferences() {
       const { data, error } = await supabase
         .from("notification_preferences")
         .select("*")
-        .single();
+        .maybeSingle();
 
       if (error && error.code !== "PGRST116") throw error;
 
