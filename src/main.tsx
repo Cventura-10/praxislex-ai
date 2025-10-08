@@ -23,7 +23,9 @@ const queryClient = new QueryClient({
 
 createRoot(document.getElementById("root")!).render(
   <QueryClientProvider client={queryClient}>
-    <App />
-    {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
+    <>
+      <App />
+      {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
+    </>
   </QueryClientProvider>
 );
