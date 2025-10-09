@@ -17,6 +17,11 @@ export function InstallButton() {
       toast.success('Aplicación instalada', {
         description: 'PraxisLex se ha instalado correctamente en tu dispositivo.',
       });
+    } else {
+      toast.info('Instalación no disponible aún', {
+        description: 'Si estás en iOS, usa “Compartir → Añadir a pantalla de inicio”. En desktop, espera unos segundos tras cargar la página e intenta de nuevo.',
+        duration: 5000,
+      });
     }
   };
 

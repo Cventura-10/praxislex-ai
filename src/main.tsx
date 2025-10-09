@@ -39,7 +39,14 @@ createRoot(document.getElementById("root")!).render(
   <QueryClientProvider client={queryClient}>
     <>
       <App />
-      {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
+      {(() => {
+        const isLocal = typeof window !== 'undefined' &&
+          (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+        return import.meta.env.DEV && isLocal ? (
+          <ReactQueryDevtools initialIsOpen={false} />
+        ) : null;
+      })()}
+
     </>
   </QueryClientProvider>
 );
