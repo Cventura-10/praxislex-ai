@@ -146,69 +146,48 @@ const ClientPortal = () => {
         saldoPendiente: 0,
       };
 
-      // Obtener datos detallados
-      const portalRows = must(await supabase
-        .from("client_portal_view")
+      // Query separate tables directly (more secure than using view)
+      // Get cases
+      const { data: casesData } = await supabase
+        .from("cases")
         .select("*")
-        .eq("client_id", clientInfo.id));
+        .eq("client_id", clientInfo.id);
+
+      // Get hearings for this client's cases
+      const caseIds = casesData?.map(c => c.id) || [];
+      const { data: hearingsData } = caseIds.length > 0 ? await supabase
+        .from("hearings")
+        .select("*")
+        .in("case_id", caseIds) : { data: null };
+
+      // Get invoices
+      const { data: invoicesData } = await supabase
+        .from("invoices")
+        .select("*")
+        .eq("client_id", clientInfo.id);
+
+      // Get documents
+      const { data: docsData } = await supabase
+        .from("legal_documents")
+        .select("*")
+        .in("case_number", casesData?.map(c => c.numero_expediente) || []);
 
       // Procesar datos
-      const uniqueCases = new Map();
-      const uniqueHearings = new Map();
-      const uniqueInvoices = new Map();
-      const uniqueDocs = new Map();
-
-      portalRows.forEach(row => {
-        if (row.case_id && !uniqueCases.has(row.case_id)) {
-          uniqueCases.set(row.case_id, {
-            id: row.case_id,
-            numero_expediente: row.numero_expediente,
-            titulo: row.case_titulo,
-            materia: row.case_materia,
-            juzgado: row.case_juzgado,
-            etapa_procesal: row.etapa_procesal,
-            estado: row.case_estado,
-            descripcion: row.case_descripcion,
-            created_at: clientInfo.created_at,
-            updated_at: clientInfo.updated_at,
-          });
-        }
-
-        if (row.audiencia_id && !uniqueHearings.has(row.audiencia_id)) {
-          uniqueHearings.set(row.audiencia_id, {
-            id: row.audiencia_id,
-            caso: row.audiencia_caso_nombre || row.case_titulo || '',
-            fecha: row.audiencia_fecha,
-            hora: row.audiencia_hora,
-            juzgado: row.audiencia_juzgado,
-            tipo: row.audiencia_tipo,
-            ubicacion: row.audiencia_ubicacion,
-            estado: row.audiencia_estado,
-          });
-        }
-
-        if (row.invoice_id && !uniqueInvoices.has(row.invoice_id)) {
-          uniqueInvoices.set(row.invoice_id, {
-            id: row.invoice_id,
-            numero_factura: row.numero_factura,
-            concepto: row.invoice_concepto,
-            monto: row.invoice_monto,
-            fecha: row.invoice_fecha,
-            estado: row.invoice_estado,
-            clients: { nombre_completo: clientInfo.nombre_completo },
-          });
-        }
-
-        if (row.document_id && !uniqueDocs.has(row.document_id)) {
-          uniqueDocs.set(row.document_id, {
-            id: row.document_id,
-            tipo_documento: row.tipo_documento,
-            titulo: row.document_titulo,
-            materia: row.document_materia,
-            fecha_generacion: row.document_fecha,
-          });
-        }
-      });
+      const uniqueCases = new Map(
+        (casesData || []).map(c => [c.id, c])
+      );
+      
+      const uniqueHearings = new Map(
+        (hearingsData || []).map(h => [h.id, h])
+      );
+      
+      const uniqueInvoices = new Map(
+        (invoicesData || []).map(inv => [inv.id, inv])
+      );
+      
+      const uniqueDocs = new Map(
+        (docsData || []).map(doc => [doc.id, doc])
+      );
 
       return {
         clientInfo,
