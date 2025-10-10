@@ -75,6 +75,7 @@ interface ClientDocument {
   fecha_generacion: string;
 }
 
+
 const ClientPortal = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
