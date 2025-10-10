@@ -1306,6 +1306,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      check_and_log_pii_access: {
+        Args: { p_client_id: string; p_user_id: string }
+        Returns: boolean
+      }
       check_invitation_token_validity: {
         Args: { p_token: string }
         Returns: {

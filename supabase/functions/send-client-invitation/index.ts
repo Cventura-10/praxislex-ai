@@ -95,14 +95,14 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Generate secure invitation token
     const invitationToken = generateSecureToken();
-    const invitationUrl = `${Deno.env.get("SUPABASE_URL")?.replace('.supabase.co', '.lovableproject.com')}/invitation-accept?token=${invitationToken}`;
-
+    
     // Hash token before storage using secure RPC
     const { data: tokenHash, error: hashError } = await supabase.rpc('hash_invitation_token', {
       p_token: invitationToken
     });
 
     if (hashError || !tokenHash) {
+      console.error("Error hashing token:", hashError);
       throw new Error("Error al generar hash del token");
     }
 
@@ -112,13 +112,14 @@ const handler = async (req: Request): Promise<Response> => {
       .insert({
         client_id: clientId,
         token_hash: tokenHash,
-        token: null, // Never store plain text token
         created_by: user.id,
       });
 
     if (invitationError) {
       throw invitationError;
     }
+
+    const invitationUrl = `${Deno.env.get("SUPABASE_URL")?.replace('.supabase.co', '.lovableproject.com')}/invitation-accept?token=${invitationToken}`;
 
     // Enviar email de invitación
     const emailResponse = await sendEmail(Deno.env.get("RESEND_API_KEY") ?? "", {

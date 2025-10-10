@@ -113,7 +113,7 @@ const Clients = () => {
       // Validate with Zod schema before proceeding
       const validationResult = clientSchema.safeParse({
         nombre_completo: newClient.nombre_completo,
-        cedula_rnc: newClient.cedula_rnc_encrypted,
+        cedula_rnc_encrypted: newClient.cedula_rnc_encrypted,
         email: newClient.email || undefined,
         telefono: newClient.telefono || undefined,
         direccion: newClient.direccion || undefined,
@@ -136,7 +136,7 @@ const Clients = () => {
 
       // Encrypt cedula before saving
       const { data: encryptedCedula, error: encryptError } = await supabase.rpc('encrypt_cedula', {
-        p_cedula: validationResult.data.cedula_rnc
+        p_cedula: validationResult.data.cedula_rnc_encrypted
       });
 
       if (encryptError) throw encryptError;
