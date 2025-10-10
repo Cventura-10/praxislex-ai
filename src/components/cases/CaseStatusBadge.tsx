@@ -20,6 +20,14 @@ const statusConfig: Record<CaseStatus, { label: string; variant: "default" | "se
 export function CaseStatusBadge({ status, className }: CaseStatusBadgeProps) {
   const config = statusConfig[status];
   
+  if (!config) {
+    return (
+      <Badge variant="secondary" className={cn("font-medium", className)}>
+        {status || "Sin estado"}
+      </Badge>
+    );
+  }
+  
   return (
     <Badge variant={config.variant} className={cn("font-medium", className)}>
       {config.label}
