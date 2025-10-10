@@ -162,14 +162,17 @@ const Cases = () => {
       } = await supabase.auth.getUser();
       if (!user) throw new Error("Usuario no autenticado");
 
-      // If numero_expediente is empty, send empty string to trigger auto-generation
-      const insertData = {
+      // Si numero_expediente está vacío, no lo enviamos para que el trigger lo genere
+      const baseData: any = {
         ...validationResult.data,
-        numero_expediente: validationResult.data.numero_expediente || '',
         user_id: user.id,
       };
 
-      const { error } = await supabase.from("cases").insert([insertData]);
+      if (!validationResult.data.numero_expediente) {
+        delete baseData.numero_expediente;
+      }
+
+      const { error } = await supabase.from("cases").insert([baseData]);
 
       if (error) throw error;
 
