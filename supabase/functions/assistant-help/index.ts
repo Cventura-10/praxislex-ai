@@ -1,5 +1,63 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.33.1";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
+
+// ==========================================
+// INPUT VALIDATION & SANITIZATION (Security Fix)
+// ==========================================
+
+// Sanitize text inputs - remove HTML/scripts, limit length
+function sanitizeText(text: string, maxLength = 1000): string {
+  return text
+    .trim()
+    .substring(0, maxLength)
+    .replace(/<script[^>]*>.*?<\/script>/gi, '')
+    .replace(/<[^>]*>/g, ''); // Strip all HTML tags
+}
+
+// Validation schemas for each AI action type
+const CreateCaseSchema = z.object({
+  titulo: z.string().min(1).max(200),
+  client_id: z.string().uuid().optional(),
+  materia: z.string().max(100).optional(),
+  descripcion: z.string().max(2000).optional(),
+});
+
+const CreateHearingSchema = z.object({
+  case_id: z.string().uuid(),
+  fecha: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format'),
+  hora: z.string().regex(/^\d{2}:\d{2}$/, 'Invalid time format'),
+  tribunal: z.string().max(200),
+  tipo: z.string().max(50).optional(),
+  descripcion: z.string().max(1000).optional(),
+});
+
+const CreateInvoiceSchema = z.object({
+  client_id: z.string().uuid(),
+  concepto: z.string().min(1).max(500),
+  monto: z.number().positive().max(999999999),
+});
+
+const CreateDocumentSchema = z.object({
+  titulo: z.string().min(1).max(200),
+  tipo_documento: z.string().max(50),
+  materia: z.string().max(100),
+  contenido: z.string().max(50000),
+});
+
+const CreateExpenseSchema = z.object({
+  concepto: z.string().min(1).max(500),
+  monto: z.number().positive().max(999999999),
+  categoria: z.string().max(50),
+  case_id: z.string().uuid().optional(),
+});
+
+const CreatePaymentSchema = z.object({
+  client_id: z.string().uuid(),
+  monto: z.number().positive().max(999999999),
+  concepto: z.string().min(1).max(500),
+  metodo_pago: z.string().max(50),
+});
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -110,188 +168,237 @@ Contexto del usuario: ${context || "Sin contexto adicional"}`;
       let result: any = null;
       let caseNumber: string | null = null;
 
-      switch (reply.intent) {
-        case "create_hearing": {
-          const { case_id, fecha, hora, tribunal, tipo, descripcion } = reply.params;
-          
-          // Obtener case_number del caso
-          const { data: caseData } = await supabaseAdmin
-            .from("cases")
-            .select("case_number")
-            .eq("id", case_id)
-            .single();
-          
-          caseNumber = caseData?.case_number || null;
-
-          result = await supabaseAdmin
-            .from("hearings")
-            .insert({
-              user_id: user.id,
-              case_id,
-              case_number: caseNumber,
-              fecha,
-              hora,
-              juzgado: tribunal,
-              tipo,
-              caso: descripcion || "",
-              estado: "programada",
-            })
-            .select()
-            .single();
-          break;
-        }
-
-        case "create_invoice": {
-          const { client_id, concepto, monto } = reply.params;
-          
-          // Obtener case_number del último caso del cliente
-          const { data: caseData } = await supabaseAdmin
-            .from("cases")
-            .select("case_number")
-            .eq("client_id", client_id)
-            .order("created_at", { ascending: false })
-            .limit(1)
-            .single();
-          
-          caseNumber = caseData?.case_number || null;
-
-          result = await supabaseAdmin
-            .from("invoices")
-            .insert({
-              user_id: user.id,
-              client_id,
-              case_number: caseNumber,
-              numero_factura: `INV-${Date.now()}`,
-              concepto,
-              monto,
-              estado: "pendiente",
-              fecha: new Date().toISOString().split('T')[0],
-            })
-            .select()
-            .single();
-          break;
-        }
-
-        case "create_case": {
-          const { client_id, titulo, descripcion, materia } = reply.params;
-          
-          result = await supabaseAdmin
-            .from("cases")
-            .insert({
-              user_id: user.id,
-              client_id,
-              titulo,
-              descripcion: descripcion || "",
-              materia: materia || "General",
-              estado: "activo",
-            })
-            .select()
-            .single();
-          
-          caseNumber = result.data?.case_number || null;
-          break;
-        }
-
-        case "create_document": {
-          const { titulo, tipo_documento, materia, contenido } = reply.params;
-          
-          result = await supabaseAdmin
-            .from("legal_documents")
-            .insert({
-              user_id: user.id,
-              titulo,
-              tipo_documento,
-              materia,
-              contenido: contenido || "",
-            })
-            .select()
-            .single();
-          break;
-        }
-
-        case "create_expense": {
-          const { concepto, monto, categoria, case_id } = reply.params;
-          
-          if (case_id) {
+      // ==========================================
+      // VALIDATE & SANITIZE ALL INPUTS (Security)
+      // ==========================================
+      
+      try {
+        switch (reply.intent) {
+          case "create_hearing": {
+            // Validate inputs with Zod
+            const validated = CreateHearingSchema.parse(reply.params);
+            const sanitized = {
+              ...validated,
+              tribunal: sanitizeText(validated.tribunal, 200),
+              descripcion: validated.descripcion ? sanitizeText(validated.descripcion, 1000) : "",
+            };
+            
+            // Obtener case_number del caso
             const { data: caseData } = await supabaseAdmin
               .from("cases")
               .select("case_number")
-              .eq("id", case_id)
+              .eq("id", sanitized.case_id)
               .single();
             
             caseNumber = caseData?.case_number || null;
+
+            result = await supabaseAdmin
+              .from("hearings")
+              .insert({
+                user_id: user.id,
+                case_id: sanitized.case_id,
+                case_number: caseNumber,
+                fecha: sanitized.fecha,
+                hora: sanitized.hora,
+                juzgado: sanitized.tribunal,
+                tipo: sanitized.tipo || "audiencia",
+                caso: sanitized.descripcion,
+                estado: "programada",
+              })
+              .select()
+              .single();
+            break;
           }
 
-          result = await supabaseAdmin
-            .from("expenses")
-            .insert({
-              user_id: user.id,
-              case_id,
-              case_number: caseNumber,
-              concepto,
-              monto,
-              categoria,
-              fecha: new Date().toISOString().split('T')[0],
-            })
-            .select()
-            .single();
-          break;
+          case "create_invoice": {
+            const validated = CreateInvoiceSchema.parse(reply.params);
+            const sanitized = {
+              ...validated,
+              concepto: sanitizeText(validated.concepto, 500),
+            };
+            
+            // Obtener case_number del último caso del cliente
+            const { data: caseData } = await supabaseAdmin
+              .from("cases")
+              .select("case_number")
+              .eq("client_id", sanitized.client_id)
+              .order("created_at", { ascending: false })
+              .limit(1)
+              .single();
+            
+            caseNumber = caseData?.case_number || null;
+
+            result = await supabaseAdmin
+              .from("invoices")
+              .insert({
+                user_id: user.id,
+                client_id: sanitized.client_id,
+                case_number: caseNumber,
+                numero_factura: `INV-${Date.now()}`,
+                concepto: sanitized.concepto,
+                monto: sanitized.monto,
+                estado: "pendiente",
+                fecha: new Date().toISOString().split('T')[0],
+              })
+              .select()
+              .single();
+            break;
+          }
+
+          case "create_case": {
+            const validated = CreateCaseSchema.parse(reply.params);
+            const sanitized = {
+              ...validated,
+              titulo: sanitizeText(validated.titulo, 200),
+              descripcion: validated.descripcion ? sanitizeText(validated.descripcion, 2000) : "",
+              materia: validated.materia ? sanitizeText(validated.materia, 100) : "General",
+            };
+            
+            result = await supabaseAdmin
+              .from("cases")
+              .insert({
+                user_id: user.id,
+                client_id: sanitized.client_id || null,
+                titulo: sanitized.titulo,
+                descripcion: sanitized.descripcion,
+                materia: sanitized.materia,
+                estado: "activo",
+              })
+              .select()
+              .single();
+            
+            caseNumber = result.data?.case_number || null;
+            break;
+          }
+
+          case "create_document": {
+            const validated = CreateDocumentSchema.parse(reply.params);
+            const sanitized = {
+              ...validated,
+              titulo: sanitizeText(validated.titulo, 200),
+              tipo_documento: sanitizeText(validated.tipo_documento, 50),
+              materia: sanitizeText(validated.materia, 100),
+              contenido: sanitizeText(validated.contenido, 50000),
+            };
+            
+            result = await supabaseAdmin
+              .from("legal_documents")
+              .insert({
+                user_id: user.id,
+                titulo: sanitized.titulo,
+                tipo_documento: sanitized.tipo_documento,
+                materia: sanitized.materia,
+                contenido: sanitized.contenido,
+              })
+              .select()
+              .single();
+            break;
+          }
+
+          case "create_expense": {
+            const validated = CreateExpenseSchema.parse(reply.params);
+            const sanitized = {
+              ...validated,
+              concepto: sanitizeText(validated.concepto, 500),
+              categoria: sanitizeText(validated.categoria, 50),
+            };
+            
+            if (sanitized.case_id) {
+              const { data: caseData } = await supabaseAdmin
+                .from("cases")
+                .select("case_number")
+                .eq("id", sanitized.case_id)
+                .single();
+              
+              caseNumber = caseData?.case_number || null;
+            }
+
+            result = await supabaseAdmin
+              .from("expenses")
+              .insert({
+                user_id: user.id,
+                case_id: sanitized.case_id || null,
+                case_number: caseNumber,
+                concepto: sanitized.concepto,
+                monto: sanitized.monto,
+                categoria: sanitized.categoria,
+                fecha: new Date().toISOString().split('T')[0],
+              })
+              .select()
+              .single();
+            break;
+          }
+
+          case "create_payment": {
+            const validated = CreatePaymentSchema.parse(reply.params);
+            const sanitized = {
+              ...validated,
+              concepto: sanitizeText(validated.concepto, 500),
+              metodo_pago: sanitizeText(validated.metodo_pago, 50),
+            };
+            
+            // Obtener case_number del último caso del cliente
+            const { data: caseData } = await supabaseAdmin
+              .from("cases")
+              .select("case_number")
+              .eq("client_id", sanitized.client_id)
+              .order("created_at", { ascending: false })
+              .limit(1)
+              .single();
+            
+            caseNumber = caseData?.case_number || null;
+
+            result = await supabaseAdmin
+              .from("payments")
+              .insert({
+                user_id: user.id,
+                client_id: sanitized.client_id,
+                case_number: caseNumber,
+                monto: sanitized.monto,
+                concepto: sanitized.concepto,
+                metodo_pago: sanitized.metodo_pago,
+                fecha: new Date().toISOString().split('T')[0],
+              })
+              .select()
+              .single();
+            break;
+          }
+
+          default:
+            result = { message: "Acción no reconocida" };
         }
 
-        case "create_payment": {
-          const { client_id, monto, concepto, metodo_pago } = reply.params;
-          
-          // Obtener case_number del último caso del cliente
-          const { data: caseData } = await supabaseAdmin
-            .from("cases")
-            .select("case_number")
-            .eq("client_id", client_id)
-            .order("created_at", { ascending: false })
-            .limit(1)
-            .single();
-          
-          caseNumber = caseData?.case_number || null;
-
-          result = await supabaseAdmin
-            .from("payments")
-            .insert({
-              user_id: user.id,
-              client_id,
-              case_number: caseNumber,
-              monto,
-              concepto,
-              metodo_pago,
-              fecha: new Date().toISOString().split('T')[0],
-            })
-            .select()
-            .single();
-          break;
-        }
-
-        default:
-          result = { message: "Acción no reconocida" };
-      }
-
-      // Registrar acción en log
-      await supabaseAdmin.from("ai_actions_log").insert({
-        user_id: user.id,
-        user_token: token.substring(0, 20),
-        intent: reply.intent,
-        params: reply.params,
-        case_number: caseNumber,
-      });
-
-      const expedienteMsg = caseNumber ? ` Expediente: ${caseNumber}` : "";
-      
-      return new Response(
-        JSON.stringify({
-          mode: "action",
+        // Registrar acción en log
+        await supabaseAdmin.from("ai_actions_log").insert({
+          user_id: user.id,
+          user_token: token.substring(0, 20),
           intent: reply.intent,
-          confirmation: `${reply.confirmation || "Operación completada"}.${expedienteMsg}`,
-          result: result.data,
-        }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+          params: reply.params,
+          case_number: caseNumber,
+        });
+
+        const expedienteMsg = caseNumber ? ` Expediente: ${caseNumber}` : "";
+        
+        return new Response(
+          JSON.stringify({
+            mode: "action",
+            intent: reply.intent,
+            confirmation: `${reply.confirmation || "Operación completada"}.${expedienteMsg}`,
+            result: result.data,
+          }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      } catch (validationError) {
+        // Input validation failed - return error to user
+        console.error("Validation error:", validationError);
+        return new Response(
+          JSON.stringify({
+            mode: "error",
+            reply: "Los datos proporcionados no son válidos. Por favor, verifica la información e intenta de nuevo.",
+          }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
     }
 
     // Modo conversacional
