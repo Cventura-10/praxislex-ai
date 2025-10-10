@@ -107,18 +107,64 @@ const ClientPortal = () => {
         return;
       }
 
-      // Obtener información del cliente vinculado al auth_user_id actual
-      const { data: clientInfo, error: clientError } = await supabase
+      // Primero buscar si ya existe un cliente vinculado a este usuario autenticado
+      let { data: clientInfo, error: clientError } = await supabase
         .from("clients")
         .select("*")
         .eq("auth_user_id", user.id)
-        .single();
+        .maybeSingle();
 
+      // Si no existe por auth_user_id, buscar por user_id (auto-creado)
+      if (!clientInfo && !clientError) {
+        const { data: ownClient } = await supabase
+          .from("clients")
+          .select("*")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        
+        if (ownClient) {
+          clientInfo = ownClient;
+        }
+      }
+
+      // Si no existe ningún registro, crear uno automáticamente
+      if (!clientInfo && !clientError) {
+        const { data: newClient, error: createError } = await supabase
+          .from("clients")
+          .insert({
+            user_id: user.id,
+            auth_user_id: user.id,
+            nombre_completo: user.user_metadata?.full_name || user.email?.split('@')[0] || "Cliente",
+            email: user.email,
+            accepted_terms: false,
+          })
+          .select()
+          .single();
+
+        if (createError) {
+          console.error("Error creating client:", createError);
+          toast({
+            title: "Error al crear perfil",
+            description: "No fue posible crear su perfil de cliente. Intente nuevamente o contacte soporte.",
+            variant: "destructive",
+          });
+          setLoading(false);
+          return;
+        }
+
+        clientInfo = newClient;
+        toast({
+          title: "¡Bienvenido!",
+          description: "Se ha creado su perfil de cliente. Ya puede acceder al portal.",
+        });
+      }
+
+      // Si hay un error real de base de datos (no solo "no encontrado")
       if (clientError) {
         console.error("Error fetching client:", clientError);
         toast({
-          title: "Cliente no encontrado",
-          description: "No se encontró información de cliente. Por favor, contacte con su abogado.",
+          title: "Error de acceso",
+          description: "No fue posible validar su perfil. Intente nuevamente o contacte soporte.",
           variant: "destructive",
         });
         setLoading(false);
