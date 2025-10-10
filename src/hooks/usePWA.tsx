@@ -92,15 +92,21 @@ export function usePWA() {
   };
 
   const updateApp = () => {
-    if (!updateRegistration?.waiting) return;
+    if (!updateRegistration?.waiting) {
+      // If no waiting worker, force reload to get new version
+      window.location.reload();
+      return;
+    }
+
+    // Setup listener for when new service worker takes control
+    const handleControllerChange = () => {
+      window.location.reload();
+    };
+
+    navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange, { once: true });
 
     // Send message to service worker to skip waiting
     updateRegistration.waiting.postMessage({ type: 'SKIP_WAITING' });
-
-    // Reload page when service worker takes control
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-      window.location.reload();
-    });
   };
 
   return {
