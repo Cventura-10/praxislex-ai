@@ -107,24 +107,25 @@ const ClientPortal = () => {
         return;
       }
 
-      // Obtener información del cliente
+      // Obtener información del cliente vinculado al auth_user_id actual
       const { data: clientInfo, error: clientError } = await supabase
         .from("clients")
         .select("*")
         .eq("auth_user_id", user.id)
-        .maybeSingle();
+        .single();
 
-      if (clientError) throw clientError;
-      setClientData(clientInfo);
-
-      if (!clientInfo) {
+      if (clientError) {
+        console.error("Error fetching client:", clientError);
         toast({
           title: "Cliente no encontrado",
-          description: "No se encontró información de cliente asociada a su cuenta",
+          description: "No se encontró información de cliente. Por favor, contacte con su abogado.",
           variant: "destructive",
         });
+        setLoading(false);
         return;
       }
+
+      setClientData(clientInfo);
 
       // Verificar si el cliente ha aceptado los términos
       if (!clientInfo.accepted_terms) {
