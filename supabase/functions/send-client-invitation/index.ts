@@ -93,16 +93,26 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("El cliente no tiene email registrado");
     }
 
-    // Generar token seguro de invitación
+    // Generate secure invitation token
     const invitationToken = generateSecureToken();
     const invitationUrl = `${Deno.env.get("SUPABASE_URL")?.replace('.supabase.co', '.lovableproject.com')}/invitation-accept?token=${invitationToken}`;
 
-    // Crear registro de invitación con expiración de 7 días
+    // Hash token before storage using secure RPC
+    const { data: tokenHash, error: hashError } = await supabase.rpc('hash_invitation_token', {
+      p_token: invitationToken
+    });
+
+    if (hashError || !tokenHash) {
+      throw new Error("Error al generar hash del token");
+    }
+
+    // Store only the hashed token (never plain text)
     const { error: invitationError } = await supabase
       .from("client_invitations")
       .insert({
         client_id: clientId,
-        token: invitationToken,
+        token_hash: tokenHash,
+        token: null, // Never store plain text token
         created_by: user.id,
       });
 

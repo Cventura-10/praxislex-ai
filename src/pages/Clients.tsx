@@ -110,6 +110,25 @@ const Clients = () => {
 
   const handleCreateClient = async () => {
     try {
+      // Validate with Zod schema before proceeding
+      const validationResult = clientSchema.safeParse({
+        nombre_completo: newClient.nombre_completo,
+        cedula_rnc: newClient.cedula_rnc_encrypted,
+        email: newClient.email || undefined,
+        telefono: newClient.telefono || undefined,
+        direccion: newClient.direccion || undefined,
+      });
+
+      if (!validationResult.success) {
+        const errors = validationResult.error.issues;
+        toast({
+          title: "Datos inválidos",
+          description: errors.map(e => e.message).join(', '),
+          variant: "destructive",
+        });
+        return;
+      }
+
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -117,21 +136,21 @@ const Clients = () => {
 
       // Encrypt cedula before saving
       const { data: encryptedCedula, error: encryptError } = await supabase.rpc('encrypt_cedula', {
-        p_cedula: newClient.cedula_rnc_encrypted
+        p_cedula: validationResult.data.cedula_rnc
       });
 
       if (encryptError) throw encryptError;
 
-      // Insertar cliente con cédula encriptada
+      // Insert client with validated and encrypted data
       const { data: newClientData, error: clientError } = await supabase
         .from("clients")
         .insert([
           {
-            nombre_completo: newClient.nombre_completo,
+            nombre_completo: validationResult.data.nombre_completo,
             cedula_rnc_encrypted: encryptedCedula,
-            email: newClient.email || null,
-            telefono: newClient.telefono || null,
-            direccion: newClient.direccion || null,
+            email: validationResult.data.email || null,
+            telefono: validationResult.data.telefono || null,
+            direccion: validationResult.data.direccion || null,
             user_id: user.id,
           },
         ])
@@ -172,9 +191,10 @@ const Clients = () => {
       });
       fetchClients();
     } catch (error: any) {
+      console.error("Error creating client:", error);
       toast({
         title: "Error",
-        description: error.message || "No se pudo crear el cliente",
+        description: "No se pudo crear el cliente. Verifique los datos ingresados.",
         variant: "destructive",
       });
     }
