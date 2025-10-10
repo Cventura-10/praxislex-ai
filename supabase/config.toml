@@ -24,3 +24,6 @@ verify_jwt = true
 [functions.process-legal-model]
 verify_jwt = true
 
+[functions.etl-jurisprudence-refresh]
+verify_jwt = false
+

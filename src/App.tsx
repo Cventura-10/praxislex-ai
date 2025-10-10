@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Header } from "@/components/layout/Header";
 import { Navigation } from "@/components/layout/Navigation";
 import { AuthGuard } from "@/components/AuthGuard";
+import { AuthProvider } from "@/hooks/useAuth";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { LoadingFallback } from "@/components/LoadingFallback";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
@@ -41,12 +42,13 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const App = () => (
   <ErrorBoundary>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <PWAInstallPrompt />
-      <OfflineIndicator />
-      <UpdatePrompt />
-      <BrowserRouter>
+      <AuthProvider>
+        <Toaster />
+        <Sonner />
+        <PWAInstallPrompt />
+        <OfflineIndicator />
+        <UpdatePrompt />
+        <BrowserRouter>
         <Routes>
           {/* Public routes */}
           <Route path="/auth" element={<Auth />} />
@@ -95,6 +97,7 @@ const App = () => (
           />
         </Routes>
       </BrowserRouter>
+      </AuthProvider>
     </TooltipProvider>
   </ErrorBoundary>
 );

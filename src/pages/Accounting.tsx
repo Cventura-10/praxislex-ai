@@ -238,20 +238,50 @@ const Accounting = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No autenticado");
 
-      const { error } = await supabase.from("payments").insert([
+      const paymentAmount = parseFloat(newPayment.monto);
+      const invoiceId = newPayment.invoice_id || null;
+
+      // Insert payment
+      const { error: paymentError } = await supabase.from("payments").insert([
         {
           ...newPayment,
-          monto: parseFloat(newPayment.monto),
+          monto: paymentAmount,
           user_id: user.id,
-          invoice_id: newPayment.invoice_id || null,
+          invoice_id: invoiceId,
         },
       ]);
 
-      if (error) throw error;
+      if (paymentError) throw paymentError;
+
+      // Update invoice status if linked
+      if (invoiceId) {
+        const invoice = invoices.find(inv => inv.id === invoiceId);
+        if (invoice) {
+          // Get all payments for this invoice
+          const { data: allPayments } = await supabase
+            .from("payments")
+            .select("monto")
+            .eq("invoice_id", invoiceId);
+
+          const totalPaid = (allPayments || []).reduce((sum, p) => sum + p.monto, 0) + paymentAmount;
+          
+          let newStatus = "pendiente";
+          if (totalPaid >= invoice.monto) {
+            newStatus = "pagado";
+          } else if (totalPaid > 0) {
+            newStatus = "parcial";
+          }
+
+          await supabase
+            .from("invoices")
+            .update({ estado: newStatus })
+            .eq("id", invoiceId);
+        }
+      }
 
       toast({
         title: "Pago registrado",
-        description: "El pago ha sido registrado exitosamente",
+        description: "El pago ha sido registrado y la factura actualizada",
       });
 
       setShowPaymentDialog(false);
