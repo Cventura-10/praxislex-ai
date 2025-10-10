@@ -30,6 +30,7 @@ const Hearings = lazy(() => import("./pages/Hearings"));
 const Documents = lazy(() => import("./pages/Documents"));
 const Jurisprudence = lazy(() => import("./pages/Jurisprudence"));
 const AILegalDrafting = lazy(() => import("./pages/AILegalDrafting"));
+const AssistantIA = lazy(() => import("./pages/AssistantIA"));
 const Accounting = lazy(() => import("./pages/Accounting"));
 const AccountingNew = lazy(() => import("./pages/AccountingNew"));
 const FirmAccounting = lazy(() => import("./pages/FirmAccounting"));
@@ -101,6 +102,7 @@ const App = () => (
                                 <Route path="/documentos" element={<Documents />} />
                                 <Route path="/jurisprudencia" element={<Jurisprudence />} />
                                 <Route path="/redaccion-ia" element={<AILegalDrafting />} />
+                                <Route path="/asistente-ia" element={<AssistantIA />} />
                                 <Route path="/contabilidad" element={<Accounting />} />
                                 <Route path="/creditos-pagos" element={<AccountingNew />} />
                                 <Route path="/contabilidad-general" element={<FirmAccounting />} />
