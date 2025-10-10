@@ -35,6 +35,36 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_actions_log: {
+        Row: {
+          case_number: string | null
+          created_at: string | null
+          id: string
+          intent: string
+          params: Json | null
+          user_id: string | null
+          user_token: string | null
+        }
+        Insert: {
+          case_number?: string | null
+          created_at?: string | null
+          id?: string
+          intent: string
+          params?: Json | null
+          user_id?: string | null
+          user_token?: string | null
+        }
+        Update: {
+          case_number?: string | null
+          created_at?: string | null
+          id?: string
+          intent?: string
+          params?: Json | null
+          user_id?: string | null
+          user_token?: string | null
+        }
+        Relationships: []
+      }
       ai_usage: {
         Row: {
           cost_usd: number | null
@@ -73,6 +103,7 @@ export type Database = {
       }
       cases: {
         Row: {
+          case_number: string | null
           client_id: string | null
           created_at: string | null
           descripcion: string | null
@@ -88,6 +119,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          case_number?: string | null
           client_id?: string | null
           created_at?: string | null
           descripcion?: string | null
@@ -103,6 +135,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          case_number?: string | null
           client_id?: string | null
           created_at?: string | null
           descripcion?: string | null
@@ -136,6 +169,7 @@ export type Database = {
       }
       client_credits: {
         Row: {
+          case_number: string | null
           client_id: string | null
           concepto: string
           created_at: string | null
@@ -150,6 +184,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          case_number?: string | null
           client_id?: string | null
           concepto: string
           created_at?: string | null
@@ -164,6 +199,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          case_number?: string | null
           client_id?: string | null
           concepto?: string
           created_at?: string | null
@@ -480,6 +516,7 @@ export type Database = {
       expenses: {
         Row: {
           case_id: string | null
+          case_number: string | null
           categoria: string
           client_id: string | null
           concepto: string
@@ -500,6 +537,7 @@ export type Database = {
         }
         Insert: {
           case_id?: string | null
+          case_number?: string | null
           categoria: string
           client_id?: string | null
           concepto: string
@@ -520,6 +558,7 @@ export type Database = {
         }
         Update: {
           case_id?: string | null
+          case_number?: string | null
           categoria?: string
           client_id?: string | null
           concepto?: string
@@ -572,6 +611,7 @@ export type Database = {
       hearings: {
         Row: {
           case_id: string | null
+          case_number: string | null
           caso: string
           created_at: string | null
           estado: string | null
@@ -586,6 +626,7 @@ export type Database = {
         }
         Insert: {
           case_id?: string | null
+          case_number?: string | null
           caso: string
           created_at?: string | null
           estado?: string | null
@@ -600,6 +641,7 @@ export type Database = {
         }
         Update: {
           case_id?: string | null
+          case_number?: string | null
           caso?: string
           created_at?: string | null
           estado?: string | null
@@ -631,6 +673,7 @@ export type Database = {
       }
       invoices: {
         Row: {
+          case_number: string | null
           client_id: string | null
           concepto: string
           created_at: string | null
@@ -646,6 +689,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          case_number?: string | null
           client_id?: string | null
           concepto: string
           created_at?: string | null
@@ -661,6 +705,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          case_number?: string | null
           client_id?: string | null
           concepto?: string
           created_at?: string | null
@@ -811,6 +856,7 @@ export type Database = {
       }
       legal_documents: {
         Row: {
+          case_number: string | null
           contenido: string
           contenido_word: string | null
           created_at: string
@@ -827,6 +873,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          case_number?: string | null
           contenido: string
           contenido_word?: string | null
           created_at?: string
@@ -843,6 +890,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          case_number?: string | null
           contenido?: string
           contenido_word?: string | null
           created_at?: string
@@ -1013,6 +1061,7 @@ export type Database = {
       payments: {
         Row: {
           aplicado_interes: number | null
+          case_number: string | null
           client_id: string | null
           concepto: string
           created_at: string | null
@@ -1028,6 +1077,7 @@ export type Database = {
         }
         Insert: {
           aplicado_interes?: number | null
+          case_number?: string | null
           client_id?: string | null
           concepto: string
           created_at?: string | null
@@ -1043,6 +1093,7 @@ export type Database = {
         }
         Update: {
           aplicado_interes?: number | null
+          case_number?: string | null
           client_id?: string | null
           concepto?: string
           created_at?: string | null
@@ -1492,10 +1543,6 @@ export type Database = {
       }
       encrypt_cedula: {
         Args: { p_cedula: string }
-        Returns: string
-      }
-      generate_case_number: {
-        Args: Record<PropertyKey, never>
         Returns: string
       }
       get_accessible_clients_safe: {
