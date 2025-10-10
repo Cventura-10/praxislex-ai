@@ -122,6 +122,13 @@ export type Database = {
             foreignKeyName: "cases_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "client_portal_view"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "cases_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
           },
@@ -175,6 +182,13 @@ export type Database = {
             foreignKeyName: "client_credits_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "client_portal_view"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "client_credits_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
           },
@@ -215,6 +229,13 @@ export type Database = {
           used_by?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "client_invitations_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "client_portal_view"
+            referencedColumns: ["client_id"]
+          },
           {
             foreignKeyName: "client_invitations_client_id_fkey"
             columns: ["client_id"]
@@ -353,6 +374,13 @@ export type Database = {
             referencedRelation: "cases"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "deadlines_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "client_portal_view"
+            referencedColumns: ["case_id"]
+          },
         ]
       }
       document_citations: {
@@ -387,6 +415,13 @@ export type Database = {
           similarity_score?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "document_citations_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "client_portal_view"
+            referencedColumns: ["document_id"]
+          },
           {
             foreignKeyName: "document_citations_document_id_fkey"
             columns: ["document_id"]
@@ -512,6 +547,20 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "expenses_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "client_portal_view"
+            referencedColumns: ["case_id"]
+          },
+          {
+            foreignKeyName: "expenses_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "client_portal_view"
+            referencedColumns: ["client_id"]
+          },
+          {
             foreignKeyName: "expenses_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
@@ -571,6 +620,13 @@ export type Database = {
             referencedRelation: "cases"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "hearings_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "client_portal_view"
+            referencedColumns: ["case_id"]
+          },
         ]
       }
       invoices: {
@@ -620,6 +676,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "invoices_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "client_portal_view"
+            referencedColumns: ["client_id"]
+          },
           {
             foreignKeyName: "invoices_client_id_fkey"
             columns: ["client_id"]
@@ -998,8 +1061,22 @@ export type Database = {
             foreignKeyName: "payments_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "client_portal_view"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "payments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "client_portal_view"
+            referencedColumns: ["invoice_id"]
           },
           {
             foreignKeyName: "payments_invoice_id_fkey"
@@ -1244,6 +1321,13 @@ export type Database = {
             foreignKeyName: "user_clients_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "client_portal_view"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "user_clients_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
           },
@@ -1272,6 +1356,53 @@ export type Database = {
       }
     }
     Views: {
+      client_portal_view: {
+        Row: {
+          accepted_terms: boolean | null
+          audiencia_caso_nombre: string | null
+          audiencia_estado: string | null
+          audiencia_fecha: string | null
+          audiencia_hora: string | null
+          audiencia_id: string | null
+          audiencia_juzgado: string | null
+          audiencia_tipo: string | null
+          audiencia_ubicacion: string | null
+          auth_user_id: string | null
+          case_descripcion: string | null
+          case_estado: string | null
+          case_id: string | null
+          case_juzgado: string | null
+          case_materia: string | null
+          case_titulo: string | null
+          client_email: string | null
+          client_id: string | null
+          client_nombre: string | null
+          direccion: string | null
+          document_fecha: string | null
+          document_id: string | null
+          document_materia: string | null
+          document_titulo: string | null
+          etapa_procesal: string | null
+          invoice_concepto: string | null
+          invoice_estado: string | null
+          invoice_fecha: string | null
+          invoice_id: string | null
+          invoice_itbis: number | null
+          invoice_monto: number | null
+          invoice_subtotal: number | null
+          numero_expediente: string | null
+          numero_factura: string | null
+          owner_user_id: string | null
+          payment_concepto: string | null
+          payment_fecha: string | null
+          payment_id: string | null
+          payment_metodo: string | null
+          payment_monto: number | null
+          telefono: string | null
+          tipo_documento: string | null
+        }
+        Relationships: []
+      }
       search_index: {
         Row: {
           created_at: string | null
@@ -1375,6 +1506,16 @@ export type Database = {
           nombre_completo: string
           updated_at: string
           user_id: string
+        }[]
+      }
+      get_client_summary: {
+        Args: { p_client_id: string }
+        Returns: {
+          casos_activos: number
+          proximas_audiencias: number
+          saldo_pendiente: number
+          total_facturado: number
+          total_pagado: number
         }[]
       }
       get_clients_masked: {

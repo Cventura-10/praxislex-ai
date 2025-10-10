@@ -81,6 +81,13 @@ const ClientPortal = () => {
   const { profile: lawFirmProfile } = useLawFirmProfile();
   const [loading, setLoading] = useState(true);
   const [clientData, setClientData] = useState<any>(null);
+  const [summary, setSummary] = useState({
+    casosActivos: 0,
+    proximasAudiencias: 0,
+    totalFacturado: 0,
+    totalPagado: 0,
+    saldoPendiente: 0,
+  });
   const [cases, setCases] = useState<ClientCase[]>([]);
   const [hearings, setHearings] = useState<ClientHearing[]>([]);
   const [invoices, setInvoices] = useState<ClientInvoice[]>([]);
@@ -178,46 +185,101 @@ const ClientPortal = () => {
         setShowTermsDialog(true);
       }
 
-      // Obtener casos del cliente
-      const { data: casesData, error: casesError } = await supabase
-        .from("cases")
-        .select("*")
-        .eq("client_id", clientInfo.id)
-        .order("created_at", { ascending: false });
+      // Obtener resumen usando la función del servidor
+      const { data: summaryData, error: summaryError } = await supabase
+        .rpc('get_client_summary', { p_client_id: clientInfo.id });
 
-      if (casesError) throw casesError;
-      setCases(casesData || []);
-
-      // Obtener audiencias relacionadas
-      const caseIds = casesData?.map(c => c.id) || [];
-      if (caseIds.length > 0) {
-        const { data: hearingsData, error: hearingsError } = await supabase
-          .from("hearings")
-          .select("*")
-          .in("case_id", caseIds)
-          .order("fecha", { ascending: true });
-
-        if (!hearingsError) setHearings(hearingsData || []);
+      if (!summaryError && summaryData && summaryData.length > 0) {
+        const s = summaryData[0];
+        setSummary({
+          casosActivos: Number(s.casos_activos) || 0,
+          proximasAudiencias: Number(s.proximas_audiencias) || 0,
+          totalFacturado: Number(s.total_facturado) || 0,
+          totalPagado: Number(s.total_pagado) || 0,
+          saldoPendiente: Number(s.saldo_pendiente) || 0,
+        });
       }
 
-      // Obtener facturas del cliente
-      const { data: invoicesData, error: invoicesError } = await supabase
-        .from("invoices")
-        .select("*, clients(nombre_completo)")
-        .eq("client_id", clientInfo.id)
-        .order("fecha", { ascending: false });
+      // Obtener datos detallados desde la vista
+      const { data: portalData, error: portalError } = await supabase
+        .from("client_portal_view")
+        .select("*")
+        .eq("client_id", clientInfo.id);
 
-      if (!invoicesError) setInvoices(invoicesData || []);
+      if (portalError) {
+        console.error("Error fetching portal data:", portalError);
+      }
 
-      // Obtener documentos relacionados a los casos
-      if (caseIds.length > 0) {
-        const { data: documentsData, error: documentsError } = await supabase
-          .from("legal_documents")
-          .select("id, tipo_documento, titulo, materia, fecha_generacion")
-          .order("fecha_generacion", { ascending: false })
-          .limit(10);
+      if (portalData && portalData.length > 0) {
+        // Extraer casos únicos
+        const uniqueCases = new Map();
+        portalData.forEach(row => {
+          if (row.case_id && !uniqueCases.has(row.case_id)) {
+            uniqueCases.set(row.case_id, {
+              id: row.case_id,
+              numero_expediente: row.numero_expediente,
+              titulo: row.case_titulo,
+              materia: row.case_materia,
+              juzgado: row.case_juzgado,
+              etapa_procesal: row.etapa_procesal,
+              estado: row.case_estado,
+              descripcion: row.case_descripcion,
+              created_at: clientInfo.created_at,
+              updated_at: clientInfo.updated_at,
+            });
+          }
+        });
+        setCases(Array.from(uniqueCases.values()));
 
-        if (!documentsError) setDocuments(documentsData || []);
+        // Extraer audiencias únicas
+        const uniqueHearings = new Map();
+        portalData.forEach(row => {
+          if (row.audiencia_id && !uniqueHearings.has(row.audiencia_id)) {
+            uniqueHearings.set(row.audiencia_id, {
+              id: row.audiencia_id,
+              caso: row.audiencia_caso_nombre || row.case_titulo || '',
+              fecha: row.audiencia_fecha,
+              hora: row.audiencia_hora,
+              juzgado: row.audiencia_juzgado,
+              tipo: row.audiencia_tipo,
+              ubicacion: row.audiencia_ubicacion,
+              estado: row.audiencia_estado,
+            });
+          }
+        });
+        setHearings(Array.from(uniqueHearings.values()));
+
+        // Extraer facturas únicas
+        const uniqueInvoices = new Map();
+        portalData.forEach(row => {
+          if (row.invoice_id && !uniqueInvoices.has(row.invoice_id)) {
+            uniqueInvoices.set(row.invoice_id, {
+              id: row.invoice_id,
+              numero_factura: row.numero_factura,
+              concepto: row.invoice_concepto,
+              monto: row.invoice_monto,
+              fecha: row.invoice_fecha,
+              estado: row.invoice_estado,
+              clients: { nombre_completo: clientInfo.nombre_completo },
+            });
+          }
+        });
+        setInvoices(Array.from(uniqueInvoices.values()));
+
+        // Extraer documentos únicos
+        const uniqueDocs = new Map();
+        portalData.forEach(row => {
+          if (row.document_id && !uniqueDocs.has(row.document_id)) {
+            uniqueDocs.set(row.document_id, {
+              id: row.document_id,
+              tipo_documento: row.tipo_documento,
+              titulo: row.document_titulo,
+              materia: row.document_materia,
+              fecha_generacion: row.document_fecha,
+            });
+          }
+        });
+        setDocuments(Array.from(uniqueDocs.values()));
       }
 
     } catch (error: any) {
@@ -311,13 +373,8 @@ const ClientPortal = () => {
     }
   };
 
-  const totalPendiente = invoices
-    .filter(inv => inv.estado === "pendiente" || inv.estado === "vencido")
-    .reduce((acc, inv) => acc + inv.monto, 0);
-
-  const totalPagado = invoices
-    .filter(inv => inv.estado === "pagado")
-    .reduce((acc, inv) => acc + inv.monto, 0);
+  const totalPendiente = summary.saldoPendiente;
+  const totalPagado = summary.totalPagado;
 
   if (loading) {
     return (
@@ -380,7 +437,7 @@ const ClientPortal = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{cases.filter(c => c.estado === "activo").length}</div>
+            <div className="text-3xl font-bold">{summary.casosActivos}</div>
           </CardContent>
         </Card>
 
@@ -392,9 +449,7 @@ const ClientPortal = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">
-              {hearings.filter(h => new Date(h.fecha) >= new Date()).length}
-            </div>
+            <div className="text-3xl font-bold">{summary.proximasAudiencias}</div>
           </CardContent>
         </Card>
 
