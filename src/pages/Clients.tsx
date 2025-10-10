@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { clientSchema } from "@/lib/validation";
 import { z } from "zod";
+import { sanitizeErrorMessage } from "@/lib/errorHandling";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
@@ -97,10 +98,9 @@ const Clients = () => {
       if (error) throw error;
       setClients(data || []);
     } catch (error) {
-      console.error("Error fetching clients:", error);
       toast({
         title: "Error",
-        description: "No se pudieron cargar los clientes",
+        description: sanitizeErrorMessage(error),
         variant: "destructive",
       });
     } finally {
@@ -172,7 +172,11 @@ const Clients = () => {
           ]);
 
         if (relationError) {
-          console.error("Error creating user-client relation:", relationError);
+          toast({
+            title: "Advertencia",
+            description: "Cliente creado pero hubo un problema al asociarlo",
+            variant: "destructive",
+          });
         }
       }
 

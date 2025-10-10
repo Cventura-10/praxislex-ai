@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { passwordSchema, calculatePasswordStrength } from "@/lib/validation";
 import { z } from "zod";
+import { sanitizeErrorMessage } from "@/lib/errorHandling";
 
 const LogoHorizontal = ({ className = "" }: { className?: string }) => (
   <svg
@@ -199,10 +200,11 @@ export default function Auth() {
         description: "Tu cuenta gratuita ha sido creada exitosamente.",
       });
     } catch (error: any) {
-      setErrors({ form: error.message });
+      const safeMessage = sanitizeErrorMessage(error);
+      setErrors({ form: safeMessage });
       toast({
         title: "Error al crear cuenta",
-        description: error.message,
+        description: safeMessage,
         variant: "destructive",
       });
     } finally {
@@ -228,10 +230,11 @@ export default function Auth() {
         description: "Has iniciado sesión exitosamente.",
       });
     } catch (error: any) {
-      setErrors({ form: error.message });
+      const safeMessage = sanitizeErrorMessage(error);
+      setErrors({ form: safeMessage });
       toast({
         title: "Error al iniciar sesión",
-        description: error.message,
+        description: safeMessage,
         variant: "destructive",
       });
     } finally {

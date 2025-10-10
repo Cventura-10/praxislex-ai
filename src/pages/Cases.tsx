@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { caseSchema } from "@/lib/validation";
 import { z } from "zod";
+import { sanitizeErrorMessage } from "@/lib/errorHandling";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
@@ -104,10 +105,9 @@ const Cases = () => {
       if (error) throw error;
       setCases(data || []);
     } catch (error) {
-      console.error("Error fetching cases:", error);
       toast({
         title: "Error",
-        description: "No se pudieron cargar los casos",
+        description: sanitizeErrorMessage(error),
         variant: "destructive",
       });
     } finally {
@@ -196,7 +196,7 @@ const Cases = () => {
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message || "No se pudo crear el caso",
+        description: sanitizeErrorMessage(error),
         variant: "destructive",
       });
     }
