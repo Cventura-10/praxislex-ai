@@ -3,6 +3,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { QueryErrorResetBoundary } from "@tanstack/react-query";
+import { ErrorBoundary as ReactErrorBoundary } from "react-error-boundary";
 import { Header } from "@/components/layout/Header";
 import { Navigation } from "@/components/layout/Navigation";
 import { AuthGuard } from "@/components/AuthGuard";
@@ -12,6 +14,9 @@ import { LoadingFallback } from "@/components/LoadingFallback";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { OfflineIndicator } from "@/components/pwa/OfflineIndicator";
 import { UpdatePrompt } from "@/components/pwa/UpdatePrompt";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { AlertCircle, RotateCcw } from "lucide-react";
 
 // Eager load critical routes (auth and dashboard)
 import Auth from "./pages/Auth";
@@ -39,6 +44,25 @@ const Analytics = lazy(() => import("./pages/Analytics"));
 const LegalModels = lazy(() => import("./pages/LegalModels"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
+// React Query Error Fallback
+function RQFallback({ error, resetErrorBoundary }: { error: Error; resetErrorBoundary: () => void }) {
+  return (
+    <div className="flex items-center justify-center min-h-[400px] p-4">
+      <Alert variant="destructive" className="max-w-md">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Error al cargar datos</AlertTitle>
+        <AlertDescription className="mt-2 space-y-3">
+          <p className="text-sm">{error.message}</p>
+          <Button onClick={resetErrorBoundary} variant="outline" className="w-full">
+            <RotateCcw className="mr-2 h-4 w-4" />
+            Reintentar
+          </Button>
+        </AlertDescription>
+      </Alert>
+    </div>
+  );
+}
+
 const App = () => (
   <ErrorBoundary>
     <TooltipProvider>
@@ -64,31 +88,37 @@ const App = () => (
                   <div className="flex">
                     <Navigation />
                     <main className="flex-1 p-6">
-                      <Suspense fallback={<LoadingFallback />}>
-                        <Routes>
-                          <Route path="/" element={<Dashboard />} />
-                          <Route path="/dashboard" element={<Dashboard />} />
-                          <Route path="/casos" element={<Cases />} />
-                          <Route path="/clientes" element={<Clients />} />
-                          <Route path="/audiencias" element={<Hearings />} />
-                          <Route path="/documentos" element={<Documents />} />
-                          <Route path="/jurisprudencia" element={<Jurisprudence />} />
-                          <Route path="/redaccion-ia" element={<AILegalDrafting />} />
-                          <Route path="/contabilidad" element={<Accounting />} />
-                          <Route path="/creditos-pagos" element={<AccountingNew />} />
-                          <Route path="/contabilidad-general" element={<FirmAccounting />} />
-                          <Route path="/configuracion/firma" element={<LawFirmSettings />} />
-                          <Route path="/portal" element={<ClientPortal />} />
-                          <Route path="/facturacion" element={<Billing />} />
-                          <Route path="/perfil" element={<Profile />} />
-                          <Route path="/configuracion" element={<Settings />} />
-                          <Route path="/upgrade" element={<Upgrade />} />
-                          <Route path="/seguridad" element={<Security />} />
-            <Route path="/analytics" element={<Analytics />} />
-            <Route path="/modelos-juridicos" element={<LegalModels />} />
-                          <Route path="*" element={<NotFound />} />
-                        </Routes>
-                      </Suspense>
+                      <QueryErrorResetBoundary>
+                        {({ reset }) => (
+                          <ReactErrorBoundary onReset={reset} FallbackComponent={RQFallback}>
+                            <Suspense fallback={<LoadingFallback />}>
+                              <Routes>
+                                <Route path="/" element={<Dashboard />} />
+                                <Route path="/dashboard" element={<Dashboard />} />
+                                <Route path="/casos" element={<Cases />} />
+                                <Route path="/clientes" element={<Clients />} />
+                                <Route path="/audiencias" element={<Hearings />} />
+                                <Route path="/documentos" element={<Documents />} />
+                                <Route path="/jurisprudencia" element={<Jurisprudence />} />
+                                <Route path="/redaccion-ia" element={<AILegalDrafting />} />
+                                <Route path="/contabilidad" element={<Accounting />} />
+                                <Route path="/creditos-pagos" element={<AccountingNew />} />
+                                <Route path="/contabilidad-general" element={<FirmAccounting />} />
+                                <Route path="/configuracion/firma" element={<LawFirmSettings />} />
+                                <Route path="/portal" element={<ClientPortal />} />
+                                <Route path="/facturacion" element={<Billing />} />
+                                <Route path="/perfil" element={<Profile />} />
+                                <Route path="/configuracion" element={<Settings />} />
+                                <Route path="/upgrade" element={<Upgrade />} />
+                                <Route path="/seguridad" element={<Security />} />
+                                <Route path="/analytics" element={<Analytics />} />
+                                <Route path="/modelos-juridicos" element={<LegalModels />} />
+                                <Route path="*" element={<NotFound />} />
+                              </Routes>
+                            </Suspense>
+                          </ReactErrorBoundary>
+                        )}
+                      </QueryErrorResetBoundary>
                     </main>
                   </div>
                 </div>

@@ -4,6 +4,26 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import App from "./App.tsx";
 import "./index.css";
 
+// Global error handlers
+window.addEventListener('error', (event) => {
+  console.error('[Global Error]', {
+    message: event.message,
+    filename: event.filename,
+    lineno: event.lineno,
+    colno: event.colno,
+    error: event.error,
+    timestamp: new Date().toISOString(),
+  });
+});
+
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('[Unhandled Promise Rejection]', {
+    reason: event.reason,
+    promise: event.promise,
+    timestamp: new Date().toISOString(),
+  });
+});
+
 // Optimized React Query configuration for better performance
 const queryClient = new QueryClient({
   defaultOptions: {

@@ -11,25 +11,33 @@ const PRECACHE_ASSETS = [
 
 // Install event - cache essential assets
 self.addEventListener('install', (event) => {
+  console.log('[SW] Installing new service worker...');
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => cache.addAll(PRECACHE_ASSETS))
-      .then(() => self.skipWaiting())
+      .then(() => {
+        console.log('[SW] Assets precached, calling skipWaiting()');
+        return self.skipWaiting();
+      })
   );
 });
 
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
+  console.log('[SW] Activating new service worker...');
   event.waitUntil(
     caches.keys()
       .then((cacheNames) => {
+        const oldCaches = cacheNames.filter((name) => name.startsWith('praxislex-') && name !== CACHE_NAME);
+        console.log('[SW] Deleting old caches:', oldCaches);
         return Promise.all(
-          cacheNames
-            .filter((name) => name.startsWith('praxislex-') && name !== CACHE_NAME)
-            .map((name) => caches.delete(name))
+          oldCaches.map((name) => caches.delete(name))
         );
       })
-      .then(() => self.clients.claim())
+      .then(() => {
+        console.log('[SW] Taking control of all clients');
+        return self.clients.claim();
+      })
   );
 });
 
@@ -64,6 +72,7 @@ self.addEventListener('fetch', (event) => {
 // Handle skip waiting message
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
+    console.log('[SW] Received SKIP_WAITING message, activating immediately...');
     self.skipWaiting();
   }
 });

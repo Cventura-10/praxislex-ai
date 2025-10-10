@@ -1,6 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { must } from "@/lib/supa";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -30,6 +32,7 @@ import { CaseStatusBadge } from "@/components/cases/CaseStatusBadge";
 import { InvoiceViewer } from "@/components/InvoiceViewer";
 import { useLawFirmProfile } from "@/hooks/useLawFirmProfile";
 import { TermsAndConditionsDialog } from "@/components/TermsAndConditionsDialog";
+import { LoadingFallback } from "@/components/LoadingFallback";
 
 interface ClientCase {
   id: string;
@@ -80,64 +83,39 @@ const ClientPortal = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { profile: lawFirmProfile } = useLawFirmProfile();
-  const [loading, setLoading] = useState(true);
-  const [clientData, setClientData] = useState<any>(null);
-  const [summary, setSummary] = useState({
-    casosActivos: 0,
-    proximasAudiencias: 0,
-    totalFacturado: 0,
-    totalPagado: 0,
-    saldoPendiente: 0,
-  });
-  const [cases, setCases] = useState<ClientCase[]>([]);
-  const [hearings, setHearings] = useState<ClientHearing[]>([]);
-  const [invoices, setInvoices] = useState<ClientInvoice[]>([]);
-  const [documents, setDocuments] = useState<ClientDocument[]>([]);
   const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
   const [showInvoiceViewer, setShowInvoiceViewer] = useState(false);
   const [showTermsDialog, setShowTermsDialog] = useState(false);
 
-  useEffect(() => {
-    fetchClientData();
-  }, []);
-
-  const fetchClientData = async () => {
-    try {
-      setLoading(true);
+  // React Query para obtener datos del portal
+  const { data: portalData, isLoading, isError, error } = useQuery({
+    queryKey: ['client-portal-data'],
+    queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
-        toast({
-          title: "No autenticado",
-          description: "Por favor, inicie sesión para ver sus casos",
-          variant: "destructive",
-        });
-        return;
+        throw new Error('No autenticado. Por favor, inicie sesión.');
       }
 
-      // Primero buscar si ya existe un cliente vinculado a este usuario autenticado
-      let { data: clientInfo, error: clientError } = await supabase
+      // Buscar cliente vinculado
+      let clientInfo = must(await supabase
         .from("clients")
         .select("*")
         .eq("auth_user_id", user.id)
-        .maybeSingle();
+        .maybeSingle());
 
-      // Si no existe por auth_user_id, buscar por user_id (auto-creado)
-      if (!clientInfo && !clientError) {
-        const { data: ownClient } = await supabase
+      // Si no existe, intentar por user_id
+      if (!clientInfo) {
+        clientInfo = must(await supabase
           .from("clients")
           .select("*")
           .eq("user_id", user.id)
-          .maybeSingle();
-        
-        if (ownClient) {
-          clientInfo = ownClient;
-        }
+          .maybeSingle());
       }
 
-      // Si no existe ningún registro, crear uno automáticamente
-      if (!clientInfo && !clientError) {
-        const { data: newClient, error: createError } = await supabase
+      // Si no existe, crear uno
+      if (!clientInfo) {
+        clientInfo = must(await supabase
           .from("clients")
           .insert({
             user_id: user.id,
@@ -147,158 +125,119 @@ const ClientPortal = () => {
             accepted_terms: false,
           })
           .select()
-          .single();
-
-        if (createError) {
-          console.error("Error creating client:", createError);
-          toast({
-            title: "Error al crear perfil",
-            description: "No fue posible crear su perfil de cliente. Intente nuevamente o contacte soporte.",
-            variant: "destructive",
-          });
-          setLoading(false);
-          return;
-        }
-
-        clientInfo = newClient;
-        toast({
-          title: "¡Bienvenido!",
-          description: "Se ha creado su perfil de cliente. Ya puede acceder al portal.",
-        });
+          .single());
       }
 
-      // Si hay un error real de base de datos (no solo "no encontrado")
-      if (clientError) {
-        console.error("Error fetching client:", clientError);
-        toast({
-          title: "Error de acceso",
-          description: "No fue posible validar su perfil. Intente nuevamente o contacte soporte.",
-          variant: "destructive",
-        });
-        setLoading(false);
-        return;
-      }
+      // Obtener resumen
+      const summaryData = must(await supabase
+        .rpc('get_client_summary', { p_client_id: clientInfo.id }));
 
-      setClientData(clientInfo);
+      const summary = summaryData && summaryData.length > 0 ? {
+        casosActivos: Number(summaryData[0].casos_activos) || 0,
+        proximasAudiencias: Number(summaryData[0].proximas_audiencias) || 0,
+        totalFacturado: Number(summaryData[0].total_facturado) || 0,
+        totalPagado: Number(summaryData[0].total_pagado) || 0,
+        saldoPendiente: Number(summaryData[0].saldo_pendiente) || 0,
+      } : {
+        casosActivos: 0,
+        proximasAudiencias: 0,
+        totalFacturado: 0,
+        totalPagado: 0,
+        saldoPendiente: 0,
+      };
 
-      // Verificar si el cliente ha aceptado los términos
-      if (!clientInfo.accepted_terms) {
-        setShowTermsDialog(true);
-      }
-
-      // Obtener resumen usando la función del servidor
-      const { data: summaryData, error: summaryError } = await supabase
-        .rpc('get_client_summary', { p_client_id: clientInfo.id });
-
-      if (!summaryError && summaryData && summaryData.length > 0) {
-        const s = summaryData[0];
-        setSummary({
-          casosActivos: Number(s.casos_activos) || 0,
-          proximasAudiencias: Number(s.proximas_audiencias) || 0,
-          totalFacturado: Number(s.total_facturado) || 0,
-          totalPagado: Number(s.total_pagado) || 0,
-          saldoPendiente: Number(s.saldo_pendiente) || 0,
-        });
-      }
-
-      // Obtener datos detallados desde la vista
-      const { data: portalData, error: portalError } = await supabase
+      // Obtener datos detallados
+      const portalRows = must(await supabase
         .from("client_portal_view")
         .select("*")
-        .eq("client_id", clientInfo.id);
+        .eq("client_id", clientInfo.id));
 
-      if (portalError) {
-        console.error("Error fetching portal data:", portalError);
-      }
+      // Procesar datos
+      const uniqueCases = new Map();
+      const uniqueHearings = new Map();
+      const uniqueInvoices = new Map();
+      const uniqueDocs = new Map();
 
-      if (portalData && portalData.length > 0) {
-        // Extraer casos únicos
-        const uniqueCases = new Map();
-        portalData.forEach(row => {
-          if (row.case_id && !uniqueCases.has(row.case_id)) {
-            uniqueCases.set(row.case_id, {
-              id: row.case_id,
-              numero_expediente: row.numero_expediente,
-              titulo: row.case_titulo,
-              materia: row.case_materia,
-              juzgado: row.case_juzgado,
-              etapa_procesal: row.etapa_procesal,
-              estado: row.case_estado,
-              descripcion: row.case_descripcion,
-              created_at: clientInfo.created_at,
-              updated_at: clientInfo.updated_at,
-            });
-          }
-        });
-        setCases(Array.from(uniqueCases.values()));
+      portalRows.forEach(row => {
+        if (row.case_id && !uniqueCases.has(row.case_id)) {
+          uniqueCases.set(row.case_id, {
+            id: row.case_id,
+            numero_expediente: row.numero_expediente,
+            titulo: row.case_titulo,
+            materia: row.case_materia,
+            juzgado: row.case_juzgado,
+            etapa_procesal: row.etapa_procesal,
+            estado: row.case_estado,
+            descripcion: row.case_descripcion,
+            created_at: clientInfo.created_at,
+            updated_at: clientInfo.updated_at,
+          });
+        }
 
-        // Extraer audiencias únicas
-        const uniqueHearings = new Map();
-        portalData.forEach(row => {
-          if (row.audiencia_id && !uniqueHearings.has(row.audiencia_id)) {
-            uniqueHearings.set(row.audiencia_id, {
-              id: row.audiencia_id,
-              caso: row.audiencia_caso_nombre || row.case_titulo || '',
-              fecha: row.audiencia_fecha,
-              hora: row.audiencia_hora,
-              juzgado: row.audiencia_juzgado,
-              tipo: row.audiencia_tipo,
-              ubicacion: row.audiencia_ubicacion,
-              estado: row.audiencia_estado,
-            });
-          }
-        });
-        setHearings(Array.from(uniqueHearings.values()));
+        if (row.audiencia_id && !uniqueHearings.has(row.audiencia_id)) {
+          uniqueHearings.set(row.audiencia_id, {
+            id: row.audiencia_id,
+            caso: row.audiencia_caso_nombre || row.case_titulo || '',
+            fecha: row.audiencia_fecha,
+            hora: row.audiencia_hora,
+            juzgado: row.audiencia_juzgado,
+            tipo: row.audiencia_tipo,
+            ubicacion: row.audiencia_ubicacion,
+            estado: row.audiencia_estado,
+          });
+        }
 
-        // Extraer facturas únicas
-        const uniqueInvoices = new Map();
-        portalData.forEach(row => {
-          if (row.invoice_id && !uniqueInvoices.has(row.invoice_id)) {
-            uniqueInvoices.set(row.invoice_id, {
-              id: row.invoice_id,
-              numero_factura: row.numero_factura,
-              concepto: row.invoice_concepto,
-              monto: row.invoice_monto,
-              fecha: row.invoice_fecha,
-              estado: row.invoice_estado,
-              clients: { nombre_completo: clientInfo.nombre_completo },
-            });
-          }
-        });
-        setInvoices(Array.from(uniqueInvoices.values()));
+        if (row.invoice_id && !uniqueInvoices.has(row.invoice_id)) {
+          uniqueInvoices.set(row.invoice_id, {
+            id: row.invoice_id,
+            numero_factura: row.numero_factura,
+            concepto: row.invoice_concepto,
+            monto: row.invoice_monto,
+            fecha: row.invoice_fecha,
+            estado: row.invoice_estado,
+            clients: { nombre_completo: clientInfo.nombre_completo },
+          });
+        }
 
-        // Extraer documentos únicos
-        const uniqueDocs = new Map();
-        portalData.forEach(row => {
-          if (row.document_id && !uniqueDocs.has(row.document_id)) {
-            uniqueDocs.set(row.document_id, {
-              id: row.document_id,
-              tipo_documento: row.tipo_documento,
-              titulo: row.document_titulo,
-              materia: row.document_materia,
-              fecha_generacion: row.document_fecha,
-            });
-          }
-        });
-        setDocuments(Array.from(uniqueDocs.values()));
-      }
-
-    } catch (error: any) {
-      console.error("Error fetching client data:", error);
-      toast({
-        title: "Error",
-        description: "No se pudieron cargar los datos del cliente",
-        variant: "destructive",
+        if (row.document_id && !uniqueDocs.has(row.document_id)) {
+          uniqueDocs.set(row.document_id, {
+            id: row.document_id,
+            tipo_documento: row.tipo_documento,
+            titulo: row.document_titulo,
+            materia: row.document_materia,
+            fecha_generacion: row.document_fecha,
+          });
+        }
       });
-    } finally {
-      setLoading(false);
-    }
-  };
+
+      return {
+        clientInfo,
+        summary,
+        cases: Array.from(uniqueCases.values()),
+        hearings: Array.from(uniqueHearings.values()),
+        invoices: Array.from(uniqueInvoices.values()),
+        documents: Array.from(uniqueDocs.values()),
+      };
+    },
+    throwOnError: true,
+  });
+
+  // Si hay carga, mostrar loading
+  if (isLoading) {
+    return <LoadingFallback />;
+  }
+
+  // Si hay error, React Query Error Boundary lo manejará
+  if (isError) {
+    throw error;
+  }
+
+  const { clientInfo, summary, cases, hearings, invoices, documents } = portalData;
 
   const handleAcceptTerms = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user || !clientData) return;
+      if (!user || !clientInfo) return;
 
       const { error } = await supabase
         .from("clients")
@@ -306,7 +245,7 @@ const ClientPortal = () => {
           accepted_terms: true,
           terms_accepted_at: new Date().toISOString(),
         })
-        .eq("id", clientData.id);
+        .eq("id", clientInfo.id);
 
       if (error) throw error;
 
@@ -315,8 +254,6 @@ const ClientPortal = () => {
         title: "Términos aceptados",
         description: "Bienvenido al portal del cliente",
       });
-      
-      fetchClientData();
     } catch (error: any) {
       toast({
         title: "Error",
@@ -377,34 +314,6 @@ const ClientPortal = () => {
   const totalPendiente = summary.saldoPendiente;
   const totalPagado = summary.totalPagado;
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Cargando información...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!clientData) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Card className="max-w-md">
-          <CardContent className="pt-6 text-center">
-            <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h2 className="text-xl font-semibold mb-2">Acceso no disponible</h2>
-            <p className="text-muted-foreground">
-              No se encontró información de cliente asociada a su cuenta.
-              Por favor, contacte con su abogado.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   return (
     <>
       <TermsAndConditionsDialog 
@@ -422,7 +331,7 @@ const ClientPortal = () => {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Portal del Cliente</h1>
             <p className="text-muted-foreground mt-1">
-              Bienvenido, {clientData.nombre_completo}
+              Bienvenido, {clientInfo.nombre_completo}
             </p>
           </div>
         </div>
