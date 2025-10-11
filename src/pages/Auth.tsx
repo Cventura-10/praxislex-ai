@@ -193,12 +193,26 @@ export default function Auth() {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        // Mensaje específico para usuario ya registrado
+        if (error.message.includes("User already registered") || 
+            error.message.includes("already exists") ||
+            error.message.includes("duplicate")) {
+          throw new Error(`El correo ${email} ya está registrado. Por favor inicia sesión o usa otro correo.`);
+        }
+        throw error;
+      }
 
       toast({
         title: "¡Cuenta creada!",
         description: "Tu cuenta gratuita ha sido creada exitosamente.",
       });
+      
+      // Limpiar formulario después del registro exitoso
+      setEmail("");
+      setPassword("");
+      setConfirmPassword("");
+      setFullName("");
     } catch (error: any) {
       const safeMessage = sanitizeErrorMessage(error);
       setErrors({ form: safeMessage });
