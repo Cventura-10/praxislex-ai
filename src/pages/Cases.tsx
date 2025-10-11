@@ -64,6 +64,8 @@ const Cases = () => {
   const [clients, setClients] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showNewCaseDialog, setShowNewCaseDialog] = useState(false);
+  const [showViewCaseDialog, setShowViewCaseDialog] = useState(false);
+  const [selectedCase, setSelectedCase] = useState<Case | null>(null);
 
   const [newCase, setNewCase] = useState({
     numero_expediente: "", // Will be auto-generated if empty
@@ -202,11 +204,12 @@ const Cases = () => {
     }
   };
 
-  const handleViewCase = (caseId: string, titulo: string) => {
-    toast({
-      title: "Ver caso",
-      description: `Abriendo detalles de: ${titulo}`,
-    });
+  const handleViewCase = (caseId: string) => {
+    const caso = cases.find(c => c.id === caseId);
+    if (caso) {
+      setSelectedCase(caso);
+      setShowViewCaseDialog(true);
+    }
   };
 
   const handleEditCase = (caseId: string, titulo: string) => {
@@ -479,7 +482,7 @@ const Cases = () => {
                     <TableCell className="text-sm">{caso.responsable || "N/A"}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="icon" onClick={() => handleViewCase(caso.id, caso.titulo)}>
+                        <Button variant="ghost" size="icon" onClick={() => handleViewCase(caso.id)}>
                           <Eye className="h-4 w-4" />
                         </Button>
                         <Button variant="ghost" size="icon" onClick={() => handleEditCase(caso.id, caso.titulo)}>
@@ -503,6 +506,103 @@ const Cases = () => {
           Mostrando {filteredCases.length} de {cases.length} casos
         </p>
       </div>
+
+      {/* Case Detail Dialog */}
+      <Dialog open={showViewCaseDialog} onOpenChange={setShowViewCaseDialog}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Detalles del Caso</DialogTitle>
+            <DialogDescription>
+              Información completa del expediente
+            </DialogDescription>
+          </DialogHeader>
+          {selectedCase && (
+            <div className="grid gap-6 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-muted-foreground">Número de Expediente</Label>
+                  <p className="font-mono text-sm font-semibold">{selectedCase.numero_expediente}</p>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-muted-foreground">Estado</Label>
+                  <CaseStatusBadge status={(selectedCase.etapa_procesal || 'activo') as any} />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-muted-foreground">Título del Caso</Label>
+                <p className="text-lg font-semibold">{selectedCase.titulo}</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-muted-foreground">Cliente</Label>
+                  <p className="font-medium">{selectedCase.clients?.nombre_completo || "Sin cliente asignado"}</p>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-muted-foreground">Materia</Label>
+                  <span className="inline-flex rounded-full px-3 py-1 text-sm font-medium bg-secondary/20 text-secondary-foreground">
+                    {selectedCase.materia}
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-muted-foreground">Juzgado</Label>
+                  <p>{selectedCase.juzgado || "No especificado"}</p>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-muted-foreground">Etapa Procesal</Label>
+                  <p>{selectedCase.etapa_procesal || "No especificada"}</p>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-muted-foreground">Responsable</Label>
+                <p>{selectedCase.responsable || "No asignado"}</p>
+              </div>
+
+              {selectedCase.descripcion && (
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-muted-foreground">Descripción</Label>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{selectedCase.descripcion}</p>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-4 pt-4 border-t">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-muted-foreground">Fecha de Creación</Label>
+                  <p className="text-sm">{new Date(selectedCase.created_at).toLocaleDateString('es-ES', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  })}</p>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-muted-foreground">Última Actualización</Label>
+                  <p className="text-sm">{new Date(selectedCase.updated_at).toLocaleDateString('es-ES', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  })}</p>
+                </div>
+              </div>
+            </div>
+          )}
+          <div className="flex justify-end gap-2 pt-4 border-t">
+            <Button variant="outline" onClick={() => setShowViewCaseDialog(false)}>
+              Cerrar
+            </Button>
+            <Button onClick={() => {
+              setShowViewCaseDialog(false);
+              if (selectedCase) handleEditCase(selectedCase.id, selectedCase.titulo);
+            }}>
+              Editar Caso
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
