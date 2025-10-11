@@ -90,6 +90,12 @@ serve(async (req) => {
 
     const systemPrompt = `Eres el asistente operativo de PraxisLex, un sistema de gestión jurídica.
 
+REGLAS NLU CRÍTICAS:
+- "instancia jurídica", "expediente", "abrir caso", "iniciar proceso", "crear proceso", "nuevo caso", "hacer un caso" → intent: create_case
+- "el caso de [nombre]", "expediente para [nombre]", "proceso de [nombre]" → extraer client_name del nombre mencionado
+- Si detectas un nombre de cliente en minúsculas, capitalízalo (ej: "joan pimentel" → "Joan Pimentel")
+- Cuando el usuario da una orden directa e imperativa (ej: "hacer una instancia jurídica"), establece "auto_confirm": true
+
 Puedes:
 1. Responder preguntas sobre el sistema
 2. Guiar a los usuarios en sus tareas
@@ -99,11 +105,26 @@ Cuando detectes una intención clara de crear algo, responde en formato JSON:
 {
   "intent": "tipo_de_accion",
   "params": { datos_necesarios },
+  "auto_confirm": boolean,
   "confirmation": "Mensaje de confirmación para el usuario"
 }
 
+Para create_case, SIEMPRE incluir:
+{
+  "intent": "create_case",
+  "params": {
+    "client_id": "uuid | null",
+    "client_name": "string | null",
+    "case_title": "string",
+    "description": "string | null",
+    "materia": "string | null"
+  },
+  "auto_confirm": true/false,
+  "confirmation": "Mensaje claro"
+}
+
 Intenciones soportadas:
-- create_case: Crear nuevo caso jurídico
+- create_case: Crear nuevo caso jurídico / instancia / expediente
 - create_hearing: Crear audiencia
 - create_invoice: Crear factura
 - create_document: Crear documento legal
@@ -246,25 +267,94 @@ Contexto del usuario: ${context || "Sin contexto adicional"}`;
           }
 
           case "create_case": {
-            const validated = CreateCaseSchema.parse(reply.params);
+            // 1) Extraer y normalizar parámetros
+            const { client_id, client_name, case_title, description, materia } = reply.params;
+            
+            // 2) Resolver client_id por nombre si no viene
+            let foundClientId = client_id;
+            
+            if (!foundClientId && client_name) {
+              // Capitalizar nombre si viene en minúsculas
+              const normalizedName = client_name
+                .split(' ')
+                .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                .join(' ');
+              
+              const { data: matches } = await supabaseAdmin
+                .from("clients")
+                .select("id, nombre_completo")
+                .ilike("nombre_completo", `%${normalizedName}%`)
+                .limit(5);
+              
+              if (matches && matches.length === 1) {
+                // Coincidencia única
+                foundClientId = matches[0].id;
+              } else if (matches && matches.length > 1) {
+                // Múltiples coincidencias - necesita desambiguación
+                return new Response(
+                  JSON.stringify({
+                    mode: "disambiguation",
+                    intent: "create_case",
+                    choices: matches.map(c => ({ id: c.id, nombre: c.nombre_completo })),
+                    message: `Encontré varios clientes con nombres similares a "${normalizedName}". ¿Cuál es el correcto?`,
+                    pending_params: { case_title, description, materia }
+                  }),
+                  { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+                );
+              } else {
+                // No existe - crear cliente placeholder
+                const { data: newClient } = await supabaseAdmin
+                  .from("clients")
+                  .insert({ 
+                    user_id: user.id,
+                    nombre_completo: normalizedName 
+                  })
+                  .select("id, nombre_completo")
+                  .single();
+                
+                foundClientId = newClient?.id || null;
+              }
+            }
+            
+            if (!foundClientId) {
+              return new Response(
+                JSON.stringify({
+                  mode: "need_more_info",
+                  intent: "create_case",
+                  message: "Necesito identificar al cliente. Por favor, dime el nombre completo del cliente para este caso.",
+                  pending_params: { case_title, description, materia }
+                }),
+                { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+              );
+            }
+            
+            // 3) Validar y sanitizar datos
+            const validated = CreateCaseSchema.parse({
+              titulo: case_title || "Nuevo Expediente",
+              client_id: foundClientId,
+              materia: materia || "General",
+              descripcion: description || ""
+            });
+            
             const sanitized = {
               ...validated,
               titulo: sanitizeText(validated.titulo, 200),
               descripcion: validated.descripcion ? sanitizeText(validated.descripcion, 2000) : "",
-              materia: validated.materia ? sanitizeText(validated.materia, 100) : "General",
+              materia: sanitizeText(validated.materia || "General", 100),
             };
             
+            // 4) Crear el caso (case_number se genera por trigger)
             result = await supabaseAdmin
               .from("cases")
               .insert({
                 user_id: user.id,
-                client_id: sanitized.client_id || null,
+                client_id: sanitized.client_id,
                 titulo: sanitized.titulo,
                 descripcion: sanitized.descripcion,
                 materia: sanitized.materia,
                 estado: "activo",
               })
-              .select()
+              .select("id, case_number, titulo")
               .single();
             
             caseNumber = result.data?.case_number || null;
@@ -377,13 +467,19 @@ Contexto del usuario: ${context || "Sin contexto adicional"}`;
           case_number: caseNumber,
         });
 
-        const expedienteMsg = caseNumber ? ` Expediente: ${caseNumber}` : "";
+        // Mensaje de confirmación mejorado para casos
+        let confirmationMsg = reply.confirmation || "Operación completada";
+        if (reply.intent === "create_case" && caseNumber) {
+          confirmationMsg = `Expediente creado: ${result.data?.titulo} — Nº ${caseNumber}`;
+        } else if (caseNumber) {
+          confirmationMsg = `${confirmationMsg}. Expediente: ${caseNumber}`;
+        }
         
         return new Response(
           JSON.stringify({
             mode: "action",
             intent: reply.intent,
-            confirmation: `${reply.confirmation || "Operación completada"}.${expedienteMsg}`,
+            confirmation: confirmationMsg,
             result: result.data,
           }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }

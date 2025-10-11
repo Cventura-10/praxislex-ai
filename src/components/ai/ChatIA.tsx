@@ -62,6 +62,28 @@ export function ChatIA({ context, onAction }: ChatIAProps) {
 
         // Callback opcional para que el padre maneje la acción
         onAction?.(data.intent, data.result);
+      } else if (data.mode === "disambiguation") {
+        // Múltiples clientes coinciden - mostrar opciones
+        const choicesText = data.choices
+          .map((c: any, idx: number) => `${idx + 1}. ${c.nombre}`)
+          .join("\n");
+        
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            content: `${data.message}\n\n${choicesText}\n\nResponde con el número del cliente correcto.`,
+          },
+        ]);
+      } else if (data.mode === "need_more_info") {
+        // Necesita más información
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            content: data.message,
+          },
+        ]);
       } else if (data.mode === "error") {
         toast.error("Error", {
           description: data.reply,
