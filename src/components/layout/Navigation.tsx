@@ -15,6 +15,7 @@ import {
   Upload,
   BarChart3,
   Bot,
+  FileStack,
 } from "lucide-react";
 
 const navItems = [
@@ -23,6 +24,7 @@ const navItems = [
   { href: "/clientes", icon: Users, label: "Clientes" },
   { href: "/audiencias", icon: Calendar, label: "Audiencias" },
   { href: "/documentos", icon: FileText, label: "Documentos" },
+  { href: "/generador-actos", icon: FileStack, label: "Generador de Actos" },
   { href: "/redaccion-ia", icon: Sparkles, label: "Redacción IA" },
   { href: "/asistente-ia", icon: Bot, label: "Asistente IA" },
   { href: "/modelos-juridicos", icon: Upload, label: "Modelos Jurídicos" },
