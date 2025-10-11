@@ -65,143 +65,133 @@ export default function LegalActsGenerator() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate("/dashboard")}
-                className="hover:bg-muted"
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <div>
-                <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
-                  <Scale className="h-6 w-6 text-primary" />
-                  Generador de Actos Procesales
-                </h1>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Redacción asistida o manual de documentos jurídicos
-                </p>
-              </div>
-            </div>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate("/dashboard")}
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+              <Scale className="h-6 w-6 text-primary" />
+              Generador de Actos Procesales
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              Redacción asistida o manual de documentos jurídicos
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-6xl mx-auto">
-          {/* Search Bar */}
-          <Card className="mb-8 shadow-lg border-primary/10">
-            <CardContent className="p-6">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar acto procesal o extrajudicial..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 h-12 text-base bg-background"
-                />
-              </div>
+      {/* Search Bar */}
+      <Card className="shadow-lg border-primary/10">
+        <CardContent className="p-6">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <Input
+              placeholder="Buscar acto procesal o extrajudicial..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 h-12 text-base bg-background"
+            />
+          </div>
 
-              {/* Search Results */}
-              {filteredResults && filteredResults.length > 0 && (
-                <ScrollArea className="mt-4 h-64 rounded-md border bg-muted/30">
-                  <div className="p-2 space-y-1">
-                    {filteredResults.map((result, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => {
-                          handleActClick(result.act);
-                          setSearchQuery("");
-                        }}
-                        className="w-full text-left px-3 py-2.5 rounded-lg hover:bg-background transition-colors flex items-center justify-between group"
-                      >
-                        <div className="flex-1">
-                          <p className="font-medium text-foreground group-hover:text-primary transition-colors">
-                            {result.act.name}
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-0.5">
-                            {result.category} • {result.matter}
-                          </p>
-                        </div>
-                        <Badge variant={result.act.type === 'judicial' ? 'default' : 'secondary'} className="ml-2">
-                          {result.act.type === 'judicial' ? 'JUDICIAL' : 'EXTRAJUDICIAL'}
-                        </Badge>
-                      </button>
+          {/* Search Results */}
+          {filteredResults && filteredResults.length > 0 && (
+            <ScrollArea className="mt-4 h-64 rounded-md border bg-muted/30">
+              <div className="p-2 space-y-1">
+                {filteredResults.map((result, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => {
+                      handleActClick(result.act);
+                      setSearchQuery("");
+                    }}
+                    className="w-full text-left px-3 py-2.5 rounded-lg hover:bg-background transition-colors flex items-center justify-between group"
+                  >
+                    <div className="flex-1">
+                      <p className="font-medium text-foreground group-hover:text-primary transition-colors">
+                        {result.act.name}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {result.category} • {result.matter}
+                      </p>
+                    </div>
+                    <Badge variant={result.act.type === 'judicial' ? 'default' : 'secondary'} className="ml-2">
+                      {result.act.type === 'judicial' ? 'JUDICIAL' : 'EXTRAJUDICIAL'}
+                    </Badge>
+                  </button>
+                ))}
+              </div>
+            </ScrollArea>
+          )}
+          {filteredResults && filteredResults.length === 0 && (
+            <p className="text-center text-muted-foreground text-sm mt-4">
+              No se encontraron actos que coincidan con "{searchQuery}"
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Hierarchical Navigation */}
+      <div className="grid gap-6">
+        {LEGAL_CATEGORIES.map((category) => (
+          <Card key={category.id} className="overflow-hidden shadow-md">
+            <Collapsible
+              open={expandedCategories.includes(category.id)}
+              onOpenChange={() => toggleCategory(category.id)}
+            >
+              <CollapsibleTrigger className="w-full">
+                <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded-lg ${
+                        category.type === 'judicial' 
+                          ? 'bg-primary/10 text-primary' 
+                          : 'bg-secondary/10 text-secondary-foreground'
+                      }`}>
+                        {category.type === 'judicial' ? (
+                          <Scale className="h-5 w-5" />
+                        ) : (
+                          <FileText className="h-5 w-5" />
+                        )}
+                      </div>
+                      <div className="text-left">
+                        <CardTitle className="text-xl">{category.name}</CardTitle>
+                        <CardDescription className="mt-1">
+                          {category.matters.length} materias • {category.matters.reduce((acc, m) => acc + m.acts.length, 0)} actos disponibles
+                        </CardDescription>
+                      </div>
+                    </div>
+                    <ChevronRight className={`h-5 w-5 text-muted-foreground transition-transform ${
+                      expandedCategories.includes(category.id) ? 'rotate-90' : ''
+                    }`} />
+                  </div>
+                </CardHeader>
+              </CollapsibleTrigger>
+
+              <CollapsibleContent>
+                <CardContent className="pt-0 pb-6">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {category.matters.map((matter) => (
+                      <MatterCard
+                        key={matter.id}
+                        matter={matter}
+                        onActClick={handleActClick}
+                        IconComponent={IconComponent}
+                      />
                     ))}
                   </div>
-                </ScrollArea>
-              )}
-              {filteredResults && filteredResults.length === 0 && (
-                <p className="text-center text-muted-foreground text-sm mt-4">
-                  No se encontraron actos que coincidan con "{searchQuery}"
-                </p>
-              )}
-            </CardContent>
+                </CardContent>
+              </CollapsibleContent>
+            </Collapsible>
           </Card>
-
-          {/* Hierarchical Navigation */}
-          <div className="grid gap-6">
-            {LEGAL_CATEGORIES.map((category) => (
-              <Card key={category.id} className="overflow-hidden shadow-md">
-                <Collapsible
-                  open={expandedCategories.includes(category.id)}
-                  onOpenChange={() => toggleCategory(category.id)}
-                >
-                  <CollapsibleTrigger className="w-full">
-                    <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className={`p-2 rounded-lg ${
-                            category.type === 'judicial' 
-                              ? 'bg-primary/10 text-primary' 
-                              : 'bg-secondary/10 text-secondary-foreground'
-                          }`}>
-                            {category.type === 'judicial' ? (
-                              <Scale className="h-5 w-5" />
-                            ) : (
-                              <FileText className="h-5 w-5" />
-                            )}
-                          </div>
-                          <div className="text-left">
-                            <CardTitle className="text-xl">{category.name}</CardTitle>
-                            <CardDescription className="mt-1">
-                              {category.matters.length} materias • {category.matters.reduce((acc, m) => acc + m.acts.length, 0)} actos disponibles
-                            </CardDescription>
-                          </div>
-                        </div>
-                        <ChevronRight className={`h-5 w-5 text-muted-foreground transition-transform ${
-                          expandedCategories.includes(category.id) ? 'rotate-90' : ''
-                        }`} />
-                      </div>
-                    </CardHeader>
-                  </CollapsibleTrigger>
-
-                  <CollapsibleContent>
-                    <CardContent className="pt-0 pb-6">
-                      <div className="grid md:grid-cols-2 gap-4">
-                        {category.matters.map((matter) => (
-                          <MatterCard
-                            key={matter.id}
-                            matter={matter}
-                            onActClick={handleActClick}
-                            IconComponent={IconComponent}
-                          />
-                        ))}
-                      </div>
-                    </CardContent>
-                  </CollapsibleContent>
-                </Collapsible>
-              </Card>
-            ))}
-          </div>
-        </div>
+        ))}
       </div>
 
       {/* Dialog para seleccionar modo de redacción */}
