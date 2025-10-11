@@ -107,13 +107,14 @@ const App = () => (
                                 <Route path="/audiencias" element={<Hearings />} />
                                 <Route path="/documentos" element={<Documents />} />
                                 <Route path="/jurisprudencia" element={<Jurisprudence />} />
-                                <Route path="/redaccion-ia" element={<AILegalDrafting />} />
+                                <Route path="/redaccion-ia-clasico" element={<AILegalDrafting />} />
                                 <Route path="/asistente-ia" element={<AssistantIA />} />
                                 <Route path="/contabilidad" element={<Accounting />} />
                                 <Route path="/creditos-pagos" element={<AccountingNew />} />
                                 <Route path="/contabilidad-general" element={<FirmAccounting />} />
                                 <Route path="/configuracion/firma" element={<LawFirmSettings />} />
                                 <Route path="/portal" element={<ClientPortal />} />
+                                <Route path="/client-portal" element={<ClientPortal />} />
                                 <Route path="/facturacion" element={<Billing />} />
                                 <Route path="/perfil" element={<Profile />} />
                                 <Route path="/configuracion" element={<Settings />} />
@@ -121,8 +122,8 @@ const App = () => (
                                 <Route path="/seguridad" element={<Security />} />
                                 <Route path="/analytics" element={<Analytics />} />
                                 <Route path="/modelos-juridicos" element={<LegalModels />} />
-          <Route path="/generador-actos" element={<LegalActsGenerator />} />
-          <Route path="/redaccion-ia" element={<LegalActWizard />} />
+                                <Route path="/generador-actos" element={<LegalActsGenerator />} />
+                                <Route path="/redaccion-ia" element={<LegalActWizard />} />
                                 <Route path="*" element={<NotFound />} />
                               </Routes>
                             </Suspense>

@@ -19,13 +19,12 @@ import {
 } from "lucide-react";
 
 const navItems = [
-  { href: "/", icon: LayoutDashboard, label: "Dashboard" },
+  { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/casos", icon: Briefcase, label: "Casos" },
   { href: "/clientes", icon: Users, label: "Clientes" },
   { href: "/audiencias", icon: Calendar, label: "Audiencias" },
   { href: "/documentos", icon: FileText, label: "Documentos" },
   { href: "/generador-actos", icon: FileStack, label: "Generador de Actos" },
-  { href: "/redaccion-ia", icon: Sparkles, label: "Redacción IA" },
   { href: "/asistente-ia", icon: Bot, label: "Asistente IA" },
   { href: "/modelos-juridicos", icon: Upload, label: "Modelos Jurídicos" },
   { href: "/jurisprudencia", icon: Scale, label: "Jurisprudencia" },
@@ -33,6 +32,7 @@ const navItems = [
   { href: "/portal", icon: UserCircle, label: "Portal Cliente" },
   { href: "/facturacion", icon: CreditCard, label: "Facturación" },
   { href: "/seguridad", icon: Shield, label: "Seguridad" },
+  { href: "/analytics", icon: BarChart3, label: "Analítica" },
 ];
 
 export function Navigation() {
