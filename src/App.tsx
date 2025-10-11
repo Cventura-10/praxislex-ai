@@ -17,6 +17,7 @@ import { PWAInstallBanner } from "@/components/pwa/PWAInstallBanner";
 import { OfflineIndicator } from "@/components/pwa/OfflineIndicator";
 import { UpdatePrompt } from "@/components/pwa/UpdatePrompt";
 import { FloatingAIWidget } from "@/components/ai/FloatingAIWidget";
+import { HealthMonitor } from "@/components/system/HealthMonitor";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, RotateCcw } from "lucide-react";
@@ -80,6 +81,7 @@ const App = () => (
         <OfflineIndicator />
         <UpdatePrompt />
         <FloatingAIWidget />
+        <HealthMonitor />
         <BrowserRouter>
         <Routes>
           {/* Public routes */}
