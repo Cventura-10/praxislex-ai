@@ -54,6 +54,8 @@ const Hearings = () => {
   const [loading, setLoading] = useState(true);
   const [showNewHearingDialog, setShowNewHearingDialog] = useState(false);
   const [showNewDeadlineDialog, setShowNewDeadlineDialog] = useState(false);
+  const [hearingCalendarOpen, setHearingCalendarOpen] = useState(false);
+  const [deadlineCalendarOpen, setDeadlineCalendarOpen] = useState(false);
 
   const hearingForm = useForm<HearingInput>({
     resolver: zodResolver(HearingSchema),
@@ -340,7 +342,7 @@ const Hearings = () => {
                 </div>
                 <div className="grid gap-2">
                   <Label>Fecha *</Label>
-                  <Popover>
+                  <Popover open={hearingCalendarOpen} onOpenChange={setHearingCalendarOpen}>
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
@@ -360,6 +362,7 @@ const Hearings = () => {
                         onSelect={(date) => {
                           if (date) {
                             hearingForm.setValue("fecha", format(date, "yyyy-MM-dd"), { shouldValidate: true });
+                            setHearingCalendarOpen(false);
                           }
                         }}
                         initialFocus
@@ -542,7 +545,7 @@ const Hearings = () => {
                     </div>
                     <div className="grid gap-2">
                       <Label>Fecha de Vencimiento *</Label>
-                      <Popover>
+                      <Popover open={deadlineCalendarOpen} onOpenChange={setDeadlineCalendarOpen}>
                         <PopoverTrigger asChild>
                           <Button
                             variant="outline"
@@ -562,6 +565,7 @@ const Hearings = () => {
                             onSelect={(date) => {
                               if (date) {
                                 deadlineForm.setValue("fecha_vencimiento", format(date, "yyyy-MM-dd"), { shouldValidate: true });
+                                setDeadlineCalendarOpen(false);
                               }
                             }}
                             initialFocus
