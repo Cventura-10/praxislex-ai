@@ -34,14 +34,40 @@ export function useOfflineSync() {
     }
   }, []);
 
-  // Guardar operaciones pendientes en localStorage
+  // Sanitize operation data to remove PII before localStorage
+  const sanitizeOperationData = (data: any): any => {
+    if (!data || typeof data !== 'object') return data;
+    
+    const sanitized = { ...data };
+    // Remove PII fields that should never be cached offline
+    const piiFields = ['cedula_rnc_encrypted', 'cedula_rnc', 'email', 'telefono', 'direccion'];
+    piiFields.forEach(field => {
+      if (field in sanitized) {
+        delete sanitized[field];
+      }
+    });
+    return sanitized;
+  };
+
+  // Guardar operaciones pendientes en localStorage (sin PII)
   useEffect(() => {
     if (pendingOps.length > 0) {
-      localStorage.setItem("offline_pending_ops", JSON.stringify(pendingOps));
-      console.log("[OfflineSync] Saved", pendingOps.length, "pending operations");
+      const sanitizedOps = pendingOps.map(op => ({
+        ...op,
+        data: sanitizeOperationData(op.data)
+      }));
+      localStorage.setItem("offline_pending_ops", JSON.stringify(sanitizedOps));
+      console.log("[OfflineSync] Saved", pendingOps.length, "pending operations (PII removed)");
     } else {
       localStorage.removeItem("offline_pending_ops");
     }
+
+    // Cleanup on window unload for security
+    const handleUnload = () => {
+      localStorage.removeItem('offline_pending_ops');
+    };
+    window.addEventListener('beforeunload', handleUnload);
+    return () => window.removeEventListener('beforeunload', handleUnload);
   }, [pendingOps]);
 
   // Sincronizar al reconectar

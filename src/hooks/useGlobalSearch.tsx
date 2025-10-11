@@ -56,9 +56,19 @@ export function useGlobalSearch() {
 
       setResults(typedResults);
 
-      // Save to recent searches
+      // Sanitize search query before saving to prevent PII storage
+      const sanitizeQuery = (q: string) => {
+        return q
+          .replace(/\b\d{3}-\d{7}-\d\b/g, '[CEDULA]') // Dominican cédula pattern
+          .replace(/\b[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+\b/gi, '[NOMBRE]') // Full names
+          .replace(/\b[\w._%+-]+@[\w.-]+\.[A-Z|a-z]{2,}\b/g, '[EMAIL]') // Emails
+          .replace(/\b\d{3}[-.]?\d{3}[-.]?\d{4}\b/g, '[TELEFONO]'); // Phone numbers
+      };
+
+      // Save to recent searches with sanitized query
       if (typedResults.length > 0) {
-        const recent = [searchQuery, ...recentSearches.filter(r => r !== searchQuery)].slice(0, 5);
+        const sanitized = sanitizeQuery(searchQuery);
+        const recent = [sanitized, ...recentSearches.filter(r => r !== sanitized)].slice(0, 5);
         setRecentSearches(recent);
         localStorage.setItem('praxislex-recent-searches', JSON.stringify(recent));
       }
@@ -92,6 +102,13 @@ export function useGlobalSearch() {
         console.error('Error loading recent searches:', e);
       }
     }
+
+    // Cleanup on window unload for security
+    const handleUnload = () => {
+      localStorage.removeItem('praxislex-recent-searches');
+    };
+    window.addEventListener('beforeunload', handleUnload);
+    return () => window.removeEventListener('beforeunload', handleUnload);
   }, []);
 
   const clearRecentSearches = () => {
