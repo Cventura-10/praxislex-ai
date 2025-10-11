@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Download, Save, FileText, AlertCircle } from "lucide-react";
+import { Download, Save, FileText, AlertCircle, Eye, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { DocumentViewer } from "@/components/DocumentViewer";
 import type { LegalAct, LegalMatter, LegalCategory } from "@/lib/legalActsData";
 
 interface ManualEditorFlowProps {
@@ -136,6 +138,7 @@ export function ManualEditorFlow({ actInfo }: ManualEditorFlowProps) {
   const { toast } = useToast();
   const [content, setContent] = useState(() => getTemplate(actInfo));
   const [isSaving, setIsSaving] = useState(false);
+  const [isPreviewMode, setIsPreviewMode] = useState(false);
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -249,42 +252,96 @@ export function ManualEditorFlow({ actInfo }: ManualEditorFlowProps) {
 
   return (
     <div className="space-y-6">
-      {/* Info Alert */}
-      <Alert>
-        <AlertCircle className="h-4 w-4" />
-        <AlertTitle>Plantilla con instrucciones</AlertTitle>
-        <AlertDescription>
-          Esta plantilla incluye notas entre corchetes []. Complete los campos necesarios y
-          elimine las notas explicativas antes de generar el documento final.
-        </AlertDescription>
-      </Alert>
+      {/* Mode Toggle */}
+      <div className="flex justify-between items-center">
+        {!isPreviewMode ? (
+          <Alert className="flex-1 mr-3">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Plantilla con instrucciones</AlertTitle>
+            <AlertDescription>
+              Esta plantilla incluye notas entre corchetes []. Complete los campos necesarios y
+              elimine las notas explicativas antes de generar el documento final.
+            </AlertDescription>
+          </Alert>
+        ) : (
+          <Badge variant="secondary" className="px-4 py-2">
+            <Eye className="h-4 w-4 mr-2" />
+            Vista Previa
+          </Badge>
+        )}
+        
+        <Button
+          variant="outline"
+          onClick={() => setIsPreviewMode(!isPreviewMode)}
+          className="gap-2"
+        >
+          {isPreviewMode ? (
+            <>
+              <Edit className="h-4 w-4" />
+              Editar
+            </>
+          ) : (
+            <>
+              <Eye className="h-4 w-4" />
+              Vista Previa
+            </>
+          )}
+        </Button>
+      </div>
 
-      {/* Editor */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5 text-primary" />
-            Editor de {actInfo.act.name}
-          </CardTitle>
-          <CardDescription>
-            Edita libremente el contenido. Las secciones marcadas son sugerencias que puedes modificar.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            className="font-mono text-sm min-h-[600px] resize-none"
-            placeholder="Escribe aquí el contenido del documento..."
-          />
-          
-          {/* Stats */}
-          <div className="flex justify-between text-xs text-muted-foreground">
-            <span>{wordCount.toLocaleString()} palabras</span>
-            <span>{charCount.toLocaleString()} caracteres</span>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Editor or Preview */}
+      {isPreviewMode ? (
+        <Card className="shadow-lg">
+          <CardHeader className="border-b bg-muted/30">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2 text-xl">
+                  <Eye className="h-5 w-5 text-primary" />
+                  Vista Previa - {actInfo.act.name}
+                </CardTitle>
+                <CardDescription className="mt-1.5">
+                  Revisa cómo se verá el documento final
+                </CardDescription>
+              </div>
+              <Badge variant="outline" className="h-fit">Edición Manual</Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="bg-white dark:bg-gray-900 border-x">
+              <DocumentViewer 
+                content={content}
+                title={actInfo.act.name}
+              />
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-primary" />
+              Editor de {actInfo.act.name}
+            </CardTitle>
+            <CardDescription>
+              Edita libremente el contenido. Las secciones marcadas son sugerencias que puedes modificar.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              className="font-mono text-sm min-h-[600px] resize-none"
+              placeholder="Escribe aquí el contenido del documento..."
+            />
+            
+            {/* Stats */}
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>{wordCount.toLocaleString()} palabras</span>
+              <span>{charCount.toLocaleString()} caracteres</span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Actions */}
       <div className="flex justify-between">
@@ -296,16 +353,30 @@ export function ManualEditorFlow({ actInfo }: ManualEditorFlowProps) {
         </Button>
 
         <div className="flex gap-3">
+          {!isPreviewMode && (
+            <Button
+              variant="outline"
+              onClick={handleSave}
+              disabled={isSaving}
+            >
+              <Save className="h-4 w-4 mr-2" />
+              {isSaving ? "Guardando..." : "Guardar borrador"}
+            </Button>
+          )}
           <Button
             variant="outline"
-            onClick={handleSave}
-            disabled={isSaving}
+            onClick={() => {
+              navigator.clipboard.writeText(content);
+              toast({
+                title: "✓ Copiado",
+                description: "Documento copiado al portapapeles.",
+              });
+            }}
           >
-            <Save className="h-4 w-4 mr-2" />
-            {isSaving ? "Guardando..." : "Guardar borrador"}
+            Copiar Texto
           </Button>
-          <Button onClick={handleDownload}>
-            <Download className="h-4 w-4 mr-2" />
+          <Button onClick={handleDownload} className="gap-2">
+            <Download className="h-4 w-4" />
             Descargar Word
           </Button>
         </div>

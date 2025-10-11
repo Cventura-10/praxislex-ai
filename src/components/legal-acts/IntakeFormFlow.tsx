@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Progress } from "@/components/ui/progress";
@@ -163,114 +164,155 @@ export function IntakeFormFlow({ actInfo }: IntakeFormFlowProps) {
   if (generatedDocument) {
     return (
       <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Eye className="h-5 w-5 text-primary" />
-              Documento Generado
-            </CardTitle>
-            <CardDescription>
-              Revisa el documento generado y descárgalo en formato Word
-            </CardDescription>
+        {/* Vista previa del documento */}
+        <Card className="shadow-lg">
+          <CardHeader className="border-b bg-muted/30">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2 text-xl">
+                  <Eye className="h-5 w-5 text-primary" />
+                  Vista Previa - {actInfo.act.name}
+                </CardTitle>
+                <CardDescription className="mt-1.5">
+                  Documento generado exitosamente. Revisa el contenido antes de descargar.
+                </CardDescription>
+              </div>
+              <Badge variant="secondary" className="h-fit">Generado con IA</Badge>
+            </div>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <DocumentViewer 
-              content={generatedDocument}
-              title={actInfo.act.name}
-            />
-            
-            <div className="flex gap-3 justify-end">
-              <Button
-                variant="outline"
-                onClick={() => setGeneratedDocument(null)}
-              >
-                Editar datos
-              </Button>
-              <Button onClick={async () => {
-                try {
-                  // Importar librería docx
-                  const { Document, Packer, Paragraph, TextRun, AlignmentType, HeadingLevel } = await import('docx');
-                  
-                  // Crear documento Word
-                  const doc = new Document({
-                    sections: [{
-                      properties: {},
-                      children: [
-                        new Paragraph({
-                          text: actInfo.act.name,
-                          heading: HeadingLevel.HEADING_1,
-                          alignment: AlignmentType.CENTER,
-                          spacing: { after: 400 },
-                        }),
-                        new Paragraph({
-                          children: [
-                            new TextRun({
-                              text: "DEMANDANTE: ",
-                              bold: true,
-                            }),
-                            new TextRun(formData.demandante_nombre || "N/D"),
-                          ],
-                          spacing: { after: 200 },
-                        }),
-                        new Paragraph({
-                          children: [
-                            new TextRun({
-                              text: "DEMANDADO: ",
-                              bold: true,
-                            }),
-                            new TextRun(formData.demandado_nombre || "N/D"),
-                          ],
-                          spacing: { after: 200 },
-                        }),
-                        new Paragraph({
-                          children: [
-                            new TextRun({
-                              text: "TRIBUNAL: ",
-                              bold: true,
-                            }),
-                            new TextRun(formData.tribunal_nombre || "N/D"),
-                          ],
-                          spacing: { after: 400 },
-                        }),
-                        ...generatedDocument.split('\n').map(line => 
-                          new Paragraph({
-                            text: line,
-                            spacing: { after: 100 },
-                          })
-                        ),
-                      ],
-                    }],
-                  });
-
-                  // Generar blob y descargar
-                  const blob = await Packer.toBlob(doc);
-                  const url = window.URL.createObjectURL(blob);
-                  const link = document.createElement('a');
-                  link.href = url;
-                  const fileName = `${new Date().toISOString().split('T')[0]}_${actInfo.act.id}_${formData.demandante_nombre?.replace(/\s+/g, '_') || 'documento'}.docx`;
-                  link.download = fileName;
-                  link.click();
-                  window.URL.revokeObjectURL(url);
-
-                  toast({
-                    title: "✓ Descargado",
-                    description: "Documento descargado en formato Word.",
-                  });
-                } catch (error) {
-                  console.error("Error downloading:", error);
-                  toast({
-                    title: "Error",
-                    description: "No se pudo descargar el documento.",
-                    variant: "destructive",
-                  });
-                }
-              }}>
-                <Download className="h-4 w-4 mr-2" />
-                Descargar Word
-              </Button>
+          <CardContent className="p-0">
+            <div className="bg-white dark:bg-gray-900 border-x">
+              <DocumentViewer 
+                content={generatedDocument}
+                title={actInfo.act.name}
+              />
             </div>
           </CardContent>
         </Card>
+
+        {/* Información del documento */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Detalles del Documento</CardTitle>
+          </CardHeader>
+          <CardContent className="grid md:grid-cols-3 gap-4 text-sm">
+            <div>
+              <p className="text-muted-foreground mb-1">Demandante</p>
+              <p className="font-medium">{formData.demandante_nombre || "No especificado"}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground mb-1">Demandado</p>
+              <p className="font-medium">{formData.demandado_nombre || "No especificado"}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground mb-1">Tribunal</p>
+              <p className="font-medium">{formData.tribunal_nombre || "No especificado"}</p>
+            </div>
+          </CardContent>
+        </Card>
+        
+        {/* Acciones */}
+        <div className="flex gap-3 justify-between">
+          <Button
+            variant="outline"
+            onClick={() => setGeneratedDocument(null)}
+          >
+            ← Editar Datos
+          </Button>
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              onClick={() => {
+                navigator.clipboard.writeText(generatedDocument);
+                toast({
+                  title: "✓ Copiado",
+                  description: "Documento copiado al portapapeles.",
+                });
+              }}
+            >
+              Copiar Texto
+            </Button>
+            <Button onClick={async () => {
+              try {
+                const { Document, Packer, Paragraph, TextRun, AlignmentType, HeadingLevel } = await import('docx');
+                
+                const doc = new Document({
+                  sections: [{
+                    properties: {},
+                    children: [
+                      new Paragraph({
+                        text: actInfo.act.name,
+                        heading: HeadingLevel.HEADING_1,
+                        alignment: AlignmentType.CENTER,
+                        spacing: { after: 400 },
+                      }),
+                      new Paragraph({
+                        children: [
+                          new TextRun({
+                            text: "DEMANDANTE: ",
+                            bold: true,
+                          }),
+                          new TextRun(formData.demandante_nombre || "N/D"),
+                        ],
+                        spacing: { after: 200 },
+                      }),
+                      new Paragraph({
+                        children: [
+                          new TextRun({
+                            text: "DEMANDADO: ",
+                            bold: true,
+                          }),
+                          new TextRun(formData.demandado_nombre || "N/D"),
+                        ],
+                        spacing: { after: 200 },
+                      }),
+                      new Paragraph({
+                        children: [
+                          new TextRun({
+                            text: "TRIBUNAL: ",
+                            bold: true,
+                          }),
+                          new TextRun(formData.tribunal_nombre || "N/D"),
+                        ],
+                        spacing: { after: 400 },
+                      }),
+                      ...generatedDocument.split('\n').map(line => 
+                        new Paragraph({
+                          text: line,
+                          spacing: { after: 100 },
+                        })
+                      ),
+                    ],
+                  }],
+                });
+
+                const blob = await Packer.toBlob(doc);
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                const fileName = `${new Date().toISOString().split('T')[0]}_${actInfo.act.id}_${formData.demandante_nombre?.replace(/\s+/g, '_') || 'documento'}.docx`;
+                link.download = fileName;
+                link.click();
+                window.URL.revokeObjectURL(url);
+
+                toast({
+                  title: "✓ Descargado",
+                  description: "Documento descargado en formato Word.",
+                });
+              } catch (error) {
+                console.error("Error downloading:", error);
+                toast({
+                  title: "Error",
+                  description: "No se pudo descargar el documento.",
+                  variant: "destructive",
+                });
+              }
+            }} className="gap-2">
+              <Download className="h-4 w-4" />
+              Descargar Word
+            </Button>
+          </div>
+        </div>
       </div>
     );
   }
