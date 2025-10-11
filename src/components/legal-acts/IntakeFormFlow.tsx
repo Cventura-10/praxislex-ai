@@ -93,6 +93,11 @@ export function IntakeFormFlow({ actInfo }: IntakeFormFlowProps) {
     setIsGenerating(true);
 
     try {
+      // Obtener usuario actual
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Usuario no autenticado");
+
+      // Generar documento con IA
       const { data, error } = await supabase.functions.invoke("generate-legal-doc", {
         body: {
           actType: actInfo.act.id,
@@ -105,11 +110,41 @@ export function IntakeFormFlow({ actInfo }: IntakeFormFlowProps) {
 
       if (error) throw error;
 
-      setGeneratedDocument(data.document);
+      const generatedContent = data.document;
+      setGeneratedDocument(generatedContent);
+
+      // Guardar documento en base de datos
+      const { data: savedDoc, error: saveError } = await supabase
+        .from("legal_documents")
+        .insert({
+          user_id: user.id,
+          tipo_documento: actInfo.act.id,
+          materia: actInfo.matter.name,
+          titulo: `${actInfo.act.name} - ${formData.demandante_nombre || 'N/D'} vs ${formData.demandado_nombre || 'N/D'}`,
+          contenido: generatedContent,
+          demandante_nombre: formData.demandante_nombre,
+          demandado_nombre: formData.demandado_nombre,
+          juzgado: formData.tribunal_nombre,
+          numero_expediente: formData.numero_expediente || null,
+          case_number: formData.case_number || null,
+        })
+        .select()
+        .single();
+
+      if (saveError) {
+        console.error("Error saving document:", saveError);
+        toast({
+          title: "⚠️ Advertencia",
+          description: "Documento generado pero no se pudo guardar en el repositorio.",
+          variant: "destructive",
+        });
+      } else {
+        console.log("Document saved successfully:", savedDoc);
+      }
       
       toast({
         title: "✓ Documento generado",
-        description: "El documento ha sido generado exitosamente.",
+        description: "El documento ha sido generado y guardado en tu repositorio.",
       });
     } catch (error: any) {
       console.error("Error generating document:", error);
@@ -151,12 +186,84 @@ export function IntakeFormFlow({ actInfo }: IntakeFormFlowProps) {
               >
                 Editar datos
               </Button>
-              <Button onClick={() => {
-                // TODO: Implementar descarga
-                toast({
-                  title: "Descarga",
-                  description: "Funcionalidad de descarga en desarrollo.",
-                });
+              <Button onClick={async () => {
+                try {
+                  // Importar librería docx
+                  const { Document, Packer, Paragraph, TextRun, AlignmentType, HeadingLevel } = await import('docx');
+                  
+                  // Crear documento Word
+                  const doc = new Document({
+                    sections: [{
+                      properties: {},
+                      children: [
+                        new Paragraph({
+                          text: actInfo.act.name,
+                          heading: HeadingLevel.HEADING_1,
+                          alignment: AlignmentType.CENTER,
+                          spacing: { after: 400 },
+                        }),
+                        new Paragraph({
+                          children: [
+                            new TextRun({
+                              text: "DEMANDANTE: ",
+                              bold: true,
+                            }),
+                            new TextRun(formData.demandante_nombre || "N/D"),
+                          ],
+                          spacing: { after: 200 },
+                        }),
+                        new Paragraph({
+                          children: [
+                            new TextRun({
+                              text: "DEMANDADO: ",
+                              bold: true,
+                            }),
+                            new TextRun(formData.demandado_nombre || "N/D"),
+                          ],
+                          spacing: { after: 200 },
+                        }),
+                        new Paragraph({
+                          children: [
+                            new TextRun({
+                              text: "TRIBUNAL: ",
+                              bold: true,
+                            }),
+                            new TextRun(formData.tribunal_nombre || "N/D"),
+                          ],
+                          spacing: { after: 400 },
+                        }),
+                        ...generatedDocument.split('\n').map(line => 
+                          new Paragraph({
+                            text: line,
+                            spacing: { after: 100 },
+                          })
+                        ),
+                      ],
+                    }],
+                  });
+
+                  // Generar blob y descargar
+                  const blob = await Packer.toBlob(doc);
+                  const url = window.URL.createObjectURL(blob);
+                  const link = document.createElement('a');
+                  link.href = url;
+                  const fileName = `${new Date().toISOString().split('T')[0]}_${actInfo.act.id}_${formData.demandante_nombre?.replace(/\s+/g, '_') || 'documento'}.docx`;
+                  link.download = fileName;
+                  link.click();
+                  window.URL.revokeObjectURL(url);
+
+                  toast({
+                    title: "✓ Descargado",
+                    description: "Documento descargado en formato Word.",
+                  });
+                } catch (error) {
+                  console.error("Error downloading:", error);
+                  toast({
+                    title: "Error",
+                    description: "No se pudo descargar el documento.",
+                    variant: "destructive",
+                  });
+                }
               }}>
                 <Download className="h-4 w-4 mr-2" />
                 Descargar Word

@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import type { LegalAct, LegalMatter, LegalCategory } from "@/lib/legalActsData";
 
 interface ManualEditorFlowProps {
@@ -139,22 +140,108 @@ export function ManualEditorFlow({ actInfo }: ManualEditorFlowProps) {
   const handleSave = async () => {
     setIsSaving(true);
     
-    // Simular guardado
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    
-    toast({
-      title: "✓ Guardado",
-      description: "El documento ha sido guardado como borrador.",
-    });
-    
-    setIsSaving(false);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Usuario no autenticado");
+
+      // Extraer datos básicos del contenido
+      const demandanteMatch = content.match(/PARTE ACTORA[\s\S]*?Nombre:\s*\[?([^\]]+?)\]?/);
+      const demandadoMatch = content.match(/PARTE DEMANDADA[\s\S]*?Nombre:\s*\[?([^\]]+?)\]?/);
+      const tribunalMatch = content.match(/TRIBUNAL[\s\S]*?Nombre:\s*\[?([^\]]+?)\]?/);
+
+      const demandanteNombre = demandanteMatch?.[1]?.trim() || "N/D";
+      const demandadoNombre = demandadoMatch?.[1]?.trim() || "N/D";
+      const juzgado = tribunalMatch?.[1]?.trim() || "N/D";
+
+      const { data, error } = await supabase
+        .from("legal_documents")
+        .insert({
+          user_id: user.id,
+          tipo_documento: actInfo.act.id,
+          materia: actInfo.matter.name,
+          titulo: `${actInfo.act.name} - ${demandanteNombre} vs ${demandadoNombre}`,
+          contenido: content,
+          demandante_nombre: demandanteNombre,
+          demandado_nombre: demandadoNombre,
+          juzgado: juzgado,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      console.log("Document saved:", data);
+      
+      toast({
+        title: "✓ Guardado",
+        description: "El documento ha sido guardado en tu repositorio.",
+      });
+    } catch (error: any) {
+      console.error("Error saving document:", error);
+      toast({
+        title: "Error al guardar",
+        description: error.message || "No se pudo guardar el documento.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleDownload = () => {
-    toast({
-      title: "Descarga",
-      description: "Funcionalidad de descarga en desarrollo.",
-    });
+  const handleDownload = async () => {
+    try {
+      const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } = await import('docx');
+      
+      // Dividir contenido en líneas y crear párrafos
+      const lines = content.split('\n');
+      const paragraphs = lines.map(line => {
+        // Detectar encabezados (líneas en mayúsculas o con separadores)
+        if (line.match(/^═+$/) || line.match(/^─+$/)) {
+          return new Paragraph({ text: '' }); // Salto de línea
+        }
+        
+        if (line === line.toUpperCase() && line.trim().length > 0 && !line.startsWith('[')) {
+          return new Paragraph({
+            text: line.trim(),
+            heading: HeadingLevel.HEADING_2,
+            spacing: { before: 200, after: 200 },
+          });
+        }
+        
+        return new Paragraph({
+          text: line,
+          spacing: { after: 100 },
+        });
+      });
+
+      const doc = new Document({
+        sections: [{
+          properties: {},
+          children: paragraphs,
+        }],
+      });
+
+      const blob = await Packer.toBlob(doc);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      const fileName = `${new Date().toISOString().split('T')[0]}_${actInfo.act.id}_manual.docx`;
+      link.download = fileName;
+      link.click();
+      window.URL.revokeObjectURL(url);
+
+      toast({
+        title: "✓ Descargado",
+        description: "Documento descargado en formato Word.",
+      });
+    } catch (error) {
+      console.error("Error downloading:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo descargar el documento.",
+        variant: "destructive",
+      });
+    }
   };
 
   const wordCount = content.trim().split(/\s+/).length;
