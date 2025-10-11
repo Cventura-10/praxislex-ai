@@ -111,7 +111,13 @@ export function IntakeFormFlow({ actInfo }: IntakeFormFlowProps) {
 
       if (error) throw error;
 
-      const generatedContent = data.document;
+      console.log("Generated document response:", data);
+      const generatedContent = data?.cuerpo || data?.document || "";
+      
+      if (!generatedContent) {
+        throw new Error("No se generó contenido del documento");
+      }
+      
       setGeneratedDocument(generatedContent);
       
       toast({
