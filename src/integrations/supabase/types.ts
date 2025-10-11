@@ -1519,14 +1519,6 @@ export type Database = {
         }
         Relationships: []
       }
-      security_validation: {
-        Row: {
-          check_name: string | null
-          status: string | null
-          violations: number | null
-        }
-        Relationships: []
-      }
     }
     Functions: {
       accept_invitation_token_secure: {
@@ -1691,6 +1683,14 @@ export type Database = {
           full_name: string
           id: string
           updated_at: string
+        }[]
+      }
+      get_security_validation: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          check_name: string
+          status: string
+          violations: number
         }[]
       }
       get_user_role: {
