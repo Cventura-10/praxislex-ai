@@ -21,8 +21,8 @@ interface IntakeFormFlowProps {
   };
 }
 
-// Formulario básico genérico - en producción se crearían formularios específicos por acto
-const GENERIC_INTAKE_FIELDS = [
+// Campos para actos JUDICIALES (demandas, recursos, etc.)
+const JUDICIAL_FIELDS = [
   { key: "demandante_nombre", label: "Demandante - Nombre Completo", type: "text", required: true },
   { key: "demandante_cedula", label: "Cédula/RNC", type: "text" },
   { key: "demandante_domicilio", label: "Domicilio", type: "textarea" },
@@ -42,6 +42,40 @@ const GENERIC_INTAKE_FIELDS = [
   { key: "anexos", label: "Documentos anexos", type: "textarea" },
 ];
 
+// Campos para actos EXTRAJUDICIALES (contratos, cartas, etc.)
+const EXTRAJUDICIAL_FIELDS = [
+  // Encabezado
+  { key: "lugar_ciudad", label: "Ciudad", type: "text", required: true },
+  { key: "lugar_provincia", label: "Provincia", type: "text" },
+  { key: "fecha_texto", label: "Fecha", type: "text", required: true },
+  
+  // Partes (según el tipo de acto)
+  { key: "vendedor_nombre", label: "Vendedor - Nombre Completo", type: "text", required: true },
+  { key: "vendedor_cedula", label: "Vendedor - Cédula/RNC", type: "text", required: true },
+  { key: "vendedor_nacionalidad", label: "Vendedor - Nacionalidad", type: "text" },
+  { key: "vendedor_estado_civil", label: "Vendedor - Estado Civil", type: "text" },
+  { key: "vendedor_domicilio", label: "Vendedor - Domicilio", type: "textarea", required: true },
+  
+  { key: "comprador_nombre", label: "Comprador - Nombre Completo", type: "text", required: true },
+  { key: "comprador_cedula", label: "Comprador - Cédula/RNC", type: "text", required: true },
+  { key: "comprador_nacionalidad", label: "Comprador - Nacionalidad", type: "text" },
+  { key: "comprador_estado_civil", label: "Comprador - Estado Civil", type: "text" },
+  { key: "comprador_domicilio", label: "Comprador - Domicilio", type: "textarea", required: true },
+  
+  // Abogado (opcional en extrajudiciales)
+  { key: "abogado_nombre", label: "Abogado - Nombre Completo", type: "text" },
+  { key: "abogado_matricula", label: "Matrícula", type: "text" },
+  { key: "abogado_cedula", label: "Cédula", type: "text" },
+  
+  // Objeto y cláusulas
+  { key: "objeto_descripcion", label: "Descripción del bien/servicio", type: "textarea", required: true },
+  { key: "precio_monto", label: "Precio (números)", type: "text", required: true },
+  { key: "precio_letras", label: "Precio (en letras)", type: "text", required: true },
+  { key: "clausulas_adicionales", label: "Cláusulas adicionales", type: "textarea" },
+  { key: "gastos_asume", label: "¿Quién asume los gastos?", type: "text" },
+  { key: "jurisdiccion", label: "Jurisdicción", type: "text", required: true },
+];
+
 export function IntakeFormFlow({ actInfo }: IntakeFormFlowProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -50,10 +84,14 @@ export function IntakeFormFlow({ actInfo }: IntakeFormFlowProps) {
   const [generatedDocument, setGeneratedDocument] = useState<string | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
 
+  // Seleccionar campos según tipo de acto
+  const isJudicial = actInfo.act.type === 'judicial';
+  const activeFields = isJudicial ? JUDICIAL_FIELDS : EXTRAJUDICIAL_FIELDS;
+
   // Agrupar campos en pasos (cada 5 campos)
   const fieldsPerStep = 5;
-  const totalSteps = Math.ceil(GENERIC_INTAKE_FIELDS.length / fieldsPerStep);
-  const currentFields = GENERIC_INTAKE_FIELDS.slice(
+  const totalSteps = Math.ceil(activeFields.length / fieldsPerStep);
+  const currentFields = activeFields.slice(
     currentStep * fieldsPerStep,
     (currentStep + 1) * fieldsPerStep
   );
@@ -164,11 +202,13 @@ export function IntakeFormFlow({ actInfo }: IntakeFormFlowProps) {
           user_id: user.id,
           tipo_documento: actInfo.act.id,
           materia: actInfo.matter.name,
-          titulo: `${actInfo.act.name} - ${formData.demandante_nombre || 'N/D'} vs ${formData.demandado_nombre || 'N/D'}`,
+          titulo: isJudicial 
+            ? `${actInfo.act.name} - ${formData.demandante_nombre || 'N/D'} vs ${formData.demandado_nombre || 'N/D'}`
+            : `${actInfo.act.name} - ${formData.vendedor_nombre || formData.demandante_nombre || 'N/D'}`,
           contenido: generatedDocument,
-          demandante_nombre: formData.demandante_nombre,
-          demandado_nombre: formData.demandado_nombre,
-          juzgado: formData.tribunal_nombre,
+          demandante_nombre: formData.demandante_nombre || formData.vendedor_nombre || null,
+          demandado_nombre: formData.demandado_nombre || formData.comprador_nombre || null,
+          juzgado: formData.tribunal_nombre || null,
           numero_expediente: formData.numero_expediente || null,
           case_number: formData.case_number || null,
         })
@@ -228,18 +268,37 @@ export function IntakeFormFlow({ actInfo }: IntakeFormFlowProps) {
             <CardTitle className="text-lg">Detalles del Documento</CardTitle>
           </CardHeader>
           <CardContent className="grid md:grid-cols-3 gap-4 text-sm">
-            <div>
-              <p className="text-muted-foreground mb-1">Demandante</p>
-              <p className="font-medium">{formData.demandante_nombre || "No especificado"}</p>
-            </div>
-            <div>
-              <p className="text-muted-foreground mb-1">Demandado</p>
-              <p className="font-medium">{formData.demandado_nombre || "No especificado"}</p>
-            </div>
-            <div>
-              <p className="text-muted-foreground mb-1">Tribunal</p>
-              <p className="font-medium">{formData.tribunal_nombre || "No especificado"}</p>
-            </div>
+            {isJudicial ? (
+              <>
+                <div>
+                  <p className="text-muted-foreground mb-1">Demandante</p>
+                  <p className="font-medium">{formData.demandante_nombre || "No especificado"}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground mb-1">Demandado</p>
+                  <p className="font-medium">{formData.demandado_nombre || "No especificado"}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground mb-1">Tribunal</p>
+                  <p className="font-medium">{formData.tribunal_nombre || "No especificado"}</p>
+                </div>
+              </>
+            ) : (
+              <>
+                <div>
+                  <p className="text-muted-foreground mb-1">Vendedor</p>
+                  <p className="font-medium">{formData.vendedor_nombre || "No especificado"}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground mb-1">Comprador</p>
+                  <p className="font-medium">{formData.comprador_nombre || "No especificado"}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground mb-1">Precio</p>
+                  <p className="font-medium">{formData.precio_monto || "No especificado"}</p>
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
         
@@ -285,36 +344,69 @@ export function IntakeFormFlow({ actInfo }: IntakeFormFlowProps) {
                         alignment: AlignmentType.CENTER,
                         spacing: { after: 400 },
                       }),
-                      new Paragraph({
-                        children: [
-                          new TextRun({
-                            text: "DEMANDANTE: ",
-                            bold: true,
-                          }),
-                          new TextRun(formData.demandante_nombre || "N/D"),
-                        ],
-                        spacing: { after: 200 },
-                      }),
-                      new Paragraph({
-                        children: [
-                          new TextRun({
-                            text: "DEMANDADO: ",
-                            bold: true,
-                          }),
-                          new TextRun(formData.demandado_nombre || "N/D"),
-                        ],
-                        spacing: { after: 200 },
-                      }),
-                      new Paragraph({
-                        children: [
-                          new TextRun({
-                            text: "TRIBUNAL: ",
-                            bold: true,
-                          }),
-                          new TextRun(formData.tribunal_nombre || "N/D"),
-                        ],
-                        spacing: { after: 400 },
-                      }),
+                      ...(isJudicial ? [
+                        new Paragraph({
+                          children: [
+                            new TextRun({
+                              text: "DEMANDANTE: ",
+                              bold: true,
+                            }),
+                            new TextRun(formData.demandante_nombre || "N/D"),
+                          ],
+                          spacing: { after: 200 },
+                        }),
+                        new Paragraph({
+                          children: [
+                            new TextRun({
+                              text: "DEMANDADO: ",
+                              bold: true,
+                            }),
+                            new TextRun(formData.demandado_nombre || "N/D"),
+                          ],
+                          spacing: { after: 200 },
+                        }),
+                        new Paragraph({
+                          children: [
+                            new TextRun({
+                              text: "TRIBUNAL: ",
+                              bold: true,
+                            }),
+                            new TextRun(formData.tribunal_nombre || "N/D"),
+                          ],
+                          spacing: { after: 400 },
+                        }),
+                      ] : [
+                        new Paragraph({
+                          children: [
+                            new TextRun({
+                              text: "VENDEDOR: ",
+                              bold: true,
+                            }),
+                            new TextRun(formData.vendedor_nombre || "N/D"),
+                          ],
+                          spacing: { after: 200 },
+                        }),
+                        new Paragraph({
+                          children: [
+                            new TextRun({
+                              text: "COMPRADOR: ",
+                              bold: true,
+                            }),
+                            new TextRun(formData.comprador_nombre || "N/D"),
+                          ],
+                          spacing: { after: 200 },
+                        }),
+                        new Paragraph({
+                          children: [
+                            new TextRun({
+                              text: "PRECIO: ",
+                              bold: true,
+                            }),
+                            new TextRun(formData.precio_monto || "N/D"),
+                          ],
+                          spacing: { after: 400 },
+                        }),
+                      ]),
                       ...generatedDocument.split('\n').map(line => 
                         new Paragraph({
                           text: line,
@@ -329,7 +421,10 @@ export function IntakeFormFlow({ actInfo }: IntakeFormFlowProps) {
                 const url = window.URL.createObjectURL(blob);
                 const link = document.createElement('a');
                 link.href = url;
-                const fileName = `${new Date().toISOString().split('T')[0]}_${actInfo.act.id}_${formData.demandante_nombre?.replace(/\s+/g, '_') || 'documento'}.docx`;
+                const nombreParte = isJudicial 
+                  ? formData.demandante_nombre 
+                  : formData.vendedor_nombre || formData.comprador_nombre;
+                const fileName = `${new Date().toISOString().split('T')[0]}_${actInfo.act.id}_${nombreParte?.replace(/\s+/g, '_') || 'documento'}.docx`;
                 link.download = fileName;
                 link.click();
                 window.URL.revokeObjectURL(url);
