@@ -113,39 +113,10 @@ export function IntakeFormFlow({ actInfo }: IntakeFormFlowProps) {
 
       const generatedContent = data.document;
       setGeneratedDocument(generatedContent);
-
-      // Guardar documento en base de datos
-      const { data: savedDoc, error: saveError } = await supabase
-        .from("legal_documents")
-        .insert({
-          user_id: user.id,
-          tipo_documento: actInfo.act.id,
-          materia: actInfo.matter.name,
-          titulo: `${actInfo.act.name} - ${formData.demandante_nombre || 'N/D'} vs ${formData.demandado_nombre || 'N/D'}`,
-          contenido: generatedContent,
-          demandante_nombre: formData.demandante_nombre,
-          demandado_nombre: formData.demandado_nombre,
-          juzgado: formData.tribunal_nombre,
-          numero_expediente: formData.numero_expediente || null,
-          case_number: formData.case_number || null,
-        })
-        .select()
-        .single();
-
-      if (saveError) {
-        console.error("Error saving document:", saveError);
-        toast({
-          title: "⚠️ Advertencia",
-          description: "Documento generado pero no se pudo guardar en el repositorio.",
-          variant: "destructive",
-        });
-      } else {
-        console.log("Document saved successfully:", savedDoc);
-      }
       
       toast({
         title: "✓ Documento generado",
-        description: "El documento ha sido generado y guardado en tu repositorio.",
+        description: "Revisa el documento y guárdalo en tu repositorio cuando estés listo.",
       });
     } catch (error: any) {
       console.error("Error generating document:", error);
@@ -160,6 +131,50 @@ export function IntakeFormFlow({ actInfo }: IntakeFormFlowProps) {
   };
 
   const progressPercentage = ((currentStep + 1) / totalSteps) * 100;
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSaveToRepository = async () => {
+    if (!generatedDocument) return;
+
+    setIsSaving(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Usuario no autenticado");
+
+      const { data: savedDoc, error: saveError } = await supabase
+        .from("legal_documents")
+        .insert({
+          user_id: user.id,
+          tipo_documento: actInfo.act.id,
+          materia: actInfo.matter.name,
+          titulo: `${actInfo.act.name} - ${formData.demandante_nombre || 'N/D'} vs ${formData.demandado_nombre || 'N/D'}`,
+          contenido: generatedDocument,
+          demandante_nombre: formData.demandante_nombre,
+          demandado_nombre: formData.demandado_nombre,
+          juzgado: formData.tribunal_nombre,
+          numero_expediente: formData.numero_expediente || null,
+          case_number: formData.case_number || null,
+        })
+        .select()
+        .single();
+
+      if (saveError) throw saveError;
+
+      toast({
+        title: "✓ Guardado",
+        description: "El documento ha sido guardado en tu repositorio.",
+      });
+    } catch (error: any) {
+      console.error("Error saving document:", error);
+      toast({
+        title: "Error al guardar",
+        description: error.message || "No se pudo guardar el documento.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   if (generatedDocument) {
     return (
@@ -220,6 +235,13 @@ export function IntakeFormFlow({ actInfo }: IntakeFormFlowProps) {
             ← Editar Datos
           </Button>
           <div className="flex gap-3">
+            <Button
+              variant="outline"
+              onClick={handleSaveToRepository}
+              disabled={isSaving}
+            >
+              {isSaving ? "Guardando..." : "Guardar en Repositorio"}
+            </Button>
             <Button
               variant="outline"
               onClick={() => {
