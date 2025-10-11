@@ -21,6 +21,37 @@ interface IntakeFormFlowProps {
   };
 }
 
+// ================================================================
+// SISTEMA DE CLASIFICACIÓN Y FILTRADO DE CAMPOS
+// ================================================================
+
+/**
+ * Determina si un acto es de tipo judicial (procesal)
+ */
+const isJudicialActType = (actId: string): boolean => {
+  const judicialTypes = [
+    'demanda_civil', 'emplazamiento', 'conclusiones', 'acto_apelacion',
+    'mandamiento_pago', 'embargo_ejecutivo', 'referimiento', 'desalojo',
+    'querella_actor_civil', 'acto_acusacion', 'medidas_coercion',
+    'demanda_laboral', 'citacion_laboral', 'contencioso_administrativo',
+    'recurso_anulacion', 'amparo'
+  ];
+  return judicialTypes.includes(actId);
+};
+
+/**
+ * Determina si un acto es de tipo extrajudicial (contractual/comunicativo)
+ */
+const isExtrajudicialActType = (actId: string): boolean => {
+  const extrajudicialTypes = [
+    'contrato_venta', 'contrato_alquiler', 'poder_general', 'poder_especial',
+    'testamento', 'declaracion_jurada', 'intimacion_pago', 'notificacion_desalojo',
+    'carta_cobranza', 'contrato_trabajo', 'carta_despido', 'carta_renuncia',
+    'acta_conciliacion', 'solicitud_admin', 'recurso_reconsideracion'
+  ];
+  return extrajudicialTypes.includes(actId);
+};
+
 // Campos para actos JUDICIALES (demandas, recursos, etc.)
 const JUDICIAL_FIELDS = [
   { key: "demandante_nombre", label: "Demandante - Nombre Completo", type: "text", required: true },
@@ -84,8 +115,15 @@ export function IntakeFormFlow({ actInfo }: IntakeFormFlowProps) {
   const [generatedDocument, setGeneratedDocument] = useState<string | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
 
-  // Seleccionar campos según tipo de acto
-  const isJudicial = actInfo.act.type === 'judicial';
+  // Seleccionar campos según tipo de acto (CON VALIDACIÓN DE SEGURIDAD)
+  const isJudicial = isJudicialActType(actInfo.act.id);
+  const isExtrajudicial = isExtrajudicialActType(actInfo.act.id);
+  
+  // Log de seguridad
+  if (!isJudicial && !isExtrajudicial) {
+    console.warn(`⚠️ SEGURIDAD: Acto ${actInfo.act.id} no clasificado. Revisar catálogo.`);
+  }
+  
   const activeFields = isJudicial ? JUDICIAL_FIELDS : EXTRAJUDICIAL_FIELDS;
 
   // Agrupar campos en pasos (cada 5 campos)
@@ -138,6 +176,15 @@ export function IntakeFormFlow({ actInfo }: IntakeFormFlowProps) {
       // Obtener usuario actual
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Usuario no autenticado");
+
+      // ⚠️ SEGURIDAD: Validar que campos judiciales no se usen en actos extrajudiciales
+      const judicialFieldKeys = ['demandante_nombre', 'demandado_nombre', 'tribunal_nombre', 'numero_acto'];
+      if (isExtrajudicial) {
+        const forbiddenField = judicialFieldKeys.find(key => formData[key]);
+        if (forbiddenField) {
+          throw new Error(`❌ Campo judicial bloqueado en acto extrajudicial: ${forbiddenField}. Por favor revisa el formulario.`);
+        }
+      }
 
       // Generar documento con IA
       console.log("Enviando datos al generador:", {
@@ -196,22 +243,36 @@ export function IntakeFormFlow({ actInfo }: IntakeFormFlowProps) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Usuario no autenticado");
 
-      const { data: savedDoc, error: saveError } = await supabase
-        .from("legal_documents")
-        .insert({
+      // ⚠️ SEGURIDAD: Guardar solo campos correspondientes al tipo de acto
+      let insertData;
+      
+      if (isJudicial) {
+        insertData = {
           user_id: user.id,
           tipo_documento: actInfo.act.id,
           materia: actInfo.matter.name,
-          titulo: isJudicial 
-            ? `${actInfo.act.name} - ${formData.demandante_nombre || 'N/D'} vs ${formData.demandado_nombre || 'N/D'}`
-            : `${actInfo.act.name} - ${formData.vendedor_nombre || formData.demandante_nombre || 'N/D'}`,
+          titulo: `${actInfo.act.name} - ${formData.demandante_nombre || 'N/D'} vs ${formData.demandado_nombre || 'N/D'}`,
           contenido: generatedDocument,
-          demandante_nombre: formData.demandante_nombre || formData.vendedor_nombre || null,
-          demandado_nombre: formData.demandado_nombre || formData.comprador_nombre || null,
+          demandante_nombre: formData.demandante_nombre || null,
+          demandado_nombre: formData.demandado_nombre || null,
           juzgado: formData.tribunal_nombre || null,
           numero_expediente: formData.numero_expediente || null,
           case_number: formData.case_number || null,
-        })
+        };
+      } else {
+        // Extrajudicial - NO incluir campos judiciales
+        insertData = {
+          user_id: user.id,
+          tipo_documento: actInfo.act.id,
+          materia: actInfo.matter.name,
+          titulo: `${actInfo.act.name} - ${formData.vendedor_nombre || formData.comprador_nombre || 'N/D'}`,
+          contenido: generatedDocument,
+        };
+      }
+
+      const { data: savedDoc, error: saveError } = await supabase
+        .from("legal_documents")
+        .insert(insertData)
         .select()
         .single();
 

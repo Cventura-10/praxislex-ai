@@ -14,6 +14,80 @@ export type Database = {
   }
   public: {
     Tables: {
+      act_fields: {
+        Row: {
+          act_slug: string
+          created_at: string | null
+          display_order: number | null
+          field_key: string
+          field_label: string | null
+          field_type: string | null
+          id: string
+          is_required: boolean | null
+        }
+        Insert: {
+          act_slug: string
+          created_at?: string | null
+          display_order?: number | null
+          field_key: string
+          field_label?: string | null
+          field_type?: string | null
+          id?: string
+          is_required?: boolean | null
+        }
+        Update: {
+          act_slug?: string
+          created_at?: string | null
+          display_order?: number | null
+          field_key?: string
+          field_label?: string | null
+          field_type?: string | null
+          id?: string
+          is_required?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "act_fields_act_slug_fkey"
+            columns: ["act_slug"]
+            isOneToOne: false
+            referencedRelation: "act_types"
+            referencedColumns: ["slug"]
+          },
+        ]
+      }
+      act_types: {
+        Row: {
+          act_template_kind: string
+          created_at: string | null
+          id: string
+          materia: string
+          slug: string
+          tipo_documento: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          act_template_kind: string
+          created_at?: string | null
+          id?: string
+          materia: string
+          slug: string
+          tipo_documento: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          act_template_kind?: string
+          created_at?: string | null
+          id?: string
+          materia?: string
+          slug?: string
+          tipo_documento?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       admin_verifications: {
         Row: {
           created_at: string
@@ -1518,6 +1592,27 @@ export type Database = {
           user_id: string | null
         }
         Relationships: []
+      }
+      v_act_fields_sane: {
+        Row: {
+          act_slug: string | null
+          created_at: string | null
+          display_order: number | null
+          field_key: string | null
+          field_label: string | null
+          field_type: string | null
+          id: string | null
+          is_required: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "act_fields_act_slug_fkey"
+            columns: ["act_slug"]
+            isOneToOne: false
+            referencedRelation: "act_types"
+            referencedColumns: ["slug"]
+          },
+        ]
       }
     }
     Functions: {
