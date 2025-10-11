@@ -1,139 +1,123 @@
 import { useState, useEffect } from "react";
+import { X, Download, Share } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Download, X, Share } from "lucide-react";
-import { toast } from "sonner";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
 export function PWAInstallBanner() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [showBanner, setShowBanner] = useState(false);
-  const [isIOS, setIsIOS] = useState(false);
-  const [isInstalled, setIsInstalled] = useState(false);
+  const [showIOSPrompt, setShowIOSPrompt] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
     // Check if already installed
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
-                        (window.navigator as any).standalone === true;
-    setIsInstalled(isStandalone);
+    const isStandalone = window.matchMedia("(display-mode: standalone)").matches;
+    if (isStandalone) return;
 
-    // Check if iOS
-    const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
-    setIsIOS(iOS);
+    // Check if previously dismissed
+    const wasDismissed = localStorage.getItem("pwa-install-dismissed");
+    if (wasDismissed) {
+      setDismissed(true);
+      return;
+    }
 
-    // Android/Desktop beforeinstallprompt event
+    // Android/Desktop: beforeinstallprompt
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      
-      // Check if user dismissed before
-      const dismissed = localStorage.getItem('pwa-install-dismissed');
-      if (!dismissed) {
-        setShowBanner(true);
-      }
     };
 
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
 
-    // Show iOS banner if not installed and not dismissed
-    if (iOS && !isStandalone) {
-      const dismissed = localStorage.getItem('pwa-install-dismissed-ios');
-      if (!dismissed) {
-        setShowBanner(true);
-      }
+    // iOS: detect Safari
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    
+    if (isIOS && isSafari && !isStandalone) {
+      setShowIOSPrompt(true);
     }
 
     return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
     };
   }, []);
 
-  const handleInstallClick = async () => {
+  const handleInstall = async () => {
     if (!deferredPrompt) return;
 
-    try {
-      await deferredPrompt.prompt();
-      const choiceResult = await deferredPrompt.userChoice;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
 
-      if (choiceResult.outcome === 'accepted') {
-        toast.success('¡Aplicación instalada!', {
-          description: 'PraxisLex se ha instalado correctamente en tu dispositivo.',
-        });
-        setShowBanner(false);
-      } else {
-        localStorage.setItem('pwa-install-dismissed', Date.now().toString());
-      }
-
-      setDeferredPrompt(null);
-    } catch (error) {
-      console.error('Error installing PWA:', error);
-      toast.error('Error al instalar', {
-        description: 'No se pudo completar la instalación. Intenta de nuevo más tarde.',
-      });
+    if (outcome === "accepted") {
+      console.log("PWA instalada");
     }
+
+    setDeferredPrompt(null);
+    setDismissed(true);
   };
 
   const handleDismiss = () => {
-    setShowBanner(false);
-    if (isIOS) {
-      localStorage.setItem('pwa-install-dismissed-ios', Date.now().toString());
-    } else {
-      localStorage.setItem('pwa-install-dismissed', Date.now().toString());
-    }
+    localStorage.setItem("pwa-install-dismissed", "true");
+    setDismissed(true);
   };
 
-  if (isInstalled || !showBanner) return null;
+  if (dismissed) return null;
 
-  return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 max-w-md mx-auto animate-in slide-in-from-bottom-5">
-      <Alert className="border-primary bg-primary/5 shadow-lg">
-        <Download className="h-5 w-5 text-primary" />
-        <AlertTitle className="text-primary flex items-center justify-between">
-          Instalar PraxisLex
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-6 w-6 p-0"
-            onClick={handleDismiss}
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </AlertTitle>
-        <AlertDescription className="mt-2 space-y-3">
-          <p className="text-sm text-muted-foreground">
-            Instala PraxisLex en tu dispositivo para acceso rápido y funcionalidad offline.
-          </p>
-          
-          {isIOS ? (
-            <div className="space-y-2">
-              <p className="text-sm font-medium">Para instalar en iOS:</p>
-              <ol className="text-sm text-muted-foreground space-y-1 pl-4">
-                <li className="flex items-start gap-2">
-                  <Share className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                  <span>Toca el botón de compartir <Share className="inline h-3 w-3" /></span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Download className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                  <span>Selecciona "Añadir a pantalla de inicio"</span>
-                </li>
-              </ol>
-            </div>
-          ) : (
-            <Button 
-              onClick={handleInstallClick}
-              className="w-full"
-              size="sm"
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Instalar Ahora
+  // Android/Desktop prompt
+  if (deferredPrompt) {
+    return (
+      <div className="fixed bottom-4 left-4 right-4 z-50 animate-in slide-in-from-bottom-5 md:left-auto md:right-4 md:max-w-md">
+        <Alert className="border-primary bg-card shadow-lg">
+          <Download className="h-4 w-4 text-primary" />
+          <div className="flex-1">
+            <AlertTitle>Instalar PraxisLex</AlertTitle>
+            <AlertDescription className="mt-2">
+              Instala la aplicación en tu dispositivo para un acceso rápido y trabajar offline.
+            </AlertDescription>
+          </div>
+          <div className="flex items-center gap-2 mt-4">
+            <Button onClick={handleInstall} size="sm">
+              <Download className="mr-2 h-4 w-4" />
+              Instalar
             </Button>
-          )}
-        </AlertDescription>
-      </Alert>
-    </div>
-  );
+            <Button onClick={handleDismiss} variant="ghost" size="sm">
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        </Alert>
+      </div>
+    );
+  }
+
+  // iOS prompt
+  if (showIOSPrompt) {
+    return (
+      <div className="fixed bottom-4 left-4 right-4 z-50 animate-in slide-in-from-bottom-5 md:left-auto md:right-4 md:max-w-md">
+        <Alert className="border-primary bg-card shadow-lg">
+          <Share className="h-4 w-4 text-primary" />
+          <div className="flex-1">
+            <AlertTitle>Instalar PraxisLex</AlertTitle>
+            <AlertDescription className="mt-2 space-y-2">
+              <p>Para instalar esta app en tu iPhone/iPad:</p>
+              <ol className="list-decimal list-inside space-y-1 text-sm">
+                <li>Toca el botón <strong>Compartir</strong> <Share className="inline h-3 w-3" /></li>
+                <li>Selecciona <strong>"Añadir a pantalla de inicio"</strong></li>
+                <li>Toca <strong>"Añadir"</strong></li>
+              </ol>
+            </AlertDescription>
+          </div>
+          <Button onClick={handleDismiss} variant="ghost" size="sm" className="mt-4">
+            <X className="h-4 w-4 mr-2" />
+            Cerrar
+          </Button>
+        </Alert>
+      </div>
+    );
+  }
+
+  return null;
 }

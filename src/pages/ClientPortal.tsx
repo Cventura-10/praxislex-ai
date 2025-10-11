@@ -63,6 +63,8 @@ interface ClientInvoice {
   numero_factura: string;
   concepto: string;
   monto: number;
+  subtotal?: number;
+  itbis?: number;
   fecha: string;
   estado: string;
   clients?: {
@@ -167,27 +169,55 @@ const ClientPortal = () => {
         .eq("client_id", clientInfo.id);
 
       // Get documents
-      const { data: docsData } = await supabase
+      const { data: docsData } = casesData && casesData.length > 0 ? await supabase
         .from("legal_documents")
         .select("*")
-        .in("case_number", casesData?.map(c => c.numero_expediente) || []);
+        .in("case_number", casesData.map(c => c.numero_expediente)) : { data: null };
 
-      // Procesar datos
-      const uniqueCases = new Map(
-        (casesData || []).map(c => [c.id, c])
-      );
+      // Process data into Maps
+      const uniqueCases = new Map<string, ClientCase>();
+      (casesData || []).forEach(c => {
+        uniqueCases.set(c.id, c as ClientCase);
+      });
       
-      const uniqueHearings = new Map(
-        (hearingsData || []).map(h => [h.id, h])
-      );
+      const uniqueHearings = new Map<string, ClientHearing>();
+      (hearingsData || []).forEach(h => {
+        uniqueHearings.set(h.id, {
+          id: h.id,
+          caso: h.caso,
+          fecha: h.fecha,
+          hora: h.hora,
+          juzgado: h.juzgado,
+          tipo: h.tipo,
+          ubicacion: h.ubicacion || '',
+          estado: h.estado || 'programada'
+        });
+      });
       
-      const uniqueInvoices = new Map(
-        (invoicesData || []).map(inv => [inv.id, inv])
-      );
+      const uniqueInvoices = new Map<string, ClientInvoice>();
+      (invoicesData || []).forEach(inv => {
+        uniqueInvoices.set(inv.id, {
+          id: inv.id,
+          numero_factura: inv.numero_factura,
+          concepto: inv.concepto,
+          monto: inv.monto,
+          subtotal: inv.subtotal,
+          itbis: inv.itbis,
+          fecha: inv.fecha,
+          estado: inv.estado || 'pendiente'
+        });
+      });
       
-      const uniqueDocs = new Map(
-        (docsData || []).map(doc => [doc.id, doc])
-      );
+      const uniqueDocs = new Map<string, ClientDocument>();
+      (docsData || []).forEach(doc => {
+        uniqueDocs.set(doc.id, {
+          id: doc.id,
+          titulo: doc.titulo,
+          tipo_documento: doc.tipo_documento,
+          materia: doc.materia,
+          fecha_generacion: doc.fecha_generacion
+        });
+      });
 
       return {
         clientInfo,

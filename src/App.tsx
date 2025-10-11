@@ -12,8 +12,10 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { LoadingFallback } from "@/components/LoadingFallback";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
+import { PWAInstallBanner } from "@/components/pwa/PWAInstallBanner";
 import { OfflineIndicator } from "@/components/pwa/OfflineIndicator";
 import { UpdatePrompt } from "@/components/pwa/UpdatePrompt";
+import { FloatingAIWidget } from "@/components/ai/FloatingAIWidget";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, RotateCcw } from "lucide-react";
@@ -71,8 +73,10 @@ const App = () => (
         <Toaster />
         <Sonner />
         <PWAInstallPrompt />
+        <PWAInstallBanner />
         <OfflineIndicator />
         <UpdatePrompt />
+        <FloatingAIWidget />
         <BrowserRouter>
         <Routes>
           {/* Public routes */}
