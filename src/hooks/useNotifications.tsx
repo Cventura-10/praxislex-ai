@@ -32,24 +32,40 @@ export function useNotifications() {
   // Cargar notificaciones iniciales
   const loadNotifications = async () => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        console.log("[useNotifications] No user authenticated, skipping notifications load");
+        setIsLoading(false);
+        return;
+      }
+
+      console.log("[useNotifications] Loading notifications for user:", user.id);
+      
       const { data, error } = await supabase
         .from("notifications")
         .select("*")
         .order("created_at", { ascending: false })
         .limit(50);
 
-      if (error) throw error;
+      if (error) {
+        console.error("[useNotifications] Supabase error:", error);
+        // Don't throw, just log and continue with empty notifications
+        setNotifications([]);
+        setUnreadCount(0);
+        setIsLoading(false);
+        return;
+      }
 
+      console.log("[useNotifications] Loaded", data?.length || 0, "notifications");
       const typedData = (data || []) as Notification[];
       setNotifications(typedData);
       setUnreadCount(typedData.filter((n) => !n.is_read).length);
     } catch (error: any) {
-      console.error("Error loading notifications:", error);
-      toast({
-        title: "Error",
-        description: "No se pudieron cargar las notificaciones",
-        variant: "destructive",
-      });
+      console.error("[useNotifications] Unexpected error:", error);
+      // Graceful degradation - don't crash the app
+      setNotifications([]);
+      setUnreadCount(0);
     } finally {
       setIsLoading(false);
     }
@@ -57,59 +73,71 @@ export function useNotifications() {
 
   // Suscribirse a notificaciones en tiempo real
   useEffect(() => {
-    loadNotifications();
+    let notificationsChannel: RealtimeChannel | null = null;
 
-    const notificationsChannel = supabase
-      .channel("notifications-changes")
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "notifications",
-        },
-        (payload) => {
-          console.log("New notification received:", payload);
-          const newNotification = payload.new as Notification;
+    const setupNotifications = async () => {
+      try {
+        await loadNotifications();
 
-          setNotifications((prev) => [newNotification, ...prev]);
-          setUnreadCount((prev) => prev + 1);
+        notificationsChannel = supabase
+          .channel("notifications-changes")
+          .on(
+            "postgres_changes",
+            {
+              event: "INSERT",
+              schema: "public",
+              table: "notifications",
+            },
+            (payload) => {
+              console.log("[useNotifications] New notification received:", payload);
+              const newNotification = payload.new as Notification;
 
-          // Mostrar toast para notificaciones de alta prioridad
-          if (newNotification.priority === "high" || newNotification.priority === "urgent") {
-            toast({
-              title: newNotification.title,
-              description: newNotification.message,
-              duration: 5000,
-            });
-          }
-        }
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "notifications",
-        },
-        (payload) => {
-          const updated = payload.new as Notification;
-          setNotifications((prev) =>
-            prev.map((n) => (n.id === updated.id ? updated : n))
-          );
-          
-          // Actualizar contador si cambió el estado de leído
-          if (updated.is_read) {
-            setUnreadCount((prev) => Math.max(0, prev - 1));
-          }
-        }
-      )
-      .subscribe();
+              setNotifications((prev) => [newNotification, ...prev]);
+              setUnreadCount((prev) => prev + 1);
 
-    setChannel(notificationsChannel);
+              // Mostrar toast para notificaciones de alta prioridad
+              if (newNotification.priority === "high" || newNotification.priority === "urgent") {
+                toast({
+                  title: newNotification.title,
+                  description: newNotification.message,
+                  duration: 5000,
+                });
+              }
+            }
+          )
+          .on(
+            "postgres_changes",
+            {
+              event: "UPDATE",
+              schema: "public",
+              table: "notifications",
+            },
+            (payload) => {
+              const updated = payload.new as Notification;
+              setNotifications((prev) =>
+                prev.map((n) => (n.id === updated.id ? updated : n))
+              );
+              
+              // Actualizar contador si cambió el estado de leído
+              if (updated.is_read) {
+                setUnreadCount((prev) => Math.max(0, prev - 1));
+              }
+            }
+          )
+          .subscribe();
+
+        setChannel(notificationsChannel);
+      } catch (error) {
+        console.error("[useNotifications] Error setting up notifications:", error);
+      }
+    };
+
+    setupNotifications();
 
     return () => {
-      notificationsChannel.unsubscribe();
+      if (notificationsChannel) {
+        notificationsChannel.unsubscribe();
+      }
     };
   }, []);
 

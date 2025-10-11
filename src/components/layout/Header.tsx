@@ -17,6 +17,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { ConnectionBadge } from "@/components/pwa/OfflineIndicator";
 import { InstallButton, InstalledBadge } from "@/components/pwa/InstallButton";
+import { SafeComponent } from "@/components/SafeComponent";
 import logo from "@/assets/praxislex-logo-horizontal.svg";
 
 export function Header() {
@@ -28,19 +29,33 @@ export function Header() {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setUserEmail(user.email || "");
-        
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("full_name")
-          .eq("id", user.id)
-          .maybeSingle();
-        
-        if (profile) {
-          setUserName(profile.full_name || "Usuario");
+      try {
+        console.log("[Header] Fetching user data...");
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          console.log("[Header] User found:", user.id);
+          setUserEmail(user.email || "");
+          
+          const { data: profile, error } = await supabase
+            .from("profiles")
+            .select("full_name")
+            .eq("id", user.id)
+            .maybeSingle();
+          
+          if (error) {
+            console.error("[Header] Error fetching profile:", error);
+          } else if (profile) {
+            console.log("[Header] Profile loaded:", profile.full_name);
+            setUserName(profile.full_name || "Usuario");
+          } else {
+            console.log("[Header] No profile found, using default");
+            setUserName("Usuario");
+          }
+        } else {
+          console.log("[Header] No user authenticated");
         }
+      } catch (error) {
+        console.error("[Header] Unexpected error fetching user data:", error);
       }
     };
 
@@ -88,11 +103,21 @@ export function Header() {
         </div>
 
         <div className="flex items-center gap-3">
-          <ConnectionBadge />
-          <InstalledBadge />
-          <InstallButton />
+          <SafeComponent componentName="ConnectionBadge">
+            <ConnectionBadge />
+          </SafeComponent>
           
-          <NotificationBell />
+          <SafeComponent componentName="InstalledBadge">
+            <InstalledBadge />
+          </SafeComponent>
+          
+          <SafeComponent componentName="InstallButton">
+            <InstallButton />
+          </SafeComponent>
+          
+          <SafeComponent componentName="NotificationBell">
+            <NotificationBell />
+          </SafeComponent>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

@@ -10,6 +10,7 @@ import { Navigation } from "@/components/layout/Navigation";
 import { AuthGuard } from "@/components/AuthGuard";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { SafeComponent } from "@/components/SafeComponent";
 import { LoadingFallback } from "@/components/LoadingFallback";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { PWAInstallBanner } from "@/components/pwa/PWAInstallBanner";
@@ -91,9 +92,13 @@ const App = () => (
             element={
               <AuthGuard>
                 <div className="min-h-screen bg-background">
-                  <Header />
+                  <SafeComponent componentName="Header">
+                    <Header />
+                  </SafeComponent>
                   <div className="flex">
-                    <Navigation />
+                    <SafeComponent componentName="Navigation">
+                      <Navigation />
+                    </SafeComponent>
                     <main className="flex-1 p-6">
                       <QueryErrorResetBoundary>
                         {({ reset }) => (

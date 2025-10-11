@@ -93,31 +93,44 @@ const ClientPortal = () => {
   const { data: portalData, isLoading, isError, error } = useQuery({
     queryKey: ['client-portal-data'],
     queryFn: async () => {
+      console.log("[ClientPortal] Starting data fetch...");
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
+        console.error("[ClientPortal] No user authenticated");
         throw new Error('No autenticado. Por favor, inicie sesión.');
       }
 
+      console.log("[ClientPortal] User authenticated:", user.id);
+
       // Buscar cliente vinculado
-      let clientInfo = must(await supabase
+      const clientByAuthId = await supabase
         .from("clients")
         .select("*")
         .eq("auth_user_id", user.id)
-        .maybeSingle());
+        .maybeSingle();
+
+      console.log("[ClientPortal] Client by auth_user_id:", clientByAuthId);
+      
+      let clientInfo = clientByAuthId.error ? null : clientByAuthId.data;
 
       // Si no existe, intentar por user_id
       if (!clientInfo) {
-        clientInfo = must(await supabase
+        console.log("[ClientPortal] Trying by user_id...");
+        const clientByUserId = await supabase
           .from("clients")
           .select("*")
           .eq("user_id", user.id)
-          .maybeSingle());
+          .maybeSingle();
+        
+        console.log("[ClientPortal] Client by user_id:", clientByUserId);
+        clientInfo = clientByUserId.error ? null : clientByUserId.data;
       }
 
       // Si no existe, crear uno
       if (!clientInfo) {
-        clientInfo = must(await supabase
+        console.log("[ClientPortal] Creating new client record...");
+        const newClient = await supabase
           .from("clients")
           .insert({
             user_id: user.id,
@@ -127,12 +140,27 @@ const ClientPortal = () => {
             accepted_terms: false,
           })
           .select()
-          .single());
+          .single();
+        
+        if (newClient.error) {
+          console.error("[ClientPortal] Error creating client:", newClient.error);
+          throw new Error(`Error al crear registro de cliente: ${newClient.error.message}`);
+        }
+        
+        console.log("[ClientPortal] New client created:", newClient.data.id);
+        clientInfo = newClient.data;
       }
 
       // Obtener resumen
-      const summaryData = must(await supabase
-        .rpc('get_client_summary', { p_client_id: clientInfo.id }));
+      console.log("[ClientPortal] Fetching client summary...");
+      const summaryResult = await supabase
+        .rpc('get_client_summary', { p_client_id: clientInfo.id });
+      
+      if (summaryResult.error) {
+        console.error("[ClientPortal] Error fetching summary:", summaryResult.error);
+      }
+      
+      const summaryData = summaryResult.data;
 
       const summary = summaryData && summaryData.length > 0 ? {
         casosActivos: Number(summaryData[0].casos_activos) || 0,
