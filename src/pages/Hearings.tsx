@@ -17,7 +17,9 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar, Clock, MapPin, Plus, AlertTriangle, Edit, Trash2, CheckCircle2, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { hearingSchema, deadlineSchema } from "@/lib/validation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { HearingSchema, type HearingInput, DeadlineSchema, type DeadlineInput } from "@/lib/forms/validators";
 
 interface Hearing {
   id: string;
@@ -49,22 +51,31 @@ const Hearings = () => {
   const [showNewHearingDialog, setShowNewHearingDialog] = useState(false);
   const [showNewDeadlineDialog, setShowNewDeadlineDialog] = useState(false);
 
-  const [newHearing, setNewHearing] = useState({
-    case_id: "",
-    caso: "",
-    juzgado: "",
-    fecha: "",
-    hora: "",
-    tipo: "",
-    ubicacion: "",
+  const hearingForm = useForm<HearingInput>({
+    resolver: zodResolver(HearingSchema),
+    mode: "onChange",
+    defaultValues: {
+      case_id: null,
+      caso: "",
+      juzgado: "",
+      tipo: "",
+      fecha: "",
+      hora: "",
+      ubicacion: "",
+      estado: 'programada',
+    },
   });
 
-  const [newDeadline, setNewDeadline] = useState({
-    case_id: "",
-    caso: "",
-    tipo: "",
-    fecha_vencimiento: "",
-    prioridad: "media",
+  const deadlineForm = useForm<DeadlineInput>({
+    resolver: zodResolver(DeadlineSchema),
+    mode: "onChange",
+    defaultValues: {
+      case_id: null,
+      caso: "",
+      tipo: "",
+      fecha_vencimiento: "",
+      prioridad: 'media',
+    },
   });
 
   useEffect(() => {
@@ -116,128 +127,72 @@ const Hearings = () => {
     }
   };
 
-  const handleCreateHearing = async () => {
+  const handleCreateHearing = async (data: HearingInput) => {
     try {
-      // Validate input data
-      const validationResult = hearingSchema.safeParse({
-        caso: newHearing.caso,
-        juzgado: newHearing.juzgado,
-        fecha: newHearing.fecha,
-        hora: newHearing.hora,
-        tipo: newHearing.tipo,
-        ubicacion: newHearing.ubicacion || undefined,
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) throw new Error("Usuario no autenticado");
+
+      const { error } = await supabase.from("hearings").insert({
+        user_id: userData.user.id,
+        case_id: data.case_id || null,
+        caso: data.caso,
+        juzgado: data.juzgado,
+        tipo: data.tipo,
+        fecha: data.fecha, // Ya viene en formato ISO YYYY-MM-DD por el coerce
+        hora: data.hora,   // Ya viene normalizado HH:mm
+        ubicacion: data.ubicacion || null,
+        estado: data.estado || 'programada',
       });
-
-      if (!validationResult.success) {
-        const errors = validationResult.error.issues;
-        const errorMessages = errors.map(err => `• ${err.path.join('.')}: ${err.message}`).join('\n');
-        toast({
-          title: "Formulario incompleto",
-          description: errors.length > 1 
-            ? `Por favor complete los siguientes campos:\n${errorMessages}`
-            : errors[0].message,
-          variant: "destructive",
-        });
-        return;
-      }
-
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error("Usuario no autenticado");
-
-      const { error } = await supabase.from("hearings").insert([
-        {
-          ...newHearing,
-          user_id: user.id,
-          case_id: newHearing.case_id || null,
-        },
-      ]);
 
       if (error) throw error;
 
       toast({
-        title: "Audiencia creada",
-        description: "La audiencia ha sido creada exitosamente",
+        title: "✓ Audiencia creada",
+        description: "La audiencia se ha creado correctamente",
       });
 
       setShowNewHearingDialog(false);
-      setNewHearing({
-        case_id: "",
-        caso: "",
-        juzgado: "",
-        fecha: "",
-        hora: "",
-        tipo: "",
-        ubicacion: "",
-      });
+      hearingForm.reset();
       fetchData();
     } catch (error: any) {
       toast({
+        variant: "destructive",
         title: "Error",
         description: error.message || "No se pudo crear la audiencia",
-        variant: "destructive",
       });
     }
   };
 
-  const handleCreateDeadline = async () => {
+  const handleCreateDeadline = async (data: DeadlineInput) => {
     try {
-      // Validate input data
-      const validationResult = deadlineSchema.safeParse({
-        caso: newDeadline.caso,
-        tipo: newDeadline.tipo,
-        fecha_vencimiento: newDeadline.fecha_vencimiento,
-        prioridad: newDeadline.prioridad,
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) throw new Error("Usuario no autenticado");
+
+      const { error } = await supabase.from("deadlines").insert({
+        user_id: userData.user.id,
+        case_id: data.case_id || null,
+        caso: data.caso,
+        tipo: data.tipo,
+        fecha_vencimiento: data.fecha_vencimiento,
+        prioridad: data.prioridad || 'media',
+        completado: false,
       });
-
-      if (!validationResult.success) {
-        const errors = validationResult.error.issues;
-        const errorMessages = errors.map(err => `• ${err.path.join('.')}: ${err.message}`).join('\n');
-        toast({
-          title: "Formulario incompleto",
-          description: errors.length > 1 
-            ? `Por favor complete los siguientes campos:\n${errorMessages}`
-            : errors[0].message,
-          variant: "destructive",
-        });
-        return;
-      }
-
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error("Usuario no autenticado");
-
-      const { error } = await supabase.from("deadlines").insert([
-        {
-          ...newDeadline,
-          user_id: user.id,
-          case_id: newDeadline.case_id || null,
-        },
-      ]);
 
       if (error) throw error;
 
       toast({
-        title: "Plazo creado",
-        description: "El plazo ha sido creado exitosamente",
+        title: "✓ Plazo creado",
+        description: "El plazo se ha creado correctamente",
       });
 
       setShowNewDeadlineDialog(false);
-      setNewDeadline({
-        case_id: "",
-        caso: "",
-        tipo: "",
-        fecha_vencimiento: "",
-        prioridad: "media",
-      });
+      deadlineForm.reset();
       fetchData();
     } catch (error: any) {
       toast({
+        variant: "destructive",
         title: "Error",
         description: error.message || "No se pudo crear el plazo",
-        variant: "destructive",
       });
     }
   };
@@ -339,13 +294,17 @@ const Hearings = () => {
                 <DialogTitle>Nueva Audiencia</DialogTitle>
                 <DialogDescription>Complete los datos de la audiencia</DialogDescription>
               </DialogHeader>
-              <div className="grid gap-4 py-4">
+              <form onSubmit={hearingForm.handleSubmit(handleCreateHearing)} className="space-y-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="case_hearing">Caso</Label>
-                  <Select value={newHearing.case_id} onValueChange={(value) => {
-                    const selectedCase = cases.find(c => c.id === value);
-                    setNewHearing({ ...newHearing, case_id: value, caso: `${selectedCase?.numero_expediente || ''} - ${selectedCase?.titulo || ""}` });
-                  }}>
+                  <Label htmlFor="case_hearing">Caso *</Label>
+                  <Select 
+                    value={hearingForm.watch("case_id") || ""} 
+                    onValueChange={(value) => {
+                      const selectedCase = cases.find(c => c.id === value);
+                      hearingForm.setValue("case_id", value, { shouldValidate: true });
+                      hearingForm.setValue("caso", `${selectedCase?.numero_expediente || ''} - ${selectedCase?.titulo || ""}`, { shouldValidate: true });
+                    }}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Seleccionar caso" />
                     </SelectTrigger>
@@ -360,61 +319,77 @@ const Hearings = () => {
                       ))}
                     </SelectContent>
                   </Select>
+                  {hearingForm.formState.errors.caso && (
+                    <p className="text-xs text-destructive">{hearingForm.formState.errors.caso.message}</p>
+                  )}
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="juzgado">Juzgado *</Label>
                   <Input
                     id="juzgado"
-                    value={newHearing.juzgado}
-                    onChange={(e) => setNewHearing({ ...newHearing, juzgado: e.target.value })}
+                    {...hearingForm.register("juzgado")}
                     placeholder="Ej: Primera Instancia DN"
                   />
+                  {hearingForm.formState.errors.juzgado && (
+                    <p className="text-xs text-destructive">{hearingForm.formState.errors.juzgado.message}</p>
+                  )}
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="fecha">Fecha *</Label>
+                  <Label htmlFor="fecha">Fecha * (DD/MM/AAAA o YYYY-MM-DD)</Label>
                   <Input
                     id="fecha"
-                    type="date"
-                    value={newHearing.fecha}
-                    onChange={(e) => setNewHearing({ ...newHearing, fecha: e.target.value })}
+                    {...hearingForm.register("fecha")}
+                    placeholder="10/12/2025 o 2025-12-10"
                   />
+                  {hearingForm.formState.errors.fecha && (
+                    <p className="text-xs text-destructive">{hearingForm.formState.errors.fecha.message}</p>
+                  )}
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="hora">Hora *</Label>
+                  <Label htmlFor="hora">Hora * (HH:mm)</Label>
                   <Input
                     id="hora"
-                    type="time"
-                    value={newHearing.hora}
-                    onChange={(e) => setNewHearing({ ...newHearing, hora: e.target.value })}
+                    {...hearingForm.register("hora")}
+                    placeholder="09:07"
                   />
+                  {hearingForm.formState.errors.hora && (
+                    <p className="text-xs text-destructive">{hearingForm.formState.errors.hora.message}</p>
+                  )}
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="tipo">Tipo *</Label>
                   <Input
                     id="tipo"
-                    value={newHearing.tipo}
-                    onChange={(e) => setNewHearing({ ...newHearing, tipo: e.target.value })}
+                    {...hearingForm.register("tipo")}
                     placeholder="Ej: Audiencia preliminar"
                   />
+                  {hearingForm.formState.errors.tipo && (
+                    <p className="text-xs text-destructive">{hearingForm.formState.errors.tipo.message}</p>
+                  )}
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="ubicacion">Ubicación</Label>
                   <Input
                     id="ubicacion"
-                    value={newHearing.ubicacion}
-                    onChange={(e) => setNewHearing({ ...newHearing, ubicacion: e.target.value })}
+                    {...hearingForm.register("ubicacion")}
                     placeholder="Ej: Sala 3, Edificio A"
                   />
                 </div>
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setShowNewHearingDialog(false)}>
-                  Cancelar
-                </Button>
-                <Button onClick={handleCreateHearing} disabled={!newHearing.juzgado || !newHearing.fecha || !newHearing.hora || !newHearing.tipo}>
-                  Crear Audiencia
-                </Button>
-              </div>
+                <div className="flex justify-end gap-2 pt-2">
+                  <Button type="button" variant="outline" onClick={() => {
+                    setShowNewHearingDialog(false);
+                    hearingForm.reset();
+                  }}>
+                    Cancelar
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    disabled={!hearingForm.formState.isValid || hearingForm.formState.isSubmitting}
+                  >
+                    Crear Audiencia
+                  </Button>
+                </div>
+              </form>
             </DialogContent>
           </Dialog>
         </div>
@@ -499,13 +474,17 @@ const Hearings = () => {
                     <DialogTitle>Nuevo Plazo</DialogTitle>
                     <DialogDescription>Complete los datos del plazo</DialogDescription>
                   </DialogHeader>
-                  <div className="grid gap-4 py-4">
+                  <form onSubmit={deadlineForm.handleSubmit(handleCreateDeadline)} className="space-y-4">
                     <div className="grid gap-2">
-                      <Label htmlFor="case_deadline">Caso</Label>
-                      <Select value={newDeadline.case_id} onValueChange={(value) => {
-                        const selectedCase = cases.find(c => c.id === value);
-                        setNewDeadline({ ...newDeadline, case_id: value, caso: `${selectedCase?.numero_expediente || ''} - ${selectedCase?.titulo || ""}` });
-                      }}>
+                      <Label htmlFor="case_deadline">Caso *</Label>
+                      <Select 
+                        value={deadlineForm.watch("case_id") || ""} 
+                        onValueChange={(value) => {
+                          const selectedCase = cases.find(c => c.id === value);
+                          deadlineForm.setValue("case_id", value, { shouldValidate: true });
+                          deadlineForm.setValue("caso", `${selectedCase?.numero_expediente || ''} - ${selectedCase?.titulo || ""}`, { shouldValidate: true });
+                        }}
+                      >
                         <SelectTrigger>
                           <SelectValue placeholder="Seleccionar caso" />
                         </SelectTrigger>
@@ -520,28 +499,38 @@ const Hearings = () => {
                           ))}
                         </SelectContent>
                       </Select>
+                      {deadlineForm.formState.errors.caso && (
+                        <p className="text-xs text-destructive">{deadlineForm.formState.errors.caso.message}</p>
+                      )}
                     </div>
                     <div className="grid gap-2">
                       <Label htmlFor="tipo_plazo">Tipo de Plazo *</Label>
                       <Input
                         id="tipo_plazo"
-                        value={newDeadline.tipo}
-                        onChange={(e) => setNewDeadline({ ...newDeadline, tipo: e.target.value })}
+                        {...deadlineForm.register("tipo")}
                         placeholder="Ej: Contestación de demanda"
                       />
+                      {deadlineForm.formState.errors.tipo && (
+                        <p className="text-xs text-destructive">{deadlineForm.formState.errors.tipo.message}</p>
+                      )}
                     </div>
                     <div className="grid gap-2">
-                      <Label htmlFor="fecha_vencimiento">Fecha de Vencimiento *</Label>
+                      <Label htmlFor="fecha_vencimiento">Fecha de Vencimiento * (DD/MM/AAAA o YYYY-MM-DD)</Label>
                       <Input
                         id="fecha_vencimiento"
-                        type="date"
-                        value={newDeadline.fecha_vencimiento}
-                        onChange={(e) => setNewDeadline({ ...newDeadline, fecha_vencimiento: e.target.value })}
+                        {...deadlineForm.register("fecha_vencimiento")}
+                        placeholder="15/12/2025 o 2025-12-15"
                       />
+                      {deadlineForm.formState.errors.fecha_vencimiento && (
+                        <p className="text-xs text-destructive">{deadlineForm.formState.errors.fecha_vencimiento.message}</p>
+                      )}
                     </div>
                     <div className="grid gap-2">
                       <Label htmlFor="prioridad">Prioridad</Label>
-                      <Select value={newDeadline.prioridad} onValueChange={(value) => setNewDeadline({ ...newDeadline, prioridad: value })}>
+                      <Select 
+                        value={deadlineForm.watch("prioridad")} 
+                        onValueChange={(value) => deadlineForm.setValue("prioridad", value as "baja" | "media" | "alta", { shouldValidate: true })}
+                      >
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
@@ -552,15 +541,21 @@ const Hearings = () => {
                         </SelectContent>
                       </Select>
                     </div>
-                  </div>
-                  <div className="flex justify-end gap-2">
-                    <Button variant="outline" onClick={() => setShowNewDeadlineDialog(false)}>
-                      Cancelar
-                    </Button>
-                    <Button onClick={handleCreateDeadline} disabled={!newDeadline.tipo || !newDeadline.fecha_vencimiento}>
-                      Crear Plazo
-                    </Button>
-                  </div>
+                    <div className="flex justify-end gap-2 pt-2">
+                      <Button type="button" variant="outline" onClick={() => {
+                        setShowNewDeadlineDialog(false);
+                        deadlineForm.reset();
+                      }}>
+                        Cancelar
+                      </Button>
+                      <Button 
+                        type="submit"
+                        disabled={!deadlineForm.formState.isValid || deadlineForm.formState.isSubmitting}
+                      >
+                        Crear Plazo
+                      </Button>
+                    </div>
+                  </form>
                 </DialogContent>
               </Dialog>
             </div>

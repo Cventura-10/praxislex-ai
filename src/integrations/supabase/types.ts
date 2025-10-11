@@ -1553,6 +1553,10 @@ export type Database = {
         Args: { p_cedula: string }
         Returns: string
       }
+      generate_case_number: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_accessible_clients_safe: {
         Args: Record<PropertyKey, never>
         Returns: {
