@@ -68,7 +68,7 @@ function RQFallback({ error, resetErrorBoundary }: { error: Error; resetErrorBou
 
 const App = () => (
   <ErrorBoundary>
-    <TooltipProvider>
+    <TooltipProvider delayDuration={200} disableHoverableContent>
       <AuthProvider>
         <Toaster />
         <Sonner />

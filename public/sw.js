@@ -1,5 +1,5 @@
 // Service Worker for PraxisLex PWA
-const CACHE_VERSION = 'v2';
+const CACHE_VERSION = 'v3'; // Bumped to force cache refresh after React dedupe fix
 const CACHE_NAME = `praxislex-${CACHE_VERSION}`;
 
 // Assets to cache on install
