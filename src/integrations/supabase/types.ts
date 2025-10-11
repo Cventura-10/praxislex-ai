@@ -1701,6 +1701,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      generate_invoice_number: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_accessible_clients_safe: {
         Args: Record<PropertyKey, never>
         Returns: {
