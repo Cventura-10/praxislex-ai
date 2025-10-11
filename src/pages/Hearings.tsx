@@ -285,7 +285,7 @@ const Hearings = () => {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" className="gap-2">
-            <Calendar className="h-4 w-4" />
+            <CalendarIcon className="h-4 w-4" />
             Ver calendario
           </Button>
           <Dialog open={showNewHearingDialog} onOpenChange={setShowNewHearingDialog}>
@@ -428,7 +428,7 @@ const Hearings = () => {
         <Card className="shadow-medium">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-primary" />
+              <CalendarIcon className="h-5 w-5 text-primary" />
               Próximas audiencias
             </CardTitle>
           </CardHeader>
