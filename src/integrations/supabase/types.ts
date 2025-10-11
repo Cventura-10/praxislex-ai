@@ -1759,9 +1759,9 @@ export type Database = {
         Args: { p_client_id: string }
         Returns: {
           cedula_rnc: string
+          client_id: string
           direccion: string
           email: string
-          id: string
           nombre_completo: string
           telefono: string
         }[]

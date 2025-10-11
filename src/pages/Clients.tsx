@@ -42,7 +42,7 @@ interface Client {
 }
 
 interface RevealedClientData {
-  id: string;
+  client_id: string;
   nombre_completo: string;
   cedula_rnc: string;
   email: string;
