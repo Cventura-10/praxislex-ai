@@ -48,22 +48,51 @@ serve(async (req) => {
       }
     }
 
-    const { 
-      tipo_documento,
-      materia,
-      hechos,
-      pretension,
-      demandante,
-      abogado,
-      firma_apoderada,
-      demandado,
-      acto,
-      ciudad_actuacion,
-      alguacil_designacion,
-      juzgado,
-      legislacion,
-      jurisprudencia 
-    } = await req.json();
+    const requestBody = await req.json();
+    
+    // Soportar tanto el formato antiguo como el nuevo
+    const tipo_documento = requestBody.tipo_documento || requestBody.actType;
+    
+    // Normalizar materia
+    const materiaRaw = requestBody.materia || 'civil';
+    const mapeoMaterias: Record<string, string> = {
+      'civil y comercial': 'civil',
+      'civil': 'civil',
+      'penal': 'penal',
+      'laboral': 'laboral',
+      'administrativo': 'administrativo',
+      'familia': 'familia',
+      'inmobiliario': 'inmobiliario',
+      'tributario': 'tributario',
+      'comercial': 'comercial'
+    };
+    const materia = mapeoMaterias[materiaRaw.toLowerCase()] || 'civil';
+    
+    const hechos = requestBody.hechos || requestBody.formData?.hechos || '';
+    const pretension = requestBody.pretension || requestBody.formData?.pretensiones || '';
+    
+    // Datos opcionales del formato antiguo
+    const demandante = requestBody.demandante;
+    const abogado = requestBody.abogado;
+    const firma_apoderada = requestBody.firma_apoderada;
+    const demandado = requestBody.demandado;
+    const acto = requestBody.acto;
+    const ciudad_actuacion = requestBody.ciudad_actuacion;
+    const alguacil_designacion = requestBody.alguacil_designacion;
+    const juzgado = requestBody.juzgado;
+    const legislacion = requestBody.legislacion;
+    const jurisprudencia = requestBody.jurisprudencia;
+    
+    // FormData del nuevo formato
+    const formData = requestBody.formData || {};
+    
+    console.log('Generando documento:', { 
+      tipo_documento, 
+      materia, 
+      materiaOriginal: materiaRaw,
+      hasFormData: !!formData,
+      formDataKeys: Object.keys(formData)
+    });
 
     // Jerarquía normativa según materia
     const jerarquiaNormativa: Record<string, string[]> = {
@@ -132,10 +161,33 @@ serve(async (req) => {
     const rncFirma = lawFirmInfo?.rnc || firma_apoderada?.rnc || "";
 
     // SISTEMA DE CLASIFICACIÓN: Judicial vs Extrajudicial
-    const esJudicial = ['demanda_civil', 'cobro_pesos', 'desalojo', 'emplazamiento', 'conclusiones', 
-                        'querella_actor_civil', 'demanda_laboral', 'contencioso_administrativo'].includes(tipo_documento);
+    // Lista completa de actos judiciales
+    const actosJudiciales = [
+      // Civil y Comercial
+      'demanda_civil', 'emplazamiento', 'conclusiones', 'acto_apelacion', 'mandamiento_pago',
+      'embargo_ejecutivo', 'referimiento', 'desalojo', 'interdiccion', 'cobro_pesos',
+      // Penal
+      'querella_actor_civil', 'acto_acusacion', 'medidas_coercion', 'recurso_apelacion_penal',
+      'recurso_casacion_penal', 'solicitud_libertad',
+      // Laboral
+      'demanda_laboral', 'citacion_laboral', 'recurso_apelacion_laboral', 'terceria_laboral',
+      // Administrativo
+      'contencioso_administrativo', 'recurso_anulacion', 'amparo'
+    ];
     
-    const esExtrajudicial = ['contrato_venta', 'contrato_alquiler', 'carta_cobranza', 'intimacion_pago'].includes(tipo_documento);
+    // Lista completa de actos extrajudiciales
+    const actosExtrajudiciales = [
+      // Civil y Comercial
+      'contrato_venta', 'contrato_alquiler', 'poder_general', 'poder_especial', 'testamento',
+      'declaracion_jurada', 'intimacion_pago', 'notificacion_desalojo', 'carta_cobranza',
+      // Laboral
+      'contrato_trabajo', 'carta_despido', 'carta_renuncia', 'acta_conciliacion',
+      // Administrativo
+      'solicitud_admin', 'recurso_reconsideracion'
+    ];
+    
+    const esJudicial = actosJudiciales.includes(tipo_documento);
+    const esExtrajudicial = actosExtrajudiciales.includes(tipo_documento);
 
     let systemPrompt = '';
 
@@ -231,6 +283,8 @@ ESTRUCTURA OBLIGATORIA DE DEMANDA CIVIL (TEXTO PLANO, SIN MARKDOWN):
     } else if (esExtrajudicial) {
       // PLANTILLA PARA ACTOS EXTRAJUDICIALES
       systemPrompt = `Eres un asistente jurídico experto en documentos extrajudiciales de República Dominicana.
+    
+    IMPORTANTE: Este es un documento EXTRAJUDICIAL, NO procesal.
 
 CARÁTULA DE LA FIRMA:
 ${firmaNombre}${rncFirma ? ` - RNC: ${rncFirma}` : ''}
@@ -266,82 +320,105 @@ REGLAS CRÍTICAS:
 3) Lenguaje claro y directo
 4) Enfoque contractual o comunicativo, NO procesal`;
     } else {
-      throw new Error('Tipo de documento no clasificado como judicial o extrajudicial');
+      // Si no está clasificado, usar plantilla genérica
+      console.warn(`Documento ${tipo_documento} no clasificado. Usando plantilla genérica.`);
+      systemPrompt = `Eres un asistente jurídico experto especializado en República Dominicana.
+
+CARÁTULA DE LA FIRMA:
+${firmaNombre}${rncFirma ? ` - RNC: ${rncFirma}` : ''}
+${abogadoNombre} - Matrícula CARD: ${matriculaCard}
+${direccionFirma}
+${telefonoFirma} | ${emailFirma}
+
+Genera un documento jurídico profesional de tipo ${tipo_documento} en materia ${materia}.
+Usa lenguaje formal jurídico dominicano.
+Estructura clara con introducción, desarrollo y conclusión.`;
     }
 
-    const userPrompt = `Genera ${esJudicial ? 'una demanda' : 'un documento extrajudicial'} COMPLETO en materia ${materia}.
+    const userPrompt = `Genera ${esJudicial ? 'una demanda judicial' : esExtrajudicial ? 'un documento extrajudicial' : 'un documento jurídico'} COMPLETO.
 
-DATOS PROCESALES:
-- Tipo de documento: ${tipo_documento}
+DATOS DEL DOCUMENTO:
+- Tipo: ${tipo_documento}
 - Materia: ${materia}
-- Número de Acto: ${acto?.numero || '______, Folios ______ y ______ año ______'}
-- Ciudad de Actuación: ${ciudad_actuacion || 'Santo Domingo, Distrito Nacional'}
-- Fecha: ${acto?.fecha || '[a completar]'}
-- Tribunal: ${juzgado || 'N/D'}
+- Fecha: ${formData.fecha || acto?.fecha || new Date().toLocaleDateString('es-DO')}
 
-DEMANDANTE/REQUERIENTE:
-- Nombre completo: ${demandante?.nombre || 'N/D'}
-- Nacionalidad: ${demandante?.nacionalidad || 'dominicano'}
-- Estado Civil: ${demandante?.estado_civil || 'N/D'}
-- Cédula/RNC: ${demandante?.cedula || 'N/D'}
-- Domicilio: ${demandante?.domicilio || 'N/D'}
-- Tipo: ${demandante?.cedula?.includes('-') && demandante.cedula.length > 11 ? 'Persona Física' : 'Persona Jurídica'}
+${esJudicial ? `
+DATOS PROCESALES:
+- Número de Acto: ${formData.numero_acto || acto?.numero || '[Número del acto]'}
+- Ciudad: ${formData.ciudad_actuacion || ciudad_actuacion || 'Santo Domingo'}
+- Tribunal: ${formData.tribunal || juzgado || '[Tribunal competente]'}
+` : ''}
 
-FIRMA APODERADA:
-- Razón social: ${firma_apoderada?.nombre || 'N/D'}
-- RNC: ${firma_apoderada?.rnc || 'N/D'}
-- Representante legal: ${firma_apoderada?.representante || 'N/D'}
-- Cédula representante: ${firma_apoderada?.cedula_representante || 'N/D'}
-- Domicilio: ${firma_apoderada?.domicilio || 'N/D'}
+PARTES:
+${formData.demandante_nombre || demandante?.nombre ? `
+- ${esJudicial ? 'Demandante' : 'Parte A'}: ${formData.demandante_nombre || demandante?.nombre}
+  Nacionalidad: ${formData.demandante_nacionalidad || demandante?.nacionalidad || 'dominicano(a)'}
+  Estado Civil: ${formData.demandante_estado_civil || demandante?.estado_civil || '[estado civil]'}
+  Cédula/RNC: ${formData.demandante_cedula || demandante?.cedula || '[cédula]'}
+  Domicilio: ${formData.demandante_domicilio || demandante?.domicilio || '[domicilio]'}
+` : ''}
 
-ABOGADO APODERADO:
-- Nombre completo: ${abogado?.nombre || 'N/D'}
-- Cédula: ${abogado?.cedula || 'N/D'}
-- Matrícula(s): ${abogado?.matricula || 'N/D'}
-- Dirección del estudio: ${abogado?.direccion || 'N/D'}
-- Teléfonos: ${abogado?.telefono || 'N/D'}
-- Email: ${abogado?.email || 'N/D'}
+${formData.demandado_nombre || demandado?.nombre ? `
+- ${esJudicial ? 'Demandado' : 'Parte B'}: ${formData.demandado_nombre || demandado?.nombre}
+  Domicilio: ${formData.demandado_domicilio || demandado?.domicilio || '[domicilio]'}
+` : ''}
 
-DEMANDADO(S):
-- Nombre/Razón social: ${demandado?.nombre || 'N/D'}
-- Domicilio: ${demandado?.domicilio || 'N/D'}
-- Cargo/Calidad: ${demandado?.cargo || 'N/D'}
+ABOGADO${esJudicial ? ' APODERADO' : ''}:
+- Nombre: ${formData.abogado_nombre || abogado?.nombre || abogadoNombre}
+- Cédula: ${formData.abogado_cedula || abogado?.cedula || '[cédula]'}
+- Matrícula: ${formData.abogado_matricula || abogado?.matricula || matriculaCard}
+- Dirección: ${formData.abogado_direccion || abogado?.direccion || direccionFirma}
+- Contacto: ${formData.abogado_telefono || abogado?.telefono || telefonoFirma}
+- Email: ${formData.abogado_email || abogado?.email || emailFirma}
 
+${esJudicial && alguacil_designacion ? `
 ALGUACIL:
-${alguacil_designacion || '[a completar por el alguacil]'}
+${alguacil_designacion}
+` : ''}
 
-HECHOS DEL CASO (para el RELATO FACTICO):
-${hechos}
+HECHOS DEL CASO:
+${formData.hechos || hechos || '[Describir los hechos relevantes del caso]'}
 
-PRETENSIÓN (para los DISPOSITIVOS):
-${pretension}
+${esJudicial ? 'PRETENSIONES (DISPOSITIVO):' : 'OBJETO/SOLICITUD:'}
+${formData.pretensiones || pretension || '[Especificar las pretensiones o solicitudes]'}
 
-${legislacion ? `LEGISLACIÓN ADICIONAL: ${legislacion}` : ''}
-${jurisprudencia ? `JURISPRUDENCIA: ${jurisprudencia}` : ''}
+${formData.fundamentos || legislacion ? `
+FUNDAMENTOS LEGALES:
+${formData.fundamentos || legislacion}
+` : ''}
 
-INSTRUCCIONES IMPERATIVAS:
-1. ENCABEZADO: Inicia el documento con el TÍTULO DEL DOCUMENTO (tipo de documento en mayúsculas), seguido de DEMANDANTE, DEMANDADO, TRIBUNAL y EXPEDIENTE No., todo centralizado con separación de 1 línea entre cada elemento
-2. NO incluir "ACTO NÚMERO [número]" como título separado o independiente en ninguna parte
-3. El número de acto va ÚNICAMENTE en la sección 1.2 como "No. [número], Folios [folios] y [folios] año [año]"
-4. En la sección 1 (PRESENTACIÓN - título centrado): incluye todos los datos formales del acto sin título "ACTO NÚMERO"
-5. En la sección 1.3: usa "En la Ciudad de [ciudad] de la provincia [provincia] de la República Dominicana, a los [día] días del mes [mes] del año [año]"
-6. En la sección 2 (RELATO FÁCTICO - título centrado): desarrolla los hechos proporcionados cronológicamente con numeración 2.1, 2.2, etc.
-7. En la sección 3 (ASPECTOS REGULATORIOS - título centrado): incluye artículos con TEXTO COMPLETO según jerarquía normativa de ${materia}
-8. En la sección 4 (TESIS DE DERECHO - título centrado): 
-   - SUBSECCIÓN 4.1: Identifica los elementos constitutivos de la acción/infracción según las normas aplicables
-   - SUBSECCIÓN 4.2: Para CADA elemento, demuestra cómo los hechos del caso lo satisfacen (subsunción detallada)
-   - SUBSECCIÓN 4.3: Cita doctrina relevante (autores como Jorge Subero Isa, Froilán Tavares, Wenceslao Vega B., etc.)
-   - SUBSECCIÓN 4.4: Cita jurisprudencia específica con número de sentencia, fecha, sala y extracto del razonamiento
-   - SUBSECCIÓN 4.5: Concluye demostrando que los hechos configuran la hipótesis normativa y justifica la procedencia de la demanda
-    9. En la sección 5 (DISPOSITIVOS - título centrado): peticiones completas
-    10. Lenguaje jurídico formal dominicano con razonamiento profundo
-    11. NO dejes "N/D" si hay datos reales
-    12. CRÍTICO: En 4. TESIS DE DERECHO hacer subsunción RIGUROSA: elementos constitutivos + encaje de hechos + doctrina + jurisprudencia
-    13. CRÍTICO: El encabezado debe mostrar: TÍTULO (tipo de documento), DEMANDANTE, DEMANDADO, TRIBUNAL, EXPEDIENTE No., todo centrado
-    14. CRÍTICO: NUNCA incluir "ACTO NÚMERO" como título separado
-    15. CRÍTICO: Al final del documento, incluir firma del abogado con: ${abogadoNombre}, Matrícula: ${matriculaCard}, Firma: ${firmaNombre}
+${jurisprudencia ? `
+JURISPRUDENCIA:
+${jurisprudencia}
+` : ''}
 
-Genera ahora el documento COMPLETO y PROFESIONAL:`;
+INSTRUCCIONES CRÍTICAS:
+${esJudicial ? `
+[DOCUMENTO JUDICIAL - Seguir estructura procesal completa]
+1. ENCABEZADO centrado: TÍTULO, DEMANDANTE, DEMANDADO, TRIBUNAL, EXPEDIENTE
+2. NO usar "ACTO NÚMERO" como título separado
+3. PRESENTACIÓN (1.1-1.10): Datos del acto, partes, abogado, domicilio procesal
+4. RELATO FÁCTICO (2.x): Narración cronológica de hechos
+5. ASPECTOS REGULATORIOS (3.x): Jerarquía normativa con artículos COMPLETOS
+6. TESIS DE DERECHO (4.x): Subsunción RIGUROSA con elementos constitutivos, doctrina y jurisprudencia
+7. DISPOSITIVO (5.x): Peticiones numeradas, costas
+8. Firma: ${abogadoNombre}, Matrícula ${matriculaCard}
+` : esExtrajudicial ? `
+[DOCUMENTO EXTRAJUDICIAL - NO procesal]
+1. Encabezado: Título del documento, fecha, lugar
+2. PARTES: Identificación SIN términos procesales (demandante/demandado)
+3. OBJETO: Descripción clara del propósito
+4. CLÁUSULAS/CONTENIDO: Desarrollo según tipo de documento
+5. CIERRE: Firmas y datos de contacto
+6. NO usar: número de acto, traslados, emplazamiento, tribunal
+` : `
+[DOCUMENTO GENERAL]
+1. Estructura clara con título, introducción, desarrollo, conclusión
+2. Lenguaje formal jurídico dominicano
+3. Datos completos de partes y abogado
+`}
+
+Genera AHORA el documento COMPLETO y PROFESIONAL:`;
 
     console.log('Generando documento jurídico con IA...');
 

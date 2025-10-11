@@ -99,11 +99,19 @@ export function IntakeFormFlow({ actInfo }: IntakeFormFlowProps) {
       if (!user) throw new Error("Usuario no autenticado");
 
       // Generar documento con IA
+      console.log("Enviando datos al generador:", {
+        actType: actInfo.act.id,
+        actName: actInfo.act.name,
+        materia: actInfo.matter.name.toLowerCase(),
+        formData
+      });
+
       const { data, error } = await supabase.functions.invoke("generate-legal-doc", {
         body: {
           actType: actInfo.act.id,
+          tipo_documento: actInfo.act.id, // Soporte para ambos formatos
           actName: actInfo.act.name,
-          materia: actInfo.matter.name,
+          materia: actInfo.matter.name.toLowerCase(), // civil, penal, laboral, etc.
           category: actInfo.category.name,
           formData: formData,
         },
