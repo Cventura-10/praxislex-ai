@@ -131,19 +131,28 @@ serve(async (req) => {
     const eslogan = lawFirmInfo?.eslogan || "";
     const rncFirma = lawFirmInfo?.rnc || firma_apoderada?.rnc || "";
 
-    const systemPrompt = `Eres un asistente jurídico experto especializado en República Dominicana.
+    // SISTEMA DE CLASIFICACIÓN: Judicial vs Extrajudicial
+    const esJudicial = ['demanda_civil', 'cobro_pesos', 'desalojo', 'emplazamiento', 'conclusiones', 
+                        'querella_actor_civil', 'demanda_laboral', 'contencioso_administrativo'].includes(tipo_documento);
+    
+    const esExtrajudicial = ['contrato_venta', 'contrato_alquiler', 'carta_cobranza', 'intimacion_pago'].includes(tipo_documento);
 
-    CARÁTULA DE LA FIRMA:
-    ${firmaNombre}${rncFirma ? ` - RNC: ${rncFirma}` : ''}
-    ${abogadoNombre} - Matrícula CARD: ${matriculaCard}
-    ${direccionFirma}
-    ${telefonoFirma} | ${emailFirma}
-    ${eslogan ? `"${eslogan}"` : ''}
+    let systemPrompt = '';
 
-    JERARQUÍA NORMATIVA PARA ${materia.toUpperCase()}:
-    ${normasAplicables.map((n, i) => `${i + 1}. ${n}`).join('\n')}
+    if (esJudicial) {
+      systemPrompt = `Eres un asistente jurídico experto especializado en República Dominicana.
 
-    ESTRUCTURA OBLIGATORIA DEL DOCUMENTO (TEXTO PLANO, SIN MARKDOWN):
+CARÁTULA DE LA FIRMA:
+${firmaNombre}${rncFirma ? ` - RNC: ${rncFirma}` : ''}
+${abogadoNombre} - Matrícula CARD: ${matriculaCard}
+${direccionFirma}
+${telefonoFirma} | ${emailFirma}
+${eslogan ? `"${eslogan}"` : ''}
+
+JERARQUÍA NORMATIVA PARA ${materia.toUpperCase()}:
+${normasAplicables.map((n, i) => `${i + 1}. ${n}`).join('\n')}
+
+ESTRUCTURA OBLIGATORIA DE DEMANDA CIVIL (TEXTO PLANO, SIN MARKDOWN):
     
     ENCABEZADO (Primera página - centrado, espaciado de 2 líneas):
     [TÍTULO DEL DOCUMENTO]
@@ -218,9 +227,49 @@ serve(async (req) => {
     10) En la sección 4 (TESIS DE DERECHO): hacer subsunción rigurosa identificando elementos constitutivos, demostrando cómo cada hecho cumple cada elemento, citando doctrina y jurisprudencia específica
     11) Cambiar "Santo Domingo, Distrito Nacional" por: "En la Ciudad de [ciudad] de la provincia [provincia] de la República Dominicana, a los [día] días del mes [mes] del año [año]"
 
-    Genera documentos COMPLETOS y PROFESIONALES.`;
+    Genera documentos COMPLETOS y PROFESIONALES con subsunción rigurosa.`;
+    } else if (esExtrajudicial) {
+      // PLANTILLA PARA ACTOS EXTRAJUDICIALES
+      systemPrompt = `Eres un asistente jurídico experto en documentos extrajudiciales de República Dominicana.
 
-    const userPrompt = `Genera una ${tipo_documento} COMPLETA en materia ${materia}, siguiendo EXACTAMENTE la estructura del modelo proporcionado desde el punto 1.1 hasta el 5.19.
+CARÁTULA DE LA FIRMA:
+${firmaNombre}${rncFirma ? ` - RNC: ${rncFirma}` : ''}
+${abogadoNombre}
+${direccionFirma}
+${telefonoFirma} | ${emailFirma}
+
+ESTRUCTURA PARA DOCUMENTOS EXTRAJUDICIALES:
+
+1. ENCABEZADO
+   - Título del documento
+   - Fecha y lugar
+
+2. PARTES
+   - Identificación de las partes (NO usar "demandante/demandado")
+   - Usar: Vendedor/Comprador, Arrendador/Arrendatario, Remitente/Destinatario
+
+3. OBJETO
+   - Descripción clara del objeto del documento/contrato/comunicación
+
+4. CLÁUSULAS/COMUNICACIÓN
+   - Desarrollo del contenido según tipo de documento
+   - Contratos: cláusulas numeradas
+   - Cartas: exposición de motivos, solicitud/intimación, plazo
+
+5. CIERRE
+   - Jurisdicción (si aplica)
+   - Firmas
+
+REGLAS CRÍTICAS:
+1) NUNCA incluir "número de acto", "traslados del alguacil", "emplazamiento"
+2) NUNCA usar términos procesales (demandante/demandado, tribunal, expediente)
+3) Lenguaje claro y directo
+4) Enfoque contractual o comunicativo, NO procesal`;
+    } else {
+      throw new Error('Tipo de documento no clasificado como judicial o extrajudicial');
+    }
+
+    const userPrompt = `Genera ${esJudicial ? 'una demanda' : 'un documento extrajudicial'} COMPLETO en materia ${materia}.
 
 DATOS PROCESALES:
 - Tipo de documento: ${tipo_documento}
