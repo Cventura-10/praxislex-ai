@@ -72,7 +72,13 @@ serve(async (req) => {
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      throw new Error("No authorization header");
+      return new Response(
+        JSON.stringify({ 
+          error: "AUTH_ERROR",
+          message: "Debe iniciar sesión para usar esta funcionalidad."
+        }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const token = authHeader.replace("Bearer ", "");
@@ -81,9 +87,34 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    const { data: { user } } = await supabaseAdmin.auth.getUser(token);
-    if (!user) {
-      throw new Error("User not authenticated");
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ 
+          error: "AUTH_ERROR",
+          message: "Su sesión ha expirado. Por favor, inicie sesión nuevamente."
+        }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
+    // SERVER-SIDE RATE LIMITING: Check if user has exceeded rate limit
+    const { data: rateLimitOk, error: rateLimitError } = await supabaseAdmin.rpc('check_api_rate_limit', {
+      p_identifier: user.id,
+      p_endpoint: 'assistant-help',
+      p_max_requests: 100,
+      p_window_minutes: 60
+    });
+    
+    if (rateLimitError || rateLimitOk === false) {
+      console.warn('[RATE-LIMIT] User exceeded rate limit:', user.id);
+      return new Response(
+        JSON.stringify({ 
+          error: "RATE_LIMIT",
+          message: "Ha excedido el límite de solicitudes al asistente IA. Por favor, espere unos minutos antes de intentar nuevamente."
+        }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const { message, context, history } = await req.json();
@@ -503,11 +534,19 @@ Contexto del usuario: ${context || "Sin contexto adicional"}`;
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
-    console.error("Assistant error:", error);
+    // Log detailed error server-side for debugging
+    console.error("[ASSISTANT-HELP ERROR]", {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      timestamp: new Date().toISOString()
+    });
+    
+    // Return sanitized generic error to client
     return new Response(
       JSON.stringify({ 
         mode: "error",
-        reply: "Ocurrió un error procesando tu solicitud. Por favor, intenta de nuevo." 
+        error: "GENERIC",
+        message: "No se pudo procesar su solicitud en este momento. Por favor, intente más tarde."
       }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

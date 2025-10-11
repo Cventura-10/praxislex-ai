@@ -101,6 +101,36 @@ export type Database = {
         }
         Relationships: []
       }
+      api_rate_limits: {
+        Row: {
+          created_at: string | null
+          endpoint: string
+          id: string
+          ip_address: string | null
+          request_count: number | null
+          user_id: string | null
+          window_start: string
+        }
+        Insert: {
+          created_at?: string | null
+          endpoint: string
+          id?: string
+          ip_address?: string | null
+          request_count?: number | null
+          user_id?: string | null
+          window_start?: string
+        }
+        Update: {
+          created_at?: string | null
+          endpoint?: string
+          id?: string
+          ip_address?: string | null
+          request_count?: number | null
+          user_id?: string | null
+          window_start?: string
+        }
+        Relationships: []
+      }
       cases: {
         Row: {
           case_number: string | null
@@ -456,6 +486,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      error_codes: {
+        Row: {
+          code: string
+          created_at: string | null
+          severity: string | null
+          user_message: string
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          severity?: string | null
+          user_message: string
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          severity?: string | null
+          user_message?: string
+        }
+        Relationships: []
       }
       events_audit: {
         Row: {
@@ -1468,6 +1519,14 @@ export type Database = {
         }
         Relationships: []
       }
+      security_validation: {
+        Row: {
+          check_name: string | null
+          status: string | null
+          violations: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       accept_invitation_token_secure: {
@@ -1476,10 +1535,6 @@ export type Database = {
           error_message: string
           success: boolean
         }[]
-      }
-      binary_quantize: {
-        Args: { "": string } | { "": unknown }
-        Returns: unknown
       }
       can_access_client: {
         Args: { _client_id: string; _user_id: string }
@@ -1490,14 +1545,16 @@ export type Database = {
         Returns: boolean
       }
       check_and_log_pii_access: {
-        Args:
-          | {
-              p_client_id: string
-              p_max_accesses?: number
-              p_user_id: string
-              p_window_hours?: number
-            }
-          | { p_client_id: string; p_user_id: string }
+        Args: { p_client_id: string; p_user_id: string }
+        Returns: boolean
+      }
+      check_api_rate_limit: {
+        Args: {
+          p_endpoint: string
+          p_identifier: string
+          p_max_requests?: number
+          p_window_minutes?: number
+        }
         Returns: boolean
       }
       check_invitation_token_validity: {
@@ -1640,22 +1697,6 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: string
       }
-      halfvec_avg: {
-        Args: { "": number[] }
-        Returns: unknown
-      }
-      halfvec_out: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      halfvec_send: {
-        Args: { "": unknown }
-        Returns: string
-      }
-      halfvec_typmod_in: {
-        Args: { "": unknown[] }
-        Returns: number
-      }
       has_admin_verification: {
         Args: { _user_id: string }
         Returns: boolean
@@ -1673,42 +1714,6 @@ export type Database = {
       }
       hash_payload: {
         Args: { data: Json }
-        Returns: string
-      }
-      hnsw_bit_support: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      hnsw_halfvec_support: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      hnsw_sparsevec_support: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      hnswhandler: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      ivfflat_bit_support: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      ivfflat_halfvec_support: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      ivfflathandler: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      l2_norm: {
-        Args: { "": unknown } | { "": unknown }
-        Returns: number
-      }
-      l2_normalize: {
-        Args: { "": string } | { "": unknown } | { "": unknown }
         Returns: string
       }
       link_client_to_auth_user: {
@@ -1761,6 +1766,10 @@ export type Database = {
           telefono: string
         }[]
       }
+      sanitize_error: {
+        Args: { p_error_code: string }
+        Returns: Json
+      }
       search_entities: {
         Args: {
           p_entity_types?: string[]
@@ -1799,18 +1808,6 @@ export type Database = {
           url_fuente: string
         }[]
       }
-      sparsevec_out: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      sparsevec_send: {
-        Args: { "": unknown }
-        Returns: string
-      }
-      sparsevec_typmod_in: {
-        Args: { "": unknown[] }
-        Returns: number
-      }
       user_can_access_client: {
         Args: { p_client_id: string; p_user_id: string }
         Returns: boolean
@@ -1848,30 +1845,6 @@ export type Database = {
           error_message: string
           is_valid: boolean
         }[]
-      }
-      vector_avg: {
-        Args: { "": number[] }
-        Returns: string
-      }
-      vector_dims: {
-        Args: { "": string } | { "": unknown }
-        Returns: number
-      }
-      vector_norm: {
-        Args: { "": string }
-        Returns: number
-      }
-      vector_out: {
-        Args: { "": string }
-        Returns: unknown
-      }
-      vector_send: {
-        Args: { "": string }
-        Returns: string
-      }
-      vector_typmod_in: {
-        Args: { "": unknown[] }
-        Returns: number
       }
       verify_audit_integrity: {
         Args: { p_event_id: string }
