@@ -65,6 +65,7 @@ const Cases = () => {
   const [loading, setLoading] = useState(true);
   const [showNewCaseDialog, setShowNewCaseDialog] = useState(false);
   const [showViewCaseDialog, setShowViewCaseDialog] = useState(false);
+  const [showEditCaseDialog, setShowEditCaseDialog] = useState(false);
   const [selectedCase, setSelectedCase] = useState<Case | null>(null);
 
   const [newCase, setNewCase] = useState({
@@ -212,11 +213,69 @@ const Cases = () => {
     }
   };
 
-  const handleEditCase = (caseId: string, titulo: string) => {
-    toast({
-      title: "Editar caso",
-      description: `Editando: ${titulo}`,
-    });
+  const handleEditCase = (caseId: string) => {
+    const caso = cases.find(c => c.id === caseId);
+    if (caso) {
+      setSelectedCase(caso);
+      setShowEditCaseDialog(true);
+    }
+  };
+
+  const handleUpdateCase = async () => {
+    if (!selectedCase) return;
+
+    try {
+      const caseData = {
+        titulo: selectedCase.titulo,
+        materia: selectedCase.materia,
+        juzgado: selectedCase.juzgado || null,
+        etapa_procesal: selectedCase.etapa_procesal || null,
+        responsable: selectedCase.responsable || null,
+        client_id: selectedCase.client_id || null,
+        descripcion: selectedCase.descripcion || null,
+        numero_expediente: selectedCase.numero_expediente,
+      };
+
+      const validationResult = caseSchema.safeParse({
+        ...caseData,
+        estado: selectedCase.estado || 'activo',
+      });
+
+      if (!validationResult.success) {
+        const errors = validationResult.error.issues;
+        const errorMessages = errors.map(err => `• ${err.path.join('.')}: ${err.message}`).join('\n');
+        toast({
+          title: "Formulario incompleto",
+          description: errors.length > 1 
+            ? `Por favor complete los siguientes campos:\n${errorMessages}`
+            : errors[0].message,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { error } = await supabase
+        .from("cases")
+        .update(caseData)
+        .eq("id", selectedCase.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Caso actualizado",
+        description: "Los cambios se guardaron exitosamente",
+      });
+
+      setShowEditCaseDialog(false);
+      setSelectedCase(null);
+      fetchCases();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: sanitizeErrorMessage(error),
+        variant: "destructive",
+      });
+    }
   };
 
   const handleDeleteCase = async (caseId: string, titulo: string) => {
@@ -485,7 +544,7 @@ const Cases = () => {
                         <Button variant="ghost" size="icon" onClick={() => handleViewCase(caso.id)}>
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleEditCase(caso.id, caso.titulo)}>
+                        <Button variant="ghost" size="icon" onClick={() => handleEditCase(caso.id)}>
                           <Edit className="h-4 w-4" />
                         </Button>
                         <Button variant="ghost" size="icon" onClick={() => handleDeleteCase(caso.id, caso.titulo)}>
@@ -596,9 +655,134 @@ const Cases = () => {
             </Button>
             <Button onClick={() => {
               setShowViewCaseDialog(false);
-              if (selectedCase) handleEditCase(selectedCase.id, selectedCase.titulo);
+              if (selectedCase) handleEditCase(selectedCase.id);
             }}>
               Editar Caso
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Case Dialog */}
+      <Dialog open={showEditCaseDialog} onOpenChange={setShowEditCaseDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Editar Caso</DialogTitle>
+            <DialogDescription>Modifica los datos del caso legal</DialogDescription>
+          </DialogHeader>
+          {selectedCase && (
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="edit_numero_expediente">Número de Expediente</Label>
+                <Input
+                  id="edit_numero_expediente"
+                  value={selectedCase.numero_expediente}
+                  onChange={(e) => setSelectedCase({ ...selectedCase, numero_expediente: e.target.value })}
+                  placeholder="Número de expediente"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit_titulo">Título del Caso *</Label>
+                <Input
+                  id="edit_titulo"
+                  value={selectedCase.titulo}
+                  onChange={(e) => setSelectedCase({ ...selectedCase, titulo: e.target.value })}
+                  placeholder="Ej: Demanda de Desalojo"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit_client_id">Cliente</Label>
+                <Select 
+                  value={selectedCase.client_id || ""} 
+                  onValueChange={(value) => setSelectedCase({ ...selectedCase, client_id: value || null })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar cliente" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Sin cliente</SelectItem>
+                    {clients.map((client) => (
+                      <SelectItem key={client.id} value={client.id}>
+                        {client.nombre_completo}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit_materia">Materia *</Label>
+                <Select 
+                  value={selectedCase.materia} 
+                  onValueChange={(value) => setSelectedCase({ ...selectedCase, materia: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar materia" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {MATERIAS_JURIDICAS.map((materia) => (
+                      <SelectItem key={materia.value} value={materia.value}>
+                        {materia.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit_juzgado">Juzgado</Label>
+                <Input
+                  id="edit_juzgado"
+                  value={selectedCase.juzgado || ""}
+                  onChange={(e) => setSelectedCase({ ...selectedCase, juzgado: e.target.value })}
+                  placeholder="Ej: 1ra Cámara Civil"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit_etapa_procesal">Etapa Procesal</Label>
+                <Select 
+                  value={selectedCase.etapa_procesal || ""} 
+                  onValueChange={(value) => setSelectedCase({ ...selectedCase, etapa_procesal: value || null })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar etapa" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ETAPAS_PROCESALES.map((etapa) => (
+                      <SelectItem key={etapa.value} value={etapa.value}>
+                        {etapa.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit_responsable">Responsable</Label>
+                <Input
+                  id="edit_responsable"
+                  value={selectedCase.responsable || ""}
+                  onChange={(e) => setSelectedCase({ ...selectedCase, responsable: e.target.value })}
+                  placeholder="Ej: Dra. María González"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit_descripcion">Descripción</Label>
+                <Input
+                  id="edit_descripcion"
+                  value={selectedCase.descripcion || ""}
+                  onChange={(e) => setSelectedCase({ ...selectedCase, descripcion: e.target.value })}
+                  placeholder="Descripción del caso"
+                />
+              </div>
+            </div>
+          )}
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => {
+              setShowEditCaseDialog(false);
+              setSelectedCase(null);
+            }}>
+              Cancelar
+            </Button>
+            <Button onClick={handleUpdateCase} disabled={!selectedCase?.titulo || !selectedCase?.materia}>
+              Guardar Cambios
             </Button>
           </div>
         </DialogContent>
