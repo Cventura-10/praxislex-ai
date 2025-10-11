@@ -7,6 +7,21 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Security feature flags
+const FEATURE_ACT_SCHEMA_ISOLATION = Deno.env.get('FEATURE_ACT_SCHEMA_ISOLATION') === 'true';
+const FEATURE_EXTRAPROCESAL_HIDE_JUDICIAL = Deno.env.get('FEATURE_EXTRAPROCESAL_HIDE_JUDICIAL') === 'true';
+
+// Detect judicial fields that should never appear in extrajudicial acts
+function isJudicialField(key: string): boolean {
+  const base = key.split('.')[0];
+  const judicialFields = new Set([
+    'demandante', 'demandado', 'tribunal', 'numero_acto', 'folios',
+    'traslados_enumerados', 'emplazamiento_texto', 'octava_franca_fecha_limite',
+    'costas_texto', 'petitorio', 'dispositivo'
+  ]);
+  return judicialFields.has(base);
+}
+
 // Note: In production, replace '*' with your specific domain for better security
 
 serve(async (req) => {
@@ -52,6 +67,59 @@ serve(async (req) => {
     
     // Soportar tanto el formato antiguo como el nuevo
     const tipo_documento = requestBody.tipo_documento || requestBody.actType;
+
+    // Security: Block judicial fields in extrajudicial acts BEFORE processing
+    if (FEATURE_EXTRAPROCESAL_HIDE_JUDICIAL && tipo_documento) {
+      const actosExtrajudiciales = [
+        'contrato_venta', 'contrato_alquiler', 'poder_general', 'poder_especial', 'testamento',
+        'declaracion_jurada', 'intimacion_pago', 'notificacion_desalojo', 'carta_cobranza',
+        'contrato_trabajo', 'carta_despido', 'carta_renuncia', 'acta_conciliacion',
+        'solicitud_admin', 'recurso_reconsideracion'
+      ];
+      
+      const isExtrajudicial = actosExtrajudiciales.includes(tipo_documento) || 
+                              tipo_documento.toLowerCase().includes('contrato') || 
+                              tipo_documento.toLowerCase().includes('carta');
+      
+      if (isExtrajudicial) {
+        const judicialFieldsFound: string[] = [];
+        
+        // Check all keys in request body
+        Object.keys(requestBody).forEach(key => {
+          if (isJudicialField(key)) {
+            judicialFieldsFound.push(key);
+          }
+        });
+        
+        // Check formData if present
+        if (requestBody.formData) {
+          Object.keys(requestBody.formData).forEach(key => {
+            if (isJudicialField(key)) {
+              judicialFieldsFound.push(`formData.${key}`);
+            }
+          });
+        }
+        
+        if (judicialFieldsFound.length > 0) {
+          console.error('⛔ Judicial fields blocked in extrajudicial act:', {
+            tipo_documento,
+            blocked_fields: judicialFieldsFound
+          });
+          
+          return new Response(
+            JSON.stringify({ 
+              error: `Campo judicial bloqueado en acto extrajudicial: ${judicialFieldsFound.join(', ')}`,
+              blocked_fields: judicialFieldsFound,
+              tipo_documento
+            }),
+            { 
+              status: 400, 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            }
+          );
+        }
+      }
+    }
     
     // Normalizar materia
     const materiaRaw = requestBody.materia || 'civil';
