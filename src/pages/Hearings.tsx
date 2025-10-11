@@ -15,11 +15,15 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, Clock, MapPin, Plus, AlertTriangle, Edit, Trash2, CheckCircle2, ArrowLeft } from "lucide-react";
+import { Calendar as CalendarIcon, Clock, MapPin, Plus, AlertTriangle, Edit, Trash2, CheckCircle2, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { HearingSchema, type HearingInput, DeadlineSchema, type DeadlineInput } from "@/lib/forms/validators";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
 
 interface Hearing {
   id: string;
@@ -335,22 +339,44 @@ const Hearings = () => {
                   )}
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="fecha">Fecha * (DD/MM/AAAA o YYYY-MM-DD)</Label>
-                  <Input
-                    id="fecha"
-                    {...hearingForm.register("fecha")}
-                    placeholder="10/12/2025 o 2025-12-10"
-                  />
+                  <Label>Fecha *</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !hearingForm.watch("fecha") && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {hearingForm.watch("fecha") ? format(new Date(hearingForm.watch("fecha")), "PPP") : "Seleccionar fecha"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={hearingForm.watch("fecha") ? new Date(hearingForm.watch("fecha")) : undefined}
+                        onSelect={(date) => {
+                          if (date) {
+                            hearingForm.setValue("fecha", format(date, "yyyy-MM-dd"), { shouldValidate: true });
+                          }
+                        }}
+                        initialFocus
+                        className="pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
                   {hearingForm.formState.errors.fecha && (
                     <p className="text-xs text-destructive">{hearingForm.formState.errors.fecha.message}</p>
                   )}
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="hora">Hora * (HH:mm)</Label>
+                  <Label htmlFor="hora">Hora *</Label>
                   <Input
                     id="hora"
+                    type="time"
                     {...hearingForm.register("hora")}
-                    placeholder="09:07"
                   />
                   {hearingForm.formState.errors.hora && (
                     <p className="text-xs text-destructive">{hearingForm.formState.errors.hora.message}</p>
@@ -515,12 +541,34 @@ const Hearings = () => {
                       )}
                     </div>
                     <div className="grid gap-2">
-                      <Label htmlFor="fecha_vencimiento">Fecha de Vencimiento * (DD/MM/AAAA o YYYY-MM-DD)</Label>
-                      <Input
-                        id="fecha_vencimiento"
-                        {...deadlineForm.register("fecha_vencimiento")}
-                        placeholder="15/12/2025 o 2025-12-15"
-                      />
+                      <Label>Fecha de Vencimiento *</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full justify-start text-left font-normal",
+                              !deadlineForm.watch("fecha_vencimiento") && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {deadlineForm.watch("fecha_vencimiento") ? format(new Date(deadlineForm.watch("fecha_vencimiento")), "PPP") : "Seleccionar fecha"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={deadlineForm.watch("fecha_vencimiento") ? new Date(deadlineForm.watch("fecha_vencimiento")) : undefined}
+                            onSelect={(date) => {
+                              if (date) {
+                                deadlineForm.setValue("fecha_vencimiento", format(date, "yyyy-MM-dd"), { shouldValidate: true });
+                              }
+                            }}
+                            initialFocus
+                            className="pointer-events-auto"
+                          />
+                        </PopoverContent>
+                      </Popover>
                       {deadlineForm.formState.errors.fecha_vencimiento && (
                         <p className="text-xs text-destructive">{deadlineForm.formState.errors.fecha_vencimiento.message}</p>
                       )}
