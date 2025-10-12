@@ -73,38 +73,45 @@ const JUDICIAL_FIELDS = [
   { key: "anexos", label: "Documentos anexos", type: "textarea" },
 ];
 
-// Campos para actos EXTRAJUDICIALES (contratos, cartas, etc.)
+// Campos para actos EXTRAJUDICIALES (contratos, cartas, intimaciones)
+// ⚠️ IMPORTANTE: NO usar términos judiciales (Demandante, Demandado, Tribunal)
 const EXTRAJUDICIAL_FIELDS = [
-  // Encabezado
+  // Encabezado del acto
   { key: "lugar_ciudad", label: "Ciudad", type: "text", required: true },
   { key: "lugar_provincia", label: "Provincia", type: "text" },
   { key: "fecha_texto", label: "Fecha", type: "text", required: true },
   
-  // Partes (según el tipo de acto)
-  { key: "vendedor_nombre", label: "Vendedor - Nombre Completo", type: "text", required: true },
-  { key: "vendedor_cedula", label: "Vendedor - Cédula/RNC", type: "text", required: true },
-  { key: "vendedor_nacionalidad", label: "Vendedor - Nacionalidad", type: "text" },
-  { key: "vendedor_estado_civil", label: "Vendedor - Estado Civil", type: "text" },
-  { key: "vendedor_domicilio", label: "Vendedor - Domicilio", type: "textarea", required: true },
+  // Primera Parte (según tipo de acto: Vendedor, Arrendador, Poderdante, Intimante, etc.)
+  { key: "primera_parte_nombre", label: "Primera Parte - Nombre Completo", type: "text", required: true },
+  { key: "primera_parte_cedula", label: "Primera Parte - Cédula/RNC", type: "text", required: true },
+  { key: "primera_parte_nacionalidad", label: "Primera Parte - Nacionalidad", type: "text" },
+  { key: "primera_parte_estado_civil", label: "Primera Parte - Estado Civil", type: "text" },
+  { key: "primera_parte_profesion", label: "Primera Parte - Profesión/Ocupación", type: "text" },
+  { key: "primera_parte_domicilio", label: "Primera Parte - Domicilio", type: "textarea", required: true },
   
-  { key: "comprador_nombre", label: "Comprador - Nombre Completo", type: "text", required: true },
-  { key: "comprador_cedula", label: "Comprador - Cédula/RNC", type: "text", required: true },
-  { key: "comprador_nacionalidad", label: "Comprador - Nacionalidad", type: "text" },
-  { key: "comprador_estado_civil", label: "Comprador - Estado Civil", type: "text" },
-  { key: "comprador_domicilio", label: "Comprador - Domicilio", type: "textarea", required: true },
+  // Segunda Parte (Comprador, Arrendatario, Apoderado, Intimado, etc.)
+  { key: "segunda_parte_nombre", label: "Segunda Parte - Nombre Completo", type: "text", required: true },
+  { key: "segunda_parte_cedula", label: "Segunda Parte - Cédula/RNC", type: "text", required: true },
+  { key: "segunda_parte_nacionalidad", label: "Segunda Parte - Nacionalidad", type: "text" },
+  { key: "segunda_parte_estado_civil", label: "Segunda Parte - Estado Civil", type: "text" },
+  { key: "segunda_parte_profesion", label: "Segunda Parte - Profesión/Ocupación", type: "text" },
+  { key: "segunda_parte_domicilio", label: "Segunda Parte - Domicilio", type: "textarea", required: true },
   
-  // Abogado (opcional en extrajudiciales)
-  { key: "abogado_nombre", label: "Abogado - Nombre Completo", type: "text" },
-  { key: "abogado_matricula", label: "Matrícula", type: "text" },
+  // Abogado Redactor (opcional en extrajudiciales)
+  { key: "abogado_nombre", label: "Abogado Redactor - Nombre Completo", type: "text" },
+  { key: "abogado_matricula", label: "Matrícula CARD", type: "text" },
   { key: "abogado_cedula", label: "Cédula", type: "text" },
   
-  // Objeto y cláusulas
-  { key: "objeto_descripcion", label: "Descripción del bien/servicio", type: "textarea", required: true },
-  { key: "precio_monto", label: "Precio (números)", type: "text", required: true },
-  { key: "precio_letras", label: "Precio (en letras)", type: "text", required: true },
-  { key: "clausulas_adicionales", label: "Cláusulas adicionales", type: "textarea" },
-  { key: "gastos_asume", label: "¿Quién asume los gastos?", type: "text" },
-  { key: "jurisdiccion", label: "Jurisdicción", type: "text", required: true },
+  // Objeto del acto y cláusulas
+  { key: "objeto_acto", label: "Objeto del Acto (bien, servicio, poder, etc.)", type: "textarea", required: true },
+  { key: "descripcion_detallada", label: "Descripción Detallada", type: "textarea", required: true },
+  { key: "precio_monto", label: "Precio/Monto (si aplica)", type: "text" },
+  { key: "precio_letras", label: "Precio en Letras", type: "text" },
+  { key: "forma_pago", label: "Forma de Pago", type: "textarea" },
+  { key: "clausulas_especiales", label: "Cláusulas Especiales", type: "textarea" },
+  { key: "plazo_vigencia", label: "Plazo de Vigencia", type: "text" },
+  { key: "gastos_asume", label: "Gastos Asumidos Por", type: "text" },
+  { key: "jurisdiccion", label: "Jurisdicción/Fuero", type: "text", required: true },
 ];
 
 export function IntakeFormFlow({ actInfo }: IntakeFormFlowProps) {
@@ -177,12 +184,18 @@ export function IntakeFormFlow({ actInfo }: IntakeFormFlowProps) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Usuario no autenticado");
 
-      // ⚠️ SEGURIDAD: Validar que campos judiciales no se usen en actos extrajudiciales
-      const judicialFieldKeys = ['demandante_nombre', 'demandado_nombre', 'tribunal_nombre', 'numero_acto'];
+      // ⚠️ SEGURIDAD CRÍTICA: Validar que campos judiciales NO se usen en actos extrajudiciales
+      const judicialFieldKeys = [
+        'demandante_nombre', 'demandante_cedula', 'demandante_domicilio',
+        'demandado_nombre', 'demandado_cedula', 'demandado_domicilio',
+        'tribunal_nombre', 'tribunal_ubicacion', 'numero_acto', 'numero_expediente',
+        'juzgado', 'hechos', 'pretensiones', 'fundamentos'
+      ];
+      
       if (isExtrajudicial) {
-        const forbiddenField = judicialFieldKeys.find(key => formData[key]);
-        if (forbiddenField) {
-          throw new Error(`❌ Campo judicial bloqueado en acto extrajudicial: ${forbiddenField}. Por favor revisa el formulario.`);
+        const forbiddenFields = judicialFieldKeys.filter(key => formData[key] && formData[key].trim());
+        if (forbiddenFields.length > 0) {
+          throw new Error(`❌ ERROR DE VALIDACIÓN: Los campos judiciales "${forbiddenFields.join(', ')}" no pueden usarse en actos extrajudiciales. Este acto es de tipo "${actInfo.act.name}" (extrajudicial). Por favor revisa el formulario.`);
         }
       }
 
@@ -265,7 +278,7 @@ export function IntakeFormFlow({ actInfo }: IntakeFormFlowProps) {
           user_id: user.id,
           tipo_documento: actInfo.act.id,
           materia: actInfo.matter.name,
-          titulo: `${actInfo.act.name} - ${formData.vendedor_nombre || formData.comprador_nombre || 'N/D'}`,
+          titulo: `${actInfo.act.name} - ${formData.primera_parte_nombre || formData.segunda_parte_nombre || 'N/D'}`,
           contenido: generatedDocument,
         };
       }
@@ -347,16 +360,16 @@ export function IntakeFormFlow({ actInfo }: IntakeFormFlowProps) {
             ) : (
               <>
                 <div>
-                  <p className="text-muted-foreground mb-1">Vendedor</p>
-                  <p className="font-medium">{formData.vendedor_nombre || "No especificado"}</p>
+                  <p className="text-muted-foreground mb-1">Primera Parte</p>
+                  <p className="font-medium">{formData.primera_parte_nombre || "No especificado"}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground mb-1">Comprador</p>
-                  <p className="font-medium">{formData.comprador_nombre || "No especificado"}</p>
+                  <p className="text-muted-foreground mb-1">Segunda Parte</p>
+                  <p className="font-medium">{formData.segunda_parte_nombre || "No especificado"}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground mb-1">Precio</p>
-                  <p className="font-medium">{formData.precio_monto || "No especificado"}</p>
+                  <p className="text-muted-foreground mb-1">Objeto del Acto</p>
+                  <p className="font-medium">{formData.objeto_acto || "No especificado"}</p>
                 </div>
               </>
             )}

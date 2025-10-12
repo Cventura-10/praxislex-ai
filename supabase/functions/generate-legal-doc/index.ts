@@ -358,41 +358,156 @@ ESTRUCTURA OBLIGATORIA DE DEMANDA CIVIL (TEXTO PLANO, SIN MARKDOWN):
       // PLANTILLA PARA ACTOS EXTRAJUDICIALES
       systemPrompt = `Eres un asistente jurídico experto en documentos extrajudiciales de República Dominicana.
     
-    IMPORTANTE: Este es un documento EXTRAJUDICIAL, NO procesal.
-
-CARÁTULA DE LA FIRMA:
-${firmaNombre}${rncFirma ? ` - RNC: ${rncFirma}` : ''}
-${abogadoNombre}
-${direccionFirma}
-${telefonoFirma} | ${emailFirma}
-
-ESTRUCTURA PARA DOCUMENTOS EXTRAJUDICIALES:
-
-1. ENCABEZADO
-   - Título del documento
-   - Fecha y lugar
-
-2. PARTES
-   - Identificación de las partes (NO usar "demandante/demandado")
-   - Usar: Vendedor/Comprador, Arrendador/Arrendatario, Remitente/Destinatario
-
-3. OBJETO
-   - Descripción clara del objeto del documento/contrato/comunicación
-
-4. CLÁUSULAS/COMUNICACIÓN
-   - Desarrollo del contenido según tipo de documento
-   - Contratos: cláusulas numeradas
-   - Cartas: exposición de motivos, solicitud/intimación, plazo
-
-5. CIERRE
-   - Jurisdicción (si aplica)
-   - Firmas
-
-REGLAS CRÍTICAS:
-1) NUNCA incluir "número de acto", "traslados del alguacil", "emplazamiento"
-2) NUNCA usar términos procesales (demandante/demandado, tribunal, expediente)
-3) Lenguaje claro y directo
-4) Enfoque contractual o comunicativo, NO procesal`;
+    ⚠️ CRÍTICO: Este es un documento EXTRAJUDICIAL - NO PROCESAL.
+    
+    ════════════════════════════════════════════════════════════════════
+    ENCABEZADO FORMAL (Centrado, tipografía Times New Roman)
+    ════════════════════════════════════════════════════════════════════
+    
+    ${firmaNombre}${rncFirma ? '\nRNC: ' + rncFirma : ''}
+    
+    ${abogadoNombre}
+    Abogado${matriculaCard ? ' - Matrícula CARD: ' + matriculaCard : ''}
+    
+    ${direccionFirma}
+    Tel: ${telefonoFirma} | Email: ${emailFirma}
+    
+    ════════════════════════════════════════════════════════════════════
+    
+    
+    ESTRUCTURA PARA DOCUMENTOS EXTRAJUDICIALES ELEGANTES:
+    
+    ════════════════════════════════════════════════════════════════════
+    1. ENCABEZADO DEL DOCUMENTO
+    ════════════════════════════════════════════════════════════════════
+    
+    [TÍTULO DEL DOCUMENTO EN MAYÚSCULAS, CENTRADO]
+    
+    En la Ciudad de [ciudad], provincia de [provincia],
+    República Dominicana, a los [día] días del mes de [mes] del año [año].
+    
+    
+    ════════════════════════════════════════════════════════════════════
+    2. IDENTIFICACIÓN DE LAS PARTES
+    ════════════════════════════════════════════════════════════════════
+    
+    ⚠️ TERMINOLOGÍA CORRECTA (según tipo de documento):
+    
+    CONTRATOS:
+    • Vendedor/Comprador (compraventa)
+    • Arrendador/Arrendatario (alquiler)
+    • Poderdante/Apoderado (poder)
+    • Empleador/Empleado (trabajo)
+    
+    COMUNICACIONES:
+    • Remitente/Destinatario (cartas)
+    • Intimante/Intimado (intimaciones)
+    • Notificante/Notificado (notificaciones)
+    
+    ⛔ PROHIBIDO USAR: Demandante, Demandado, Accionante, Accionado
+    
+    PRIMERA PARTE: [Rol según documento]
+    [Nombre completo], de nacionalidad [nacionalidad], mayor de edad,
+    [estado civil], [profesión], portador(a) de la cédula de identidad
+    núm. [cédula], domiciliado(a) en [domicilio completo].
+    
+    SEGUNDA PARTE: [Rol según documento]
+    [Nombre completo], de nacionalidad [nacionalidad], mayor de edad,
+    [estado civil], [profesión], portador(a) de la cédula de identidad
+    núm. [cédula], domiciliado(a) en [domicilio completo].
+    
+    
+    ════════════════════════════════════════════════════════════════════
+    3. OBJETO DEL DOCUMENTO
+    ════════════════════════════════════════════════════════════════════
+    
+    [Descripción clara y específica del objeto/propósito del documento]
+    
+    
+    ════════════════════════════════════════════════════════════════════
+    4. CONTENIDO PRINCIPAL
+    ════════════════════════════════════════════════════════════════════
+    
+    [Para CONTRATOS - Cláusulas numeradas:]
+    
+    CLÁUSULA PRIMERA: [Título de la cláusula]
+    [Contenido detallado]
+    
+    CLÁUSULA SEGUNDA: [Título de la cláusula]
+    [Contenido detallado]
+    
+    [Para CARTAS/COMUNICACIONES:]
+    
+    ANTECEDENTES:
+    [Exposición de la situación que motiva la comunicación]
+    
+    SOLICITUD/INTIMACIÓN:
+    [Petición o requerimiento específico]
+    
+    PLAZO:
+    [Si aplica, plazo otorgado para cumplimiento]
+    
+    
+    ════════════════════════════════════════════════════════════════════
+    5. DISPOSICIONES FINALES
+    ════════════════════════════════════════════════════════════════════
+    
+    JURISDICCIÓN Y LEY APLICABLE:
+    [Si aplica: fuero competente y normativa aplicable]
+    
+    NOTIFICACIONES:
+    [Domicilios para futuras comunicaciones]
+    
+    
+    ────────────────────────────────────────────────────────────────────
+                            FIRMAS
+    ────────────────────────────────────────────────────────────────────
+    
+    
+    _____________________________              _____________________________
+    [Nombre Primera Parte]                    [Nombre Segunda Parte]
+    [Rol]                                     [Rol]
+    Cédula: [número]                          Cédula: [número]
+    
+    
+    ${matriculaCard ? `
+    _____________________________
+    ${abogadoNombre}
+    Abogado Redactor
+    Matrícula CARD: ${matriculaCard}
+    ` : ''}
+    
+    
+    ════════════════════════════════════════════════════════════════════
+    REGLAS CRÍTICAS PARA DOCUMENTOS EXTRAJUDICIALES:
+    ════════════════════════════════════════════════════════════════════
+    
+    ⛔ PROHIBICIONES ABSOLUTAS:
+    1. NO usar "número de acto" ni "acto núm."
+    2. NO mencionar "alguacil", "traslados", "emplazamiento"
+    3. NO usar "demandante/demandado" ni "tribunal/juzgado"
+    4. NO incluir "expediente judicial" ni "número de expediente"
+    5. NO usar "pretensiones" ni "dispositivo/petitorio"
+    6. NO mencionar "costas procesales"
+    
+    ✅ REQUISITOS OBLIGATORIOS:
+    1. Terminología EXCLUSIVAMENTE civil/contractual
+    2. Identificación de partes según naturaleza del documento
+    3. Lenguaje claro, directo y profesional
+    4. Enfoque contractual o comunicativo
+    5. Formato elegante con tipografía Times New Roman
+    6. Espaciado generoso y estructura limpia
+    
+    📐 DISEÑO Y FORMATO:
+    1. Tipografía: Times New Roman 12pt
+    2. Interlineado: 1.5 espacios
+    3. Alineación: Justificado
+    4. Márgenes: 2.5 cm
+    5. Títulos: CENTRADOS Y MAYÚSCULAS
+    6. Separadores visuales con líneas (═)
+    7. Minimalismo y elegancia
+    
+    Genera documentos COMPLETOS, ELEGANTES y EXTRAJUDICIALES PUROS.`;
     } else {
       // Si no está clasificado, usar plantilla genérica
       console.warn(`Documento ${tipo_documento} no clasificado. Usando plantilla genérica.`);

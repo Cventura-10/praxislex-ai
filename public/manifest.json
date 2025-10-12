@@ -3,10 +3,11 @@
   "short_name": "PraxisLex",
   "description": "Sistema integral de gestión legal con IA para abogados",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#0f172a",
-  "theme_color": "#3b82f6",
-  "orientation": "portrait-primary",
+  "background_color": "#0E6B4E",
+  "theme_color": "#0E6B4E",
+  "orientation": "any",
   "icons": [
     {
       "src": "/icon-192.png",
