@@ -110,10 +110,12 @@ serve(async (req) => {
       console.warn('[RATE-LIMIT] User exceeded rate limit:', user.id);
       return new Response(
         JSON.stringify({ 
+          mode: "error",
+          reply: "Has excedido el límite de solicitudes al asistente IA. Por favor, espera unos minutos antes de intentar nuevamente.",
           error: "RATE_LIMIT",
-          message: "Ha excedido el límite de solicitudes al asistente IA. Por favor, espere unos minutos antes de intentar nuevamente."
+          message: "Has excedido el límite de solicitudes al asistente IA. Por favor, espera unos minutos antes de intentar nuevamente."
         }),
-        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -190,21 +192,43 @@ Contexto del usuario: ${context || "Sin contexto adicional"}`;
     });
 
     if (!response.ok) {
+      console.error('❌ AI Gateway error:', response.status);
+      const errorText = await response.text();
+      console.error('Error details:', errorText);
+      
       if (response.status === 429) {
         return new Response(
-          JSON.stringify({ error: "Límite de uso excedido. Intenta más tarde." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          JSON.stringify({ 
+            mode: "error",
+            reply: "El servicio de IA está experimentando alta demanda. Por favor, intenta más tarde.",
+            error: "AI_RATE_LIMIT"
+          }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
       if (response.status === 402) {
         return new Response(
-          JSON.stringify({ error: "Créditos agotados. Contacta al administrador." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          JSON.stringify({ 
+            mode: "error",
+            reply: "Créditos de IA agotados. Por favor, contacta al administrador del sistema.",
+            error: "AI_CREDITS_EXHAUSTED"
+          }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      throw new Error(`AI API error: ${response.status}`);
+      
+      return new Response(
+        JSON.stringify({ 
+          mode: "error",
+          reply: "Error al comunicarse con el servicio de IA. Por favor, intenta nuevamente.",
+          error: "AI_GATEWAY_ERROR",
+          details: errorText
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
+    console.log('✅ AI response received');
     const aiData = await response.json();
     const rawReply = aiData.choices?.[0]?.message?.content?.trim() || "";
     

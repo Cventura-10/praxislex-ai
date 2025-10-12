@@ -44,7 +44,28 @@ export function ChatIA({ context, onAction }: ChatIAProps) {
         },
       });
 
-      if (error) throw error;
+      console.log('📡 Assistant response:', { data, error });
+
+      if (error) {
+        console.error('❌ Assistant error:', error);
+        
+        // Manejar errores específicos
+        if (error.message?.includes('RATE_LIMIT') || error.message?.includes('rate limit')) {
+          throw new Error('Has excedido el límite de solicitudes. Por favor, espera unos minutos antes de intentar nuevamente.');
+        }
+        if (error.message?.includes('402') || error.message?.includes('Payment')) {
+          throw new Error('Créditos de IA agotados. Por favor, recarga en Configuración.');
+        }
+        if (error.message?.includes('429') || error.message?.includes('límite')) {
+          throw new Error('Límite de solicitudes excedido. Intenta nuevamente en unos momentos.');
+        }
+        
+        throw error;
+      }
+
+      if (!data) {
+        throw new Error('No se recibió respuesta del asistente');
+      }
 
       if (data.mode === "action") {
         // Acción ejecutada
@@ -105,16 +126,20 @@ export function ChatIA({ context, onAction }: ChatIAProps) {
           },
         ]);
       }
-    } catch (e) {
-      console.error("Error en asistente:", e);
+    } catch (e: any) {
+      console.error("❌ Error en asistente:", e);
+      
+      const errorMessage = e?.message || e?.error?.message || "No se pudo procesar tu solicitud";
+      
       toast.error("Error", {
-        description: "No se pudo procesar tu solicitud",
+        description: errorMessage,
       });
+      
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
-          content: "Disculpa, tuve un problema procesando tu solicitud. Por favor, intenta nuevamente.",
+          content: `Disculpa, ${errorMessage}`,
         },
       ]);
     } finally {
