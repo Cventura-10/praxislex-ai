@@ -2,14 +2,8 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-// Strict CORS - no wildcard fallback
-const allowedOrigin = Deno.env.get('ALLOWED_ORIGIN');
-if (!allowedOrigin) {
-  console.error('ALLOWED_ORIGIN environment variable not configured');
-}
-
 const corsHeaders = {
-  'Access-Control-Allow-Origin': allowedOrigin || 'https://hpeyqttxzrqctrefjlfq.lovable.app',
+  'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
@@ -70,9 +64,16 @@ serve(async (req) => {
     }
 
     const requestBody = await req.json();
+    console.log('📥 Request body recibido:', JSON.stringify(requestBody, null, 2));
     
     // Soportar tanto el formato antiguo como el nuevo
     const tipo_documento = requestBody.tipo_documento || requestBody.actType;
+    
+    if (!tipo_documento) {
+      throw new Error('Parámetro requerido: tipo_documento o actType no proporcionado');
+    }
+    
+    console.log('📋 Tipo de documento:', tipo_documento);
 
     // Security: Block judicial fields in extrajudicial acts BEFORE processing
     if (FEATURE_EXTRAPROCESAL_HIDE_JUDICIAL && tipo_documento) {
@@ -609,7 +610,9 @@ ${esJudicial ? `
 
 Genera AHORA el documento COMPLETO y PROFESIONAL:`;
 
-    console.log('Generando documento jurídico con IA...');
+    console.log('🤖 Generando documento jurídico con IA...');
+    console.log('📊 Prompt system length:', systemPrompt.length);
+    console.log('📊 Prompt user length:', userPrompt.length);
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -627,6 +630,8 @@ Genera AHORA el documento COMPLETO y PROFESIONAL:`;
         max_tokens: 4000,
       }),
     });
+
+    console.log('📡 Response status:', response.status);
 
     if (!response.ok) {
       if (response.status === 429) {
@@ -646,16 +651,20 @@ Genera AHORA el documento COMPLETO y PROFESIONAL:`;
         });
       }
       const errorText = await response.text();
-      console.error('Error de AI Gateway:', response.status, errorText);
-      throw new Error('Error al generar documento');
+      console.error('❌ Error de AI Gateway:', response.status, errorText);
+      throw new Error(`Error en AI Gateway (${response.status}): ${errorText}`);
     }
 
     const data = await response.json();
+    console.log('✅ Respuesta de IA recibida');
     const generatedText = data.choices[0]?.message?.content;
 
     if (!generatedText) {
-      throw new Error('No se generó contenido');
+      console.error('❌ No se generó contenido. Response data:', JSON.stringify(data));
+      throw new Error('No se generó contenido del documento');
     }
+    
+    console.log('📄 Documento generado, longitud:', generatedText.length);
 
     // Generar citas verificables basadas en la materia
     const citations = [
@@ -683,8 +692,10 @@ Genera AHORA el documento COMPLETO y PROFESIONAL:`;
       JSON.stringify({ 
         titulo: `${tipo_documento} en materia ${materia}`,
         cuerpo: generatedText,
-        citations,
+        document: generatedText,
+        content: generatedText,
         documento: generatedText,
+        citations,
         metadata: {
           tipo_documento,
           materia,
@@ -698,9 +709,17 @@ Genera AHORA el documento COMPLETO y PROFESIONAL:`;
     );
 
   } catch (error) {
-    console.error('Error en generate-legal-doc:', error);
+    console.error('❌ Error en generate-legal-doc:', error);
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+    
+    const errorMessage = error instanceof Error ? error.message : 'Error desconocido al generar el documento';
+    
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Error desconocido' }),
+      JSON.stringify({ 
+        error: errorMessage,
+        details: error instanceof Error ? error.stack : String(error),
+        timestamp: new Date().toISOString()
+      }),
       {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

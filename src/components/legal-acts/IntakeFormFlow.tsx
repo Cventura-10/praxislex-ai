@@ -210,20 +210,30 @@ export function IntakeFormFlow({ actInfo }: IntakeFormFlowProps) {
       const { data, error } = await supabase.functions.invoke("generate-legal-doc", {
         body: {
           actType: actInfo.act.id,
-          tipo_documento: actInfo.act.id, // Soporte para ambos formatos
+          tipo_documento: actInfo.act.id,
           actName: actInfo.act.name,
-          materia: actInfo.matter.name.toLowerCase(), // civil, penal, laboral, etc.
+          materia: actInfo.matter.name.toLowerCase(),
           category: actInfo.category.name,
+          categoryType: actInfo.category.type,
           formData: formData,
         },
       });
 
-      if (error) throw error;
+      console.log("Response from edge function:", { data, error });
 
-      console.log("Generated document response:", data);
-      const generatedContent = data?.cuerpo || data?.document || "";
+      if (error) {
+        console.error("Edge function error:", error);
+        throw new Error(error.message || "Error al comunicarse con el servicio de generación");
+      }
+
+      if (!data) {
+        throw new Error("No se recibió respuesta del servicio");
+      }
+
+      const generatedContent = data?.cuerpo || data?.document || data?.content || "";
       
       if (!generatedContent) {
+        console.error("Response data:", data);
         throw new Error("No se generó contenido del documento");
       }
       
@@ -235,9 +245,10 @@ export function IntakeFormFlow({ actInfo }: IntakeFormFlowProps) {
       });
     } catch (error: any) {
       console.error("Error generating document:", error);
+      const errorMessage = error?.message || error?.error?.message || "No se pudo generar el documento.";
       toast({
         title: "Error al generar",
-        description: error.message || "No se pudo generar el documento.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
