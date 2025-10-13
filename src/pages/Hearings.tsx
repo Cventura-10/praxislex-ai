@@ -59,28 +59,28 @@ const Hearings = () => {
 
   const hearingForm = useForm<HearingInput>({
     resolver: zodResolver(HearingSchema),
-    mode: "onChange",
+    mode: "onSubmit", // Cambiar a onSubmit para evitar validación prematura
     defaultValues: {
       case_id: null,
       caso: "",
       juzgado: "",
       tipo: "",
-      fecha: "",
-      hora: "",
+      fecha: undefined, // undefined para que el coerce funcione correctamente
+      hora: undefined,  // undefined para que el coerce funcione correctamente
       ubicacion: "",
-      estado: 'programada',
+      estado: 'programada' as const,
     },
   });
 
   const deadlineForm = useForm<DeadlineInput>({
     resolver: zodResolver(DeadlineSchema),
-    mode: "onChange",
+    mode: "onSubmit", // Cambiar a onSubmit para evitar validación prematura  
     defaultValues: {
       case_id: null,
       caso: "",
       tipo: "",
-      fecha_vencimiento: "",
-      prioridad: 'media',
+      fecha_vencimiento: undefined, // undefined para que el coerce funcione correctamente
+      prioridad: 'media' as const,
     },
   });
 
