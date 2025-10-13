@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Sparkles, Loader2, Download, Eye, Lock, Unlock } from "lucide-react";
+import { Sparkles, Loader2, Download, Eye, Lock, Unlock, Plus, Minus, Mic } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,8 @@ import type { LegalAct, LegalMatter, LegalCategory } from "@/lib/legalActsData";
 import { useLawyers, type Lawyer } from "@/hooks/useLawyers";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { VoiceInput } from "@/components/VoiceInput";
+import { formatearFechaJuridica, formatearEncabezadoFecha, completarJurisdiccion } from "@/lib/dateUtils";
 
 interface IntakeFormFlowProps {
   actInfo: {
@@ -144,6 +146,32 @@ export function IntakeFormFlow({ actInfo }: IntakeFormFlowProps) {
   const [generatedDocument, setGeneratedDocument] = useState<string | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedLawyer, setSelectedLawyer] = useState<Lawyer | null>(null);
+  
+  // Nuevos estados para múltiples partes
+  const [numVendedores, setNumVendedores] = useState(1);
+  const [numCompradores, setNumCompradores] = useState(1);
+  const [activeVoiceField, setActiveVoiceField] = useState<string | null>(null);
+  
+  // Auto-generar fecha en formato jurídico al cargar
+  useEffect(() => {
+    const hoy = new Date();
+    const fechaJuridica = formatearFechaJuridica(hoy);
+    setFormData(prev => ({
+      ...prev,
+      fecha_texto: fechaJuridica
+    }));
+  }, []);
+  
+  // Auto-completar jurisdicción cuando cambia la ciudad
+  useEffect(() => {
+    if (formData.lugar_ciudad) {
+      const jurisdiccion = completarJurisdiccion(formData.lugar_ciudad);
+      setFormData(prev => ({
+        ...prev,
+        jurisdiccion
+      }));
+    }
+  }, [formData.lugar_ciudad]);
 
   // Seleccionar campos según tipo de acto (CON VALIDACIÓN DE SEGURIDAD)
   const isJudicial = isJudicialActType(actInfo.act.id);
