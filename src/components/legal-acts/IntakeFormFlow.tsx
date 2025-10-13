@@ -13,10 +13,21 @@ import { Progress } from "@/components/ui/progress";
 import { DocumentViewer } from "@/components/DocumentViewer";
 import type { LegalAct, LegalMatter, LegalCategory } from "@/lib/legalActsData";
 import { useLawyers, type Lawyer } from "@/hooks/useLawyers";
+import { useNotarios, type Notario } from "@/hooks/useNotarios";
+import { useAlguaciles, type Alguacil } from "@/hooks/useAlguaciles";
+import { usePeritos, type Perito } from "@/hooks/usePeritos";
+import { useTasadores, type Tasador } from "@/hooks/useTasadores";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { VoiceInput } from "@/components/VoiceInput";
 import { formatearFechaJuridica, formatearEncabezadoFecha, completarJurisdiccion } from "@/lib/dateUtils";
+import { 
+  LawyerSelector, 
+  NotarioSelector, 
+  AlguacilSelector, 
+  PeritoSelector, 
+  TasadorSelector 
+} from "./ProfessionalSelectors";
 
 interface IntakeFormFlowProps {
   actInfo: {
@@ -145,7 +156,13 @@ export function IntakeFormFlow({ actInfo }: IntakeFormFlowProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedDocument, setGeneratedDocument] = useState<string | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
+  
+  // Estados para profesionales seleccionados
   const [selectedLawyer, setSelectedLawyer] = useState<Lawyer | null>(null);
+  const [selectedNotario, setSelectedNotario] = useState<Notario | null>(null);
+  const [selectedAlguacil, setSelectedAlguacil] = useState<Alguacil | null>(null);
+  const [selectedPerito, setSelectedPerito] = useState<Perito | null>(null);
+  const [selectedTasador, setSelectedTasador] = useState<Tasador | null>(null);
   
   // Nuevos estados para múltiples partes
   const [numVendedores, setNumVendedores] = useState(1);
@@ -196,22 +213,8 @@ export function IntakeFormFlow({ actInfo }: IntakeFormFlowProps) {
     setFormData((prev) => ({ ...prev, [key]: value }));
   };
 
-  const handleLawyerSelection = (lawyerId: string) => {
-    const lawyer = lawyers.find(l => l.id === lawyerId);
-    if (lawyer) {
-      setSelectedLawyer(lawyer);
-      // Rellenar campos del abogado pero permitir edición
-      setFormData(prev => ({
-        ...prev,
-        abogado_nombre: lawyer.nombre,
-        abogado_cedula: lawyer.cedula || '',
-        abogado_matricula: lawyer.matricula_card || '',
-        abogado_despacho: lawyer.despacho_direccion || '',
-        abogado_email: lawyer.email || '',
-        abogado_telefono: lawyer.telefono || '',
-        abogado_firma_digital: lawyer.firma_digital_url || ''
-      }));
-    }
+  const handleFieldsUpdate = (fields: Record<string, string>) => {
+    setFormData((prev) => ({ ...prev, ...fields }));
   };
 
   const canProceedToNext = () => {
@@ -635,24 +638,11 @@ export function IntakeFormFlow({ actInfo }: IntakeFormFlowProps) {
           </CardHeader>
           <CardContent className="space-y-4">
             {lawyers.length > 0 && (
-              <div className="space-y-2">
-                <Label htmlFor="lawyer-select">Seleccionar Abogado</Label>
-                <Select onValueChange={handleLawyerSelection} value={selectedLawyer?.id}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecciona un abogado o déjalo vacío" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {lawyers.map((lawyer) => (
-                      <SelectItem key={lawyer.id} value={lawyer.id}>
-                        {lawyer.nombre} {lawyer.cedula ? `- ${lawyer.cedula}` : ''}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground">
-                  Los datos del abogado seleccionado se autocompletarán pero podrás editarlos
-                </p>
-              </div>
+              <LawyerSelector
+                value={selectedLawyer?.id || null}
+                onChange={setSelectedLawyer}
+                onFieldUpdate={handleFieldsUpdate}
+              />
             )}
             
             {selectedLawyer && (
