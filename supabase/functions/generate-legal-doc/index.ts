@@ -498,7 +498,7 @@ ${normasAplicables.map((n, i) => `${i + 1}. ${n}`).join('\n')}
     6. NO mencionar "costas procesales"
     
     ✅ REQUISITOS OBLIGATORIOS:
-    1. FORMATO: A4, texto justificado, títulos centrados, párrafos unidos y completos
+    1. FORMATO: ${tipo_documento === 'contrato_venta_inmueble' ? 'OFICIO (8.5" x 13")' : 'A4'}, texto JUSTIFICADO, títulos CENTRADOS EN MAYÚSCULAS, párrafos unidos y completos
     2. NO LLENAR información que no fue proporcionada (excepto datos del cliente/abogado si están en sistema)
     3. Si falta información requerida, DEJAR EN BLANCO o usar [Campo a completar] con advertencia
     4. Terminología EXCLUSIVAMENTE civil/contractual
@@ -507,6 +507,81 @@ ${normasAplicables.map((n, i) => `${i + 1}. ${n}`).join('\n')}
     7. Enfoque contractual o comunicativo
     8. Formato elegante con tipografía Times New Roman
     9. Espaciado generoso y estructura limpia
+    
+    ${tipo_documento === 'contrato_venta_inmueble' ? `
+    ════════════════════════════════════════════════════════════════════
+    🏠 ESTRUCTURA OBLIGATORIA PARA CONTRATO DE COMPRAVENTA INMOBILIARIA
+    ════════════════════════════════════════════════════════════════════
+    
+    SIGUE ESTE MODELO EXACTO (adaptando los datos específicos del formulario):
+    
+    CONTRATO DE COMPRAVENTA CONDICIONAL INMOBILIARIA
+    
+    ENTRE:
+    
+    De una parte [PRIMERA PARTE - vendedor con todos sus datos de identificación completos: nombre, nacionalidad, estado civil, cédula/pasaporte, domicilio], quien en lo que sigue del presente contrato se denominará LA VENDEDORA. Y de la otra parte [SEGUNDA PARTE - comprador con todos sus datos de identificación completos: nombre, nacionalidad, estado civil, cédula, domicilio], quien en lo que sigue del presente contrato se denominará EL COMPRADOR.
+    
+    POR CUANTO: LA VENDEDORA es propietaria del inmueble que se describe en el Artículo Primero del presente acto.
+    
+    POR CUANTO: EL COMPRADOR está interesado en adquirir la propiedad de dicho inmueble, bajo las condiciones, plazos y términos que se indicarán más adelante; declarando LA VENDEDORA formalmente, en forma retroactiva, concluyente, objetiva y definitiva que asumen todos y cada uno de las cargas y gravámenes anteriores a la firma del presente contrato; así mismo asumen libres y voluntariamente el reclamo de cualquier tipo de garantía de derecho, abonos financieros en cualquier naturaleza o especie por concepto de evicción y vicios ocultos que pudieren registrarse anterior o posterior a la firma del presente acto.
+    
+    POR CUANTO: Ambas partes han convenido a formalizar mediante el presente contrato las condiciones que regirán para dicha operación de compra y venta.
+    
+    POR TANTO: y en el entendido de que las disposiciones contenidas en el preámbulo que antecede forma parte de este contrato, las partes contratantes, de común acuerdo.
+    
+    HAN CONVENIDO Y PACTADO LO SIGUIENTE
+    
+    ARTÍCULO PRIMERO: OBJETO DEL CONTRATO:
+    
+    LA VENDEDORA, por medio del presente contrato se compromete a vender ceder y traspasar desde ahora y para siempre, con todas las garantías de derecho, a EL COMPRADOR quien acepta el inmueble que se describe a continuación: [DESCRIPCIÓN COMPLETA DEL INMUEBLE con matrícula, ubicación, área, porcentaje de participación, etc.]
+    
+    PARRAFO: La adquisición del inmueble antes descrito conlleva al derecho de uso de su totalidad así como de todas sus mejoras y anexidades, y equipos que se describen en este contrato de especificaciones generales será sido firmado por ambas partes y forma parte íntegra del mismo.
+    
+    ARTICULO SEGUNDO: PRECIO DE LA VENTA
+    
+    El precio convenido pactado entre las partes para la venta de este inmueble es por la suma de [MONTO EN TEXTO] ([MONTO EN NÚMEROS]), moneda de curso legal, monto que será pagado por EL COMPRADOR, de la siguiente manera:
+    
+    a) [Primera forma de pago con monto y condiciones]
+    b) [Segunda forma de pago si aplica]
+    
+    ARTICULO TERCERO: ENTREGA DEL INMUEBLE
+    
+    LA VENDEDORA se compromete a entregar el inmueble descrito procedentemente a la firma del contrato definitivo de compraventa y entregar la documentación relativa a los servicios de agua, luz, teléfono, cable y del impuesto de la vivienda suntuaria y solares Urbanos no Edificados (IVSS), así como los certificados de título duplicado del dueño Matrícula No. [número], completamente con los pagos al día y sin ninguna deuda.
+    
+    ARTÍCULO CUARTO: DERECHO DE PROPIEDAD
+    
+    LA VENDEDORA justifica su derecho de propiedad sobre el inmueble que en virtud del presente acto se traspasa a favor de EL COMPRADOR, mediante el certificado de título Matrícula No. [número], de fecha [fecha], expedido por el Registrador de Título de [jurisdicción].
+    
+    ARTÍCULO QUINTO: AUTORIZACION Y DECLARACION JURADA
+    
+    LA VENDEDORA por medio de este mismo acto autorizan al Registrador de Títulos de [jurisdicción], al momento de realizar el pago final, a realizar el traspaso del inmueble objeto de la presente venta a favor de EL COMPRADOR, en el momento en que se haya pagado el total del precio de venta acordado.
+    
+    ARTICULO SEXTO: DECLARACION JURADA
+    
+    LA VENDEDORA declara que el inmueble anteriormente descrito está libre de litis sobre terreno registrado y de cualquier controversia que afecte la posesión pacífica de dicho inmueble; otorgando las debidas garantías a favor de EL COMPRADOR, asumiendo LA VENDEDORA cualesquiera cargas y gravámenes anteriores a la firma del presente contrato; así como la responsabilidad propia de la evicción y vicios ocultos que pudieren registrarse anterior o posteriormente a la firma del presente acto.
+    
+    ARTICULO SEPTIMO: PAGO DE INMUEBLES:
+    
+    Queda entendido entre las partes que EL COMPRADOR está obligado al pago de los impuestos, sellos y arbitrios que se originen por el traspaso del inmueble objeto del presente contrato, a partir de la firma de este documento; mientras que cualesquiera cargas y gravámenes anteriores a la del presente contrato están a cargo de LA VENDEDORA.
+    
+    ARTÍCULO OCTAVO: DERECHO COMUN:
+    
+    LAS PARTES que intervienen en el presente contrato afirman conocer y aprobar todos y cada una de las cláusulas y para todo aquello no provisto en este contrato LAS PARTES se remiten al derecho común.
+    
+    Hecho, leído, aprobado y firmado de buena fe en tres (03) originales de un mismo tenor y efectos, uno para cada una de LAS PARTES, el tercero para ser depositado en el protocolo del notario actuante. En [Ciudad], República Dominicana, a los [día] días del mes de [mes] del año [año].
+    
+    Firmado:
+    
+    LA VENDEDORA:
+    
+    _________________________
+    [Nombre Primera Parte]
+    
+    EL COMPRADOR:
+    
+    _______________________________
+    [Nombre Segunda Parte]
+    ` : ''}
     
     📐 DISEÑO Y FORMATO:
     1. Tipografía: Times New Roman 12pt
@@ -524,9 +599,8 @@ ${normasAplicables.map((n, i) => `${i + 1}. ${n}`).join('\n')}
     INCLUIR AL FINAL del documento (después de sección de firmas):
     
     ${formData.notario_nombre ? `
-    CERTIFICACIÓN NOTARIAL:
     
-    Yo, ${formData.notario_nombre}, Notario Público ${formData.notario_jurisdiccion || 'de los Números para el Distrito Nacional'}, Miembro activo del Colegio Dominicano de Notarios de la República Dominicana con matrícula al día y No. ${formData.notario_matricula || '[matrícula]'}, portador de la Cédula de identidad y electoral No. ${formData.notario_cedula || '[cédula]'}, con Oficina Profesional abierta de manera permanente en ${formData.notario_oficina || '[dirección oficina]'}, CERTIFICO que las firmas que aparecen en el presente documento, han sido puestas en mi presencia, libre y voluntariamente por los señores ${formData.primera_parte_nombre || '[Primera Parte]'} y ${formData.segunda_parte_nombre || '[Segunda Parte]'}, de generales y cualidades que constan en el presente acto; quienes me han declarado que esas son las firmas que acostumbran utilizar para todos los actos de sus vidas, por lo que merecen entera fe y crédito. En ${formData.lugar_ciudad || '[Ciudad]'}, República Dominicana, a los ${formData.fecha_texto || '[fecha]'}.
+    Yo, ${formData.notario_nombre}, Notario Público ${formData.notario_jurisdiccion || 'de los Números para el Distrito Nacional'}, Miembro activo del Colegio Dominicano de Notarios de la República Dominicana con matrícula al día y No. ${formData.notario_matricula || '[matrícula]'}, portador de la Cédula de identidad y electoral No. ${formData.notario_cedula || '[cédula]'}, con Oficina Profesional abierta de manera permanente en ${formData.notario_oficina || '[dirección oficina]'}, CERTIFICO que las firmas que aparecen en el presente documento, han sido puestas en mi presencia, libre y voluntariamente por los señores ${formData.primera_parte_nombre || '[Primera Parte]'} Y ${formData.segunda_parte_nombre || '[Segunda Parte]'}, de generales y cualidades que constan en el presente acto; quienes me han declarado que esas son las firmas que acostumbran utilizar para todos los actos de sus vidas, por lo que merecen entera fe y crédito. En ${formData.lugar_ciudad || 'el Distrito Nacional'}, República Dominicana, a los ${formData.fecha_texto || '[fecha en texto: XX (##) días del mes de XXXX del año XXXX]'}.
     
     DOY FE:
     

@@ -47,7 +47,7 @@ const isJudicialActType = (actId: string): boolean => {
  */
 const isExtrajudicialActType = (actId: string): boolean => {
   const extrajudicialTypes = [
-    'contrato_venta', 'contrato_alquiler', 'poder_general', 'poder_especial',
+    'contrato_venta_inmueble', 'contrato_venta_mueble', 'contrato_venta', 'contrato_alquiler', 'poder_general', 'poder_especial',
     'testamento', 'declaracion_jurada', 'intimacion_pago', 'notificacion_desalojo',
     'carta_cobranza', 'contrato_trabajo', 'carta_despido', 'carta_renuncia',
     'acta_conciliacion', 'solicitud_admin', 'recurso_reconsideracion'
@@ -108,6 +108,16 @@ const EXTRAJUDICIAL_FIELDS = [
   // Objeto del acto y cláusulas
   { key: "objeto_acto", label: "Objeto del Acto (bien, servicio, poder, etc.)", type: "textarea", required: true },
   { key: "descripcion_detallada", label: "Descripción Detallada", type: "textarea", required: true },
+  
+  // CAMPOS ESPECÍFICOS PARA COMPRAVENTA INMOBILIARIA
+  { key: "inmueble_matricula", label: "Matrícula del Inmueble", type: "text" },
+  { key: "inmueble_descripcion", label: "Descripción Completa del Inmueble (unidad, ubicación, áreas)", type: "textarea" },
+  { key: "inmueble_superficie", label: "Superficie del Inmueble (m²)", type: "text" },
+  { key: "inmueble_porcentaje_participacion", label: "Porcentaje de Participación", type: "text" },
+  { key: "certificado_titulo_fecha", label: "Fecha del Certificado de Título", type: "date" },
+  { key: "registrador_titulo", label: "Registrador de Títulos que Expidió", type: "text" },
+  
+  // Precio y pagos
   { key: "precio_monto", label: "Precio/Monto (si aplica)", type: "text" },
   { key: "precio_letras", label: "Precio en Letras", type: "text" },
   { key: "forma_pago", label: "Forma de Pago", type: "textarea" },
@@ -122,6 +132,7 @@ const EXTRAJUDICIAL_FIELDS = [
   { key: "notario_cedula", label: "Notario - Cédula", type: "text" },
   { key: "notario_oficina", label: "Notario - Oficina Profesional", type: "textarea" },
   { key: "notario_jurisdiccion", label: "Notario - Jurisdicción (Números/Distrito)", type: "text" },
+  { key: "fecha_texto", label: "Fecha en Texto (ej: veintiocho (28) días del mes de julio del año Dos Mil Veinticinco (2025))", type: "text" },
 ];
 
 export function IntakeFormFlow({ actInfo }: IntakeFormFlowProps) {
