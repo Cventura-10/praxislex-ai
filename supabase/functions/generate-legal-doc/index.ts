@@ -78,7 +78,7 @@ serve(async (req) => {
     // Security: Block judicial fields in extrajudicial acts BEFORE processing
     if (FEATURE_EXTRAPROCESAL_HIDE_JUDICIAL && tipo_documento) {
       const actosExtrajudiciales = [
-        'contrato_venta', 'contrato_alquiler', 'poder_general', 'poder_especial', 'testamento',
+        'contrato_venta_inmueble', 'contrato_venta_mueble', 'contrato_venta', 'contrato_alquiler', 'poder_general', 'poder_especial', 'testamento',
         'declaracion_jurada', 'intimacion_pago', 'notificacion_desalojo', 'carta_cobranza',
         'contrato_trabajo', 'carta_despido', 'carta_renuncia', 'acta_conciliacion',
         'solicitud_admin', 'recurso_reconsideracion'
@@ -253,7 +253,7 @@ serve(async (req) => {
     // Lista completa de actos extrajudiciales
     const actosExtrajudiciales = [
       // Civil y Comercial
-      'contrato_venta', 'contrato_alquiler', 'poder_general', 'poder_especial', 'testamento',
+      'contrato_venta_inmueble', 'contrato_venta_mueble', 'contrato_venta', 'contrato_alquiler', 'poder_general', 'poder_especial', 'testamento',
       'declaracion_jurada', 'intimacion_pago', 'notificacion_desalojo', 'carta_cobranza',
       // Laboral
       'contrato_trabajo', 'carta_despido', 'carta_renuncia', 'acta_conciliacion',
@@ -279,7 +279,9 @@ ${eslogan ? `"${eslogan}"` : ''}
 JERARQUÍA NORMATIVA PARA ${materia.toUpperCase()}:
 ${normasAplicables.map((n, i) => `${i + 1}. ${n}`).join('\n')}
 
-ESTRUCTURA OBLIGATORIA DE DEMANDA CIVIL (TEXTO PLANO, SIN MARKDOWN):
+    FORMATO DOCUMENTO: Formato A4, texto justificado, títulos centrados, párrafos completos y unidos.
+    
+    ESTRUCTURA OBLIGATORIA DE DEMANDA CIVIL (TEXTO PLANO, SIN MARKDOWN):
     
     ENCABEZADO (Primera página - centrado, espaciado de 2 líneas):
     [TÍTULO DEL DOCUMENTO]
@@ -342,17 +344,19 @@ ESTRUCTURA OBLIGATORIA DE DEMANDA CIVIL (TEXTO PLANO, SIN MARKDOWN):
     5.5. Certificaciones del alguacil
     
     REGLAS CRÍTICAS:
-    1) NUNCA usar líneas de subrayado o espacios en blanco (____). Usa los datos provistos.
-    2) Estructura numerada estricta (1.1., 1.2., etc.)
-    3) Lenguaje formal jurídico dominicano
-    4) Normas en ORDEN JERÁRQUICO según la materia
-    5) Citas con texto íntegro del artículo cuando sea fundamental
-    6) Formato para Word: texto plano, sin Markdown, justificado
-    7) NO incluir "ACTO NÚMERO [número]" como título independiente - el número va SOLO en la sección 1.2
-    8) Los títulos "1. PRESENTACIÓN", "2. RELATO FÁCTICO", "3. ASPECTOS REGULATORIOS", "4. TESIS DE DERECHO", "5. DISPOSITIVOS" deben estar CENTRADOS
-    9) El encabezado con la firma debe estar CENTRADO con espaciado de 2 líneas entre cada línea de texto
-    10) En la sección 4 (TESIS DE DERECHO): hacer subsunción rigurosa identificando elementos constitutivos, demostrando cómo cada hecho cumple cada elemento, citando doctrina y jurisprudencia específica
-    11) Cambiar "Santo Domingo, Distrito Nacional" por: "En la Ciudad de [ciudad] de la provincia [provincia] de la República Dominicana, a los [día] días del mes [mes] del año [año]"
+    1) FORMATO: A4, texto justificado, títulos centrados, párrafos unidos y completos
+    2) NUNCA usar líneas de subrayado o espacios en blanco (____). Usa SOLO los datos provistos por el usuario.
+    3) NO LLENAR información que no fue proporcionada (excepto datos del cliente y abogado si están en el sistema)
+    4) Estructura numerada estricta (1.1., 1.2., etc.)
+    5) Lenguaje formal jurídico dominicano
+    6) Normas en ORDEN JERÁRQUICO según la materia
+    7) Citas con texto íntegro del artículo cuando sea fundamental
+    8) Formato para Word: texto plano, sin Markdown, justificado
+    9) NO incluir "ACTO NÚMERO [número]" como título independiente - el número va SOLO en la sección 1.2
+    10) Los títulos "1. PRESENTACIÓN", "2. RELATO FÁCTICO", "3. ASPECTOS REGULATORIOS", "4. TESIS DE DERECHO", "5. DISPOSITIVOS" deben estar CENTRADOS
+    11) El encabezado con la firma debe estar CENTRADO con espaciado de 2 líneas entre cada línea de texto
+    12) En la sección 4 (TESIS DE DERECHO): hacer subsunción rigurosa identificando elementos constitutivos, demostrando cómo cada hecho cumple cada elemento, citando doctrina y jurisprudencia específica
+    13) Cambiar "Santo Domingo, Distrito Nacional" por: "En la Ciudad de [ciudad] de la provincia [provincia] de la República Dominicana, a los [día] días del mes [mes] del año [año]"
 
     Genera documentos COMPLETOS y PROFESIONALES con subsunción rigurosa.`;
     } else if (esExtrajudicial) {
@@ -360,6 +364,8 @@ ESTRUCTURA OBLIGATORIA DE DEMANDA CIVIL (TEXTO PLANO, SIN MARKDOWN):
       systemPrompt = `Eres un asistente jurídico experto en documentos extrajudiciales de República Dominicana.
     
     ⚠️ CRÍTICO: Este es un documento EXTRAJUDICIAL - NO PROCESAL.
+    
+    FORMATO DOCUMENTO: Formato A4, texto justificado, títulos centrados, párrafos completos y unidos.
     
     ════════════════════════════════════════════════════════════════════
     ENCABEZADO FORMAL (Centrado, tipografía Times New Roman)
@@ -492,6 +498,9 @@ ESTRUCTURA OBLIGATORIA DE DEMANDA CIVIL (TEXTO PLANO, SIN MARKDOWN):
     6. NO mencionar "costas procesales"
     
     ✅ REQUISITOS OBLIGATORIOS:
+    1. FORMATO: A4, texto justificado, títulos centrados, párrafos unidos y completos
+    2. NO LLENAR información que no fue proporcionada (excepto datos del cliente/abogado si están en sistema)
+    3. Si falta información requerida, DEJAR EN BLANCO o usar [Campo a completar] con advertencia
     1. Terminología EXCLUSIVAMENTE civil/contractual
     2. Identificación de partes según naturaleza del documento
     3. Lenguaje claro, directo y profesional
@@ -540,24 +549,27 @@ DATOS PROCESALES:
 ` : ''}
 
 PARTES:
-${formData.demandante_nombre || demandante?.nombre ? `
-- ${esJudicial ? 'Demandante' : 'Parte A'}: ${formData.demandante_nombre || demandante?.nombre}
-  Nacionalidad: ${formData.demandante_nacionalidad || demandante?.nacionalidad || 'dominicano(a)'}
-  Estado Civil: ${formData.demandante_estado_civil || demandante?.estado_civil || '[estado civil]'}
-  Cédula/RNC: ${formData.demandante_cedula || demandante?.cedula || '[cédula]'}
-  Domicilio: ${formData.demandante_domicilio || demandante?.domicilio || '[domicilio]'}
+${formData.demandante_nombre || formData.primera_parte_nombre || demandante?.nombre ? `
+- ${esJudicial ? 'Demandante' : 'Primera Parte'}: ${formData.demandante_nombre || formData.primera_parte_nombre || demandante?.nombre}
+  Nacionalidad: ${formData.demandante_nacionalidad || formData.primera_parte_nacionalidad || demandante?.nacionalidad || ''}
+  Estado Civil: ${formData.demandante_estado_civil || formData.primera_parte_estado_civil || demandante?.estado_civil || ''}
+  Cédula/RNC: ${formData.demandante_cedula || formData.primera_parte_cedula || demandante?.cedula || ''}
+  Domicilio: ${formData.demandante_domicilio || formData.primera_parte_domicilio || demandante?.domicilio || ''}
 ` : ''}
 
-${formData.demandado_nombre || demandado?.nombre ? `
-- ${esJudicial ? 'Demandado' : 'Parte B'}: ${formData.demandado_nombre || demandado?.nombre}
-  Domicilio: ${formData.demandado_domicilio || demandado?.domicilio || '[domicilio]'}
+${formData.demandado_nombre || formData.segunda_parte_nombre || demandado?.nombre ? `
+- ${esJudicial ? 'Demandado' : 'Segunda Parte'}: ${formData.demandado_nombre || formData.segunda_parte_nombre || demandado?.nombre}
+  Nacionalidad: ${formData.demandado_nacionalidad || formData.segunda_parte_nacionalidad || ''}
+  Estado Civil: ${formData.demandado_estado_civil || formData.segunda_parte_estado_civil || ''}
+  Cédula/RNC: ${formData.demandado_cedula || formData.segunda_parte_cedula || demandado?.cedula || ''}
+  Domicilio: ${formData.demandado_domicilio || formData.segunda_parte_domicilio || demandado?.domicilio || ''}
 ` : ''}
 
-ABOGADO${esJudicial ? ' APODERADO' : ''}:
+ABOGADO${esJudicial ? ' APODERADO' : ' REDACTOR'}:
 - Nombre: ${formData.abogado_nombre || abogado?.nombre || abogadoNombre}
-- Cédula: ${formData.abogado_cedula || abogado?.cedula || '[cédula]'}
+- Cédula: ${formData.abogado_cedula || abogado?.cedula || ''}
 - Matrícula: ${formData.abogado_matricula || abogado?.matricula || matriculaCard}
-- Dirección: ${formData.abogado_direccion || abogado?.direccion || direccionFirma}
+- Dirección: ${formData.abogado_despacho || abogado?.direccion || direccionFirma}
 - Contacto: ${formData.abogado_telefono || abogado?.telefono || telefonoFirma}
 - Email: ${formData.abogado_email || abogado?.email || emailFirma}
 
@@ -567,10 +579,10 @@ ${alguacil_designacion}
 ` : ''}
 
 HECHOS DEL CASO:
-${formData.hechos || hechos || '[Describir los hechos relevantes del caso]'}
+${formData.hechos || formData.descripcion_detallada || hechos || ''}
 
 ${esJudicial ? 'PRETENSIONES (DISPOSITIVO):' : 'OBJETO/SOLICITUD:'}
-${formData.pretensiones || pretension || '[Especificar las pretensiones o solicitudes]'}
+${formData.pretensiones || formData.objeto_acto || pretension || ''}
 
 ${formData.fundamentos || legislacion ? `
 FUNDAMENTOS LEGALES:
@@ -585,6 +597,7 @@ ${jurisprudencia}
 INSTRUCCIONES CRÍTICAS:
 ${esJudicial ? `
 [DOCUMENTO JUDICIAL - Seguir estructura procesal completa]
+FORMATO: A4, texto justificado, títulos centrados, párrafos unidos y completos
 1. ENCABEZADO centrado: TÍTULO, DEMANDANTE, DEMANDADO, TRIBUNAL, EXPEDIENTE
 2. NO usar "ACTO NÚMERO" como título separado
 3. PRESENTACIÓN (1.1-1.10): Datos del acto, partes, abogado, domicilio procesal
@@ -593,19 +606,27 @@ ${esJudicial ? `
 6. TESIS DE DERECHO (4.x): Subsunción RIGUROSA con elementos constitutivos, doctrina y jurisprudencia
 7. DISPOSITIVO (5.x): Peticiones numeradas, costas
 8. Firma: ${abogadoNombre}, Matrícula ${matriculaCard}
+⚠️ NO LLENAR información que no fue proporcionada - usar solo los datos dados arriba
 ` : esExtrajudicial ? `
 [DOCUMENTO EXTRAJUDICIAL - NO procesal]
+FORMATO: A4, texto justificado, títulos centrados, párrafos unidos y completos
 1. Encabezado: Título del documento, fecha, lugar
 2. PARTES: Identificación SIN términos procesales (demandante/demandado)
+   - Si es contrato de inmueble: usar "Vendedor/Comprador" y especificar datos del inmueble
+   - Si es contrato de mueble: usar "Vendedor/Comprador" y especificar el bien mueble
 3. OBJETO: Descripción clara del propósito
 4. CLÁUSULAS/CONTENIDO: Desarrollo según tipo de documento
 5. CIERRE: Firmas y datos de contacto
 6. NO usar: número de acto, traslados, emplazamiento, tribunal
+⚠️ NO LLENAR información que no fue proporcionada - usar solo los datos dados arriba
+⚠️ Si falta información crítica, ADVERTIR al final del documento
 ` : `
 [DOCUMENTO GENERAL]
+FORMATO: A4, texto justificado, títulos centrados, párrafos unidos y completos
 1. Estructura clara con título, introducción, desarrollo, conclusión
 2. Lenguaje formal jurídico dominicano
 3. Datos completos de partes y abogado
+⚠️ NO LLENAR información que no fue proporcionada
 `}
 
 Genera AHORA el documento COMPLETO y PROFESIONAL:`;

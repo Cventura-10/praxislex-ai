@@ -72,7 +72,8 @@ const administrativoJudicialActs: LegalAct[] = [
 // ============================================
 
 const civilExtraJudicialActs: LegalAct[] = [
-  { id: 'contrato_venta', name: 'Contrato de Venta', type: 'extrajudicial', hasIntake: true, hasManual: true },
+  { id: 'contrato_venta_inmueble', name: 'Contrato de Compraventa de Inmueble', type: 'extrajudicial', hasIntake: true, hasManual: true },
+  { id: 'contrato_venta_mueble', name: 'Contrato de Compraventa de Mueble', type: 'extrajudicial', hasIntake: true, hasManual: true },
   { id: 'contrato_alquiler', name: 'Contrato de Alquiler', type: 'extrajudicial', hasIntake: true, hasManual: true },
   { id: 'poder_general', name: 'Poder General', type: 'extrajudicial', hasIntake: true, hasManual: true },
   { id: 'poder_especial', name: 'Poder Especial', type: 'extrajudicial', hasIntake: true, hasManual: true },
