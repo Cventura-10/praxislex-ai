@@ -66,15 +66,33 @@ serve(async (req) => {
 
     const requestBody = await req.json();
     
-    // Input validation schema
+    // Input validation schema - comprehensive and strict
     const RequestSchema = z.object({
       tipo_documento: z.string().min(1).max(100).optional(),
       actType: z.string().min(1).max(100).optional(),
       materia: z.string().max(100).optional(),
-      formData: z.record(z.unknown()).optional(),
+      formData: z.record(z.string(), z.unknown()).optional(),
       hechos: z.string().max(10000).optional(),
       pretension: z.string().max(5000).optional(),
-    }).passthrough(); // Allow additional fields
+      demandante: z.object({
+        nombre: z.string().max(200),
+        cedula: z.string().max(50).optional(),
+        domicilio: z.string().max(500).optional(),
+      }).optional(),
+      demandado: z.object({
+        nombre: z.string().max(200),
+        cedula: z.string().max(50).optional(),
+        domicilio: z.string().max(500).optional(),
+      }).optional(),
+      abogado: z.object({
+        nombre: z.string().max(200).optional(),
+        matricula: z.string().max(50).optional(),
+      }).optional(),
+      juzgado: z.string().max(200).optional(),
+      ciudad_actuacion: z.string().max(100).optional(),
+      legislacion: z.string().max(5000).optional(),
+      jurisprudencia: z.string().max(5000).optional(),
+    }).strict(); // No additional fields allowed
     
     // Validate request
     try {
