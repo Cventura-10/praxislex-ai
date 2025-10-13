@@ -62,6 +62,11 @@ export const useLawyers = () => {
         throw new Error("El nombre del abogado es requerido");
       }
 
+      // Get user's tenant_id
+      const { data: tenantData } = await supabase.rpc('get_user_tenant_id', {
+        p_user_id: user.id
+      });
+
       const { error } = await supabase.from("lawyers").insert([
         {
           nombre: lawyerData.nombre,
@@ -71,6 +76,7 @@ export const useLawyers = () => {
           rol: lawyerData.rol || 'abogado',
           estado: lawyerData.estado || 'activo',
           user_id: user.id,
+          tenant_id: tenantData || null,
         },
       ]);
 
