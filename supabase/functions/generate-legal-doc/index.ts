@@ -595,13 +595,8 @@ ${normasAplicables.map((n, i) => `${i + 1}. ${n}`).join('\n')}
     7. Minimalismo y elegancia
     
     ════════════════════════════════════════════════════════════════════
-    ⚠️ COLETILLA NOTARIAL (SEPARADA AL FINAL - FUERA DEL ACTO)
+    ⚠️ COLETILLA NOTARIAL (DESPUÉS DE LAS FIRMAS DE LAS PARTES)
     ════════════════════════════════════════════════════════════════════
-    
-    IMPORTANTE: La coletilla notarial debe aparecer DESPUÉS del contenido del contrato,
-    DESPUÉS de las firmas de las partes, como una sección SEPARADA.
-    
-    Agregar LÍNEAS EN BLANCO para separar del contenido anterior, luego incluir:
     
     ${formData.notario_nombre ? `
     
@@ -617,9 +612,24 @@ ${normasAplicables.map((n, i) => `${i + 1}. ${n}`).join('\n')}
     _____________________________
     ${formData.notario_nombre}
     NOTARIO PÚBLICO
-    ` : `
-    ⚠️ NOTA: Si se proporcionan datos del notario, incluir coletilla notarial separada al final.
-    `}
+    ` : ''}
+    
+    
+    ════════════════════════════════════════════════════════════════════
+    ⚠️ FIRMA DEL ABOGADO REDACTOR (AL FINAL - FUERA DEL ACTO)
+    ════════════════════════════════════════════════════════════════════
+    
+    IMPORTANTE: Después de la coletilla notarial (o después de las firmas de las partes si no hay notario),
+    agregar LÍNEAS EN BLANCO y luego incluir la firma del abogado redactor SEPARADA:
+    
+    
+    
+    ════════════════════════════════════════════════════════════════════
+    
+    _____________________________
+    ${formData.abogado_nombre || abogadoNombre}
+    Abogado Redactor
+    Matrícula CARD: ${formData.abogado_matricula || matriculaCard}
     
     Genera documentos COMPLETOS, ELEGANTES y EXTRAJUDICIALES PUROS.`;
     } else {
