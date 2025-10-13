@@ -77,6 +77,7 @@ const Cases = () => {
     juzgado: "",
     etapa_procesal: "",
     responsable: "",
+    lawyer_id: "",
     client_id: "",
     descripcion: "",
   });
@@ -201,6 +202,7 @@ const Cases = () => {
         juzgado: "",
         etapa_procesal: "",
         responsable: "",
+        lawyer_id: "",
         client_id: "",
         descripcion: "",
       });
@@ -442,26 +444,24 @@ const Cases = () => {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="lawyer_id">Abogado Responsable</Label>
-                <Select value={newCase.responsable} onValueChange={(value) => setNewCase({ ...newCase, responsable: value })}>
+                <Select value={newCase.lawyer_id} onValueChange={(value) => setNewCase({ ...newCase, lawyer_id: value, responsable: lawyers.find(l => l.id === value)?.nombre || "" })}>
                   <SelectTrigger>
                     <SelectValue placeholder="Seleccionar abogado" />
                   </SelectTrigger>
                   <SelectContent>
                     {lawyers.map((lawyer) => (
-                      <SelectItem key={lawyer.id} value={lawyer.nombre}>
+                      <SelectItem key={lawyer.id} value={lawyer.id}>
                         {lawyer.nombre} - {lawyer.rol}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                <p className="text-xs text-muted-foreground">
-                  O escriba un nombre manualmente si no está en la lista
-                </p>
                 <Input
                   id="responsable_manual"
                   value={newCase.responsable}
                   onChange={(e) => setNewCase({ ...newCase, responsable: e.target.value })}
-                  placeholder="Escribir nombre manualmente..."
+                  placeholder="O escribir nombre manualmente..."
+                  className="mt-2"
                 />
               </div>
               <div className="grid gap-2">
