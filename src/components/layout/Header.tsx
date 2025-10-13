@@ -18,6 +18,7 @@ import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { ConnectionBadge } from "@/components/pwa/OfflineIndicator";
 import { InstallButton, InstalledBadge } from "@/components/pwa/InstallButton";
 import { SafeComponent } from "@/components/SafeComponent";
+import { TenantSwitcher } from "@/components/tenant/TenantSwitcher";
 import logo from "@/assets/praxislex-logo-horizontal.svg";
 
 export function Header() {
@@ -113,6 +114,10 @@ export function Header() {
           
           <SafeComponent componentName="InstallButton">
             <InstallButton />
+          </SafeComponent>
+          
+          <SafeComponent componentName="TenantSwitcher">
+            <TenantSwitcher />
           </SafeComponent>
           
           <SafeComponent componentName="NotificationBell">
