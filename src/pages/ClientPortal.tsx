@@ -115,18 +115,9 @@ const ClientPortal = () => {
       
       let clientInfo = clientByAuthId.error ? null : clientByAuthId.data;
 
-      // Si no existe, intentar por user_id
-      if (!clientInfo) {
-        console.log("[ClientPortal] Trying by user_id...");
-        const clientByUserId = await supabase
-          .from("clients")
-          .select("*")
-          .eq("user_id", user.id)
-          .maybeSingle();
-        
-        console.log("[ClientPortal] Client by user_id:", clientByUserId);
-        clientInfo = clientByUserId.error ? null : clientByUserId.data;
-      }
+      // Eliminado fallback por user_id para evitar múltiples filas y 406
+      // El portal del cliente se basa solo en auth_user_id
+      
 
       // Si no existe, crear uno
       if (!clientInfo) {
@@ -141,7 +132,7 @@ const ClientPortal = () => {
           .insert({
             user_id: user.id,
             auth_user_id: user.id,
-            tenant_id: tenantData || user.id, // Usar tenant_id del usuario o el propio user_id
+            tenant_id: tenantData,
             nombre_completo: user.user_metadata?.full_name || user.email?.split('@')[0] || "Cliente",
             email: user.email,
             accepted_terms: false,
