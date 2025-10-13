@@ -160,8 +160,11 @@ export function IntakeFormFlow({ actInfo }: IntakeFormFlowProps) {
         ...prev,
         abogado_nombre: lawyer.nombre,
         abogado_cedula: lawyer.cedula || '',
+        abogado_matricula: lawyer.matricula_card || '',
+        abogado_despacho: lawyer.despacho_direccion || '',
         abogado_email: lawyer.email || '',
-        abogado_telefono: lawyer.telefono || ''
+        abogado_telefono: lawyer.telefono || '',
+        abogado_firma_digital: lawyer.firma_digital_url || ''
       }));
       setLawyerFieldsLocked(true);
     }

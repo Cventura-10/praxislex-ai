@@ -14,9 +14,16 @@ export interface Lawyer {
   tenant_id: string | null;
   created_at: string;
   updated_at: string;
+  matricula_card: string | null;
+  firma_digital_url: string | null;
+  despacho_direccion: string | null;
 }
 
-type CreateLawyerData = Omit<Lawyer, "id" | "created_at" | "updated_at" | "user_id" | "tenant_id">;
+type CreateLawyerData = Omit<Lawyer, "id" | "created_at" | "updated_at" | "user_id" | "tenant_id" | "matricula_card" | "firma_digital_url" | "despacho_direccion"> & {
+  matricula_card?: string | null;
+  firma_digital_url?: string | null;
+  despacho_direccion?: string | null;
+};
 
 export const useLawyers = () => {
   const [lawyers, setLawyers] = useState<Lawyer[]>([]);
@@ -75,6 +82,9 @@ export const useLawyers = () => {
           telefono: lawyerData.telefono || null,
           rol: lawyerData.rol || 'abogado',
           estado: lawyerData.estado || 'activo',
+          matricula_card: lawyerData.matricula_card || null,
+          firma_digital_url: lawyerData.firma_digital_url || null,
+          despacho_direccion: lawyerData.despacho_direccion || null,
           user_id: user.id,
           tenant_id: tenantData || null,
         },

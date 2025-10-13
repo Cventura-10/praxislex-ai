@@ -1163,9 +1163,12 @@ export type Database = {
         Row: {
           cedula: string | null
           created_at: string | null
+          despacho_direccion: string | null
           email: string | null
           estado: string | null
+          firma_digital_url: string | null
           id: string
+          matricula_card: string | null
           nombre: string
           rol: string | null
           telefono: string | null
@@ -1176,9 +1179,12 @@ export type Database = {
         Insert: {
           cedula?: string | null
           created_at?: string | null
+          despacho_direccion?: string | null
           email?: string | null
           estado?: string | null
+          firma_digital_url?: string | null
           id?: string
+          matricula_card?: string | null
           nombre: string
           rol?: string | null
           telefono?: string | null
@@ -1189,9 +1195,12 @@ export type Database = {
         Update: {
           cedula?: string | null
           created_at?: string | null
+          despacho_direccion?: string | null
           email?: string | null
           estado?: string | null
+          firma_digital_url?: string | null
           id?: string
+          matricula_card?: string | null
           nombre?: string
           rol?: string | null
           telefono?: string | null
