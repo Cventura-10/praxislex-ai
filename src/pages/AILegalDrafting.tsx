@@ -882,7 +882,6 @@ const AILegalDrafting = () => {
           const tipoLabel = TIPOS_DOCUMENTO.find(t => t.value === formData.tipo_documento)?.label || formData.tipo_documento;
           
           await supabase.from("legal_documents").insert({
-            user_id: user.id,
             tipo_documento: formData.tipo_documento,
             materia: formData.materia,
             titulo: `${tipoLabel} - ${formData.demandante_nombre || 'N/D'} vs ${formData.demandado_nombre || 'N/D'}`,

@@ -133,7 +133,6 @@ const ClientPortal = () => {
         const newClient = await supabase
           .from("clients")
           .insert({
-            user_id: user.id,
             auth_user_id: user.id,
             nombre_completo: user.user_metadata?.full_name || user.email?.split('@')[0] || "Cliente",
             email: user.email,

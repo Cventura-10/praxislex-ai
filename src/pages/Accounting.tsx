@@ -165,7 +165,6 @@ const Accounting = () => {
         .from("invoices")
         .insert({
           ...validationResult.data,
-          user_id: user.id,
         });
 
       if (error) throw error;

@@ -159,7 +159,6 @@ export function ManualEditorFlow({ actInfo }: ManualEditorFlowProps) {
       const { data, error } = await supabase
         .from("legal_documents")
         .insert({
-          user_id: user.id,
           tipo_documento: actInfo.act.id,
           materia: actInfo.matter.name,
           titulo: `${actInfo.act.name} - ${demandanteNombre} vs ${demandadoNombre}`,

@@ -139,7 +139,6 @@ const Hearings = () => {
       if (!userData.user) throw new Error("Usuario no autenticado");
 
       const { error } = await supabase.from("hearings").insert({
-        user_id: userData.user.id,
         case_id: data.case_id || null,
         caso: data.caso,
         juzgado: data.juzgado,
