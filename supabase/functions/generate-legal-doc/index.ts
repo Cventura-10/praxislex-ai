@@ -100,9 +100,18 @@ serve(async (req) => {
     try {
       RequestSchema.parse(requestBody);
     } catch (validationError) {
-      console.error('⛔ Validation error:', validationError);
+      // Log full details server-side only
+      console.error('[generate-legal-doc] Validation failed:', {
+        error: validationError instanceof Error ? validationError.message : 'Unknown validation error',
+        timestamp: new Date().toISOString()
+      });
+      
+      // Return sanitized error to client
       return new Response(
-        JSON.stringify({ error: 'Invalid request data', details: validationError }),
+        JSON.stringify({ 
+          error: 'Invalid request data. Please check your input and try again.',
+          code: 'VALIDATION_FAILED'
+        }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
