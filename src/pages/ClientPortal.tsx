@@ -33,6 +33,7 @@ import { InvoiceViewer } from "@/components/InvoiceViewer";
 import { useLawFirmProfile } from "@/hooks/useLawFirmProfile";
 import { TermsAndConditionsDialog } from "@/components/TermsAndConditionsDialog";
 import { LoadingFallback } from "@/components/LoadingFallback";
+import { ClientMessaging, SharedDocuments, AccountSummary } from "@/components/client-portal/ClientPortalComponents";
 
 interface ClientCase {
   id: string;
@@ -431,6 +432,7 @@ const ClientPortal = () => {
           <TabsTrigger value="hearings">Audiencias</TabsTrigger>
           <TabsTrigger value="invoices">Facturación</TabsTrigger>
           <TabsTrigger value="documents">Documentos</TabsTrigger>
+          <TabsTrigger value="messages">Mensajes</TabsTrigger>
         </TabsList>
 
         {/* Cases Tab */}
@@ -632,6 +634,27 @@ const ClientPortal = () => {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Messages Tab */}
+        <TabsContent value="messages" className="space-y-4">
+          <div className="grid gap-6 lg:grid-cols-2">
+            <ClientMessaging 
+              clientId={clientInfo.id} 
+              lawyerUserId={clientInfo.user_id}
+            />
+            <div className="space-y-6">
+              <SharedDocuments clientId={clientInfo.id} />
+              <AccountSummary 
+                summary={{
+                  totalFacturado: summary.totalFacturado,
+                  totalPagado: summary.totalPagado,
+                  saldoPendiente: summary.saldoPendiente
+                }}
+                invoices={invoices}
+              />
+            </div>
+          </div>
         </TabsContent>
       </Tabs>
 

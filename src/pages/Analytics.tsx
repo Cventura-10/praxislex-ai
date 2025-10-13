@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { KPICard } from "@/components/analytics/KPICard";
 import { ReportExporter } from "@/components/analytics/ReportExporter";
+import { ReportBuilder } from "@/components/analytics/ReportBuilder";
 import { 
   BarChart, 
   Bar, 
@@ -118,11 +119,12 @@ export default function Analytics() {
 
       {/* Tabs */}
       <Tabs defaultValue="financial" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="financial">Financiero</TabsTrigger>
           <TabsTrigger value="cases">Casos</TabsTrigger>
           <TabsTrigger value="clients">Clientes</TabsTrigger>
           <TabsTrigger value="productivity">Productividad</TabsTrigger>
+          <TabsTrigger value="reports">Reportes</TabsTrigger>
         </TabsList>
 
         {/* Financial Analytics */}
@@ -567,6 +569,11 @@ export default function Analytics() {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        {/* Reports Tab */}
+        <TabsContent value="reports" className="space-y-6">
+          <ReportBuilder analyticsData={data} />
         </TabsContent>
       </Tabs>
     </div>
