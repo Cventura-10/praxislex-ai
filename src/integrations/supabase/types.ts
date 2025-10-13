@@ -937,6 +937,146 @@ export type Database = {
           },
         ]
       }
+      generated_acts: {
+        Row: {
+          abogado_id: string | null
+          audio_dictado_url: string | null
+          case_id: string | null
+          ciudad: string
+          clausulas: Json | null
+          client_id: string | null
+          compradores: Json[] | null
+          contenido: string
+          created_at: string
+          documento_url: string | null
+          fecha_actuacion: string
+          fecha_firma: string | null
+          firmado: boolean | null
+          formato_exportado: string | null
+          id: string
+          materia: string
+          notario_id: string | null
+          perito_id: string | null
+          provincia: string | null
+          tasador_id: string | null
+          tenant_id: string
+          testigos: Json[] | null
+          tipo_acto: string
+          titulo: string
+          updated_at: string
+          user_id: string
+          vendedores: Json[] | null
+        }
+        Insert: {
+          abogado_id?: string | null
+          audio_dictado_url?: string | null
+          case_id?: string | null
+          ciudad: string
+          clausulas?: Json | null
+          client_id?: string | null
+          compradores?: Json[] | null
+          contenido: string
+          created_at?: string
+          documento_url?: string | null
+          fecha_actuacion?: string
+          fecha_firma?: string | null
+          firmado?: boolean | null
+          formato_exportado?: string | null
+          id?: string
+          materia: string
+          notario_id?: string | null
+          perito_id?: string | null
+          provincia?: string | null
+          tasador_id?: string | null
+          tenant_id: string
+          testigos?: Json[] | null
+          tipo_acto: string
+          titulo: string
+          updated_at?: string
+          user_id: string
+          vendedores?: Json[] | null
+        }
+        Update: {
+          abogado_id?: string | null
+          audio_dictado_url?: string | null
+          case_id?: string | null
+          ciudad?: string
+          clausulas?: Json | null
+          client_id?: string | null
+          compradores?: Json[] | null
+          contenido?: string
+          created_at?: string
+          documento_url?: string | null
+          fecha_actuacion?: string
+          fecha_firma?: string | null
+          firmado?: boolean | null
+          formato_exportado?: string | null
+          id?: string
+          materia?: string
+          notario_id?: string | null
+          perito_id?: string | null
+          provincia?: string | null
+          tasador_id?: string | null
+          tenant_id?: string
+          testigos?: Json[] | null
+          tipo_acto?: string
+          titulo?: string
+          updated_at?: string
+          user_id?: string
+          vendedores?: Json[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "generated_acts_abogado_id_fkey"
+            columns: ["abogado_id"]
+            isOneToOne: false
+            referencedRelation: "lawyers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "generated_acts_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "generated_acts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "client_portal_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "generated_acts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "generated_acts_notario_id_fkey"
+            columns: ["notario_id"]
+            isOneToOne: false
+            referencedRelation: "notarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "generated_acts_perito_id_fkey"
+            columns: ["perito_id"]
+            isOneToOne: false
+            referencedRelation: "peritos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "generated_acts_tasador_id_fkey"
+            columns: ["tasador_id"]
+            isOneToOne: false
+            referencedRelation: "tasadores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hearings: {
         Row: {
           case_id: string | null
