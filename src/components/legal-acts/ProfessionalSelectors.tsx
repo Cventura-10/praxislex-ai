@@ -77,7 +77,7 @@ export function NotarioSelector({ value, onChange, onFieldUpdate }: NotarioSelec
       onChange(notario);
       onFieldUpdate({
         notario_nombre: notario.nombre,
-        notario_cedula: notario.cedula || '',
+        notario_cedula: notario.cedula_encrypted || '',
         notario_matricula: notario.matricula_cdn || '',
         notario_oficina: notario.oficina_direccion || '',
         notario_jurisdiccion: notario.jurisdiccion || '',
@@ -132,7 +132,7 @@ export function AlguacilSelector({ value, onChange, onFieldUpdate }: AlguacilSel
       onChange(alguacil);
       onFieldUpdate({
         alguacil_nombre: alguacil.nombre,
-        alguacil_cedula: alguacil.cedula || '',
+        alguacil_cedula: alguacil.cedula_encrypted || '',
         alguacil_matricula: alguacil.matricula || '',
         alguacil_jurisdiccion: alguacil.jurisdiccion || '',
         alguacil_direccion: alguacil.direccion_notificaciones || '',
@@ -186,7 +186,7 @@ export function PeritoSelector({ value, onChange, onFieldUpdate }: PeritoSelecto
       onChange(perito);
       onFieldUpdate({
         perito_nombre: perito.nombre,
-        perito_cedula: perito.cedula || '',
+        perito_cedula: perito.cedula_encrypted || '',
         perito_especialidad: perito.especialidad || '',
         perito_matricula: Array.isArray(perito.certificaciones) ? perito.certificaciones.join(', ') : '',
         perito_telefono: perito.telefono || '',
@@ -240,7 +240,7 @@ export function TasadorSelector({ value, onChange, onFieldUpdate }: TasadorSelec
       onChange(tasador);
       onFieldUpdate({
         tasador_nombre: tasador.nombre,
-        tasador_cedula: tasador.cedula || '',
+        tasador_cedula: tasador.cedula_encrypted || '',
         tasador_especialidad: tasador.especialidad || '',
         tasador_matricula: tasador.matricula || '',
         tasador_telefono: tasador.telefono || '',

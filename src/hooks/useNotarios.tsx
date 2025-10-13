@@ -7,7 +7,7 @@ export interface Notario {
   user_id: string;
   tenant_id?: string;
   nombre: string;
-  cedula?: string;
+  cedula_encrypted?: string;
   matricula_cdn?: string;
   colegio_notarial?: string;
   jurisdiccion?: string;

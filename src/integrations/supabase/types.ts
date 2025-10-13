@@ -177,7 +177,7 @@ export type Database = {
       }
       alguaciles: {
         Row: {
-          cedula: string | null
+          cedula_encrypted: string | null
           created_at: string | null
           direccion_notificaciones: string | null
           email: string | null
@@ -194,7 +194,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          cedula?: string | null
+          cedula_encrypted?: string | null
           created_at?: string | null
           direccion_notificaciones?: string | null
           email?: string | null
@@ -211,7 +211,7 @@ export type Database = {
           user_id: string
         }
         Update: {
-          cedula?: string | null
+          cedula_encrypted?: string | null
           created_at?: string | null
           direccion_notificaciones?: string | null
           email?: string | null
@@ -1583,7 +1583,7 @@ export type Database = {
       }
       notarios: {
         Row: {
-          cedula: string | null
+          cedula_encrypted: string | null
           colegio_notarial: string | null
           created_at: string | null
           email: string | null
@@ -1600,7 +1600,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          cedula?: string | null
+          cedula_encrypted?: string | null
           colegio_notarial?: string | null
           created_at?: string | null
           email?: string | null
@@ -1617,7 +1617,7 @@ export type Database = {
           user_id: string
         }
         Update: {
-          cedula?: string | null
+          cedula_encrypted?: string | null
           colegio_notarial?: string | null
           created_at?: string | null
           email?: string | null
@@ -1853,7 +1853,7 @@ export type Database = {
       }
       peritos: {
         Row: {
-          cedula: string | null
+          cedula_encrypted: string | null
           certificaciones: Json | null
           created_at: string | null
           direccion: string | null
@@ -1871,7 +1871,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          cedula?: string | null
+          cedula_encrypted?: string | null
           certificaciones?: Json | null
           created_at?: string | null
           direccion?: string | null
@@ -1889,7 +1889,7 @@ export type Database = {
           user_id: string
         }
         Update: {
-          cedula?: string | null
+          cedula_encrypted?: string | null
           certificaciones?: Json | null
           created_at?: string | null
           direccion?: string | null
@@ -2106,9 +2106,42 @@ export type Database = {
         }
         Relationships: []
       }
+      storage_access_audit: {
+        Row: {
+          action: string
+          bucket_id: string
+          created_at: string | null
+          id: string
+          ip_address: unknown | null
+          object_name: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          bucket_id: string
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          object_name: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          bucket_id?: string
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          object_name?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       tasadores: {
         Row: {
-          cedula: string | null
+          cedula_encrypted: string | null
           certificaciones: Json | null
           created_at: string | null
           direccion: string | null
@@ -2125,7 +2158,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          cedula?: string | null
+          cedula_encrypted?: string | null
           certificaciones?: Json | null
           created_at?: string | null
           direccion?: string | null
@@ -2142,7 +2175,7 @@ export type Database = {
           user_id: string
         }
         Update: {
-          cedula?: string | null
+          cedula_encrypted?: string | null
           certificaciones?: Json | null
           created_at?: string | null
           direccion?: string | null

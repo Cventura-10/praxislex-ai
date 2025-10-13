@@ -7,7 +7,7 @@ export interface Perito {
   user_id: string;
   tenant_id?: string;
   nombre: string;
-  cedula?: string;
+  cedula_encrypted?: string;
   matricula?: string;
   especialidad: string;
   certificaciones?: any[];

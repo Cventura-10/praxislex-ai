@@ -7,7 +7,7 @@ export interface Alguacil {
   user_id: string;
   tenant_id?: string;
   nombre: string;
-  cedula?: string;
+  cedula_encrypted?: string;
   matricula?: string;
   jurisdiccion: string;
   tribunal_asignado?: string;
