@@ -16,12 +16,16 @@ import {
   BarChart3,
   Bot,
   FileStack,
+  UserCog,
+  MessageSquare,
 } from "lucide-react";
 
 const navItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/casos", icon: Briefcase, label: "Casos" },
   { href: "/clientes", icon: Users, label: "Clientes" },
+  { href: "/abogados", icon: UserCog, label: "Abogados" },
+  { href: "/mensajes", icon: MessageSquare, label: "Mensajes Clientes" },
   { href: "/audiencias", icon: Calendar, label: "Audiencias" },
   { href: "/documentos", icon: FileText, label: "Documentos" },
   { href: "/generador-actos", icon: FileStack, label: "Generador de Actos" },
