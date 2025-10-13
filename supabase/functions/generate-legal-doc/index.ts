@@ -595,12 +595,19 @@ ${normasAplicables.map((n, i) => `${i + 1}. ${n}`).join('\n')}
     7. Minimalismo y elegancia
     
     ════════════════════════════════════════════════════════════════════
-    ⚠️ COLETILLA NOTARIAL OBLIGATORIA (AL FINAL DEL DOCUMENTO)
+    ⚠️ COLETILLA NOTARIAL (SEPARADA AL FINAL - FUERA DEL ACTO)
     ════════════════════════════════════════════════════════════════════
     
-    INCLUIR AL FINAL del documento (después de sección de firmas):
+    IMPORTANTE: La coletilla notarial debe aparecer DESPUÉS del contenido del contrato,
+    DESPUÉS de las firmas de las partes, como una sección SEPARADA.
+    
+    Agregar LÍNEAS EN BLANCO para separar del contenido anterior, luego incluir:
     
     ${formData.notario_nombre ? `
+    
+    
+    
+    ════════════════════════════════════════════════════════════════════
     
     Yo, ${formData.notario_nombre}, Notario Público ${formData.notario_jurisdiccion || 'de los Números para el Distrito Nacional'}, Miembro activo del Colegio Dominicano de Notarios de la República Dominicana con matrícula al día y No. ${formData.notario_matricula || '[matrícula]'}, portador de la Cédula de identidad y electoral No. ${formData.notario_cedula || '[cédula]'}, con Oficina Profesional abierta de manera permanente en ${formData.notario_oficina || '[dirección oficina]'}, CERTIFICO que las firmas que aparecen en el presente documento, han sido puestas en mi presencia, libre y voluntariamente por los señores ${formData.primera_parte_nombre || '[Primera Parte]'} Y ${formData.segunda_parte_nombre || '[Segunda Parte]'}, de generales y cualidades que constan en el presente acto; quienes me han declarado que esas son las firmas que acostumbran utilizar para todos los actos de sus vidas, por lo que merecen entera fe y crédito. En ${formData.lugar_ciudad || 'el Distrito Nacional'}, República Dominicana, a los ${formData.fecha_texto || '[fecha en texto: XX (##) días del mes de XXXX del año XXXX]'}.
     
@@ -611,7 +618,7 @@ ${normasAplicables.map((n, i) => `${i + 1}. ${n}`).join('\n')}
     ${formData.notario_nombre}
     NOTARIO PÚBLICO
     ` : `
-    ⚠️ NOTA: Si se proporcionan datos del notario, incluir coletilla notarial completa al final.
+    ⚠️ NOTA: Si se proporcionan datos del notario, incluir coletilla notarial separada al final.
     `}
     
     Genera documentos COMPLETOS, ELEGANTES y EXTRAJUDICIALES PUROS.`;
