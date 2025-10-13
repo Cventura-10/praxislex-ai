@@ -131,10 +131,17 @@ const ClientPortal = () => {
       // Si no existe, crear uno
       if (!clientInfo) {
         console.log("[ClientPortal] Creating new client record...");
+        
+        // Obtener tenant_id del usuario
+        const { data: tenantData } = await supabase
+          .rpc('get_user_tenant_id', { p_user_id: user.id });
+        
         const newClient = await supabase
           .from("clients")
           .insert({
+            user_id: user.id,
             auth_user_id: user.id,
+            tenant_id: tenantData || user.id, // Usar tenant_id del usuario o el propio user_id
             nombre_completo: user.user_metadata?.full_name || user.email?.split('@')[0] || "Cliente",
             email: user.email,
             accepted_terms: false,
