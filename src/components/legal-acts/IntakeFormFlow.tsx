@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Sparkles, Loader2, Download, Eye } from "lucide-react";
+import { Sparkles, Loader2, Download, Eye, Lock, Unlock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Progress } from "@/components/ui/progress";
 import { DocumentViewer } from "@/components/DocumentViewer";
 import type { LegalAct, LegalMatter, LegalCategory } from "@/lib/legalActsData";
+import { useLawyers, type Lawyer } from "@/hooks/useLawyers";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 
 interface IntakeFormFlowProps {
   actInfo: {
@@ -117,10 +120,14 @@ const EXTRAJUDICIAL_FIELDS = [
 export function IntakeFormFlow({ actInfo }: IntakeFormFlowProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { lawyers, loading: loadingLawyers } = useLawyers();
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedDocument, setGeneratedDocument] = useState<string | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
+  const [selectedLawyer, setSelectedLawyer] = useState<Lawyer | null>(null);
+  const [autoFilledLawyer, setAutoFilledLawyer] = useState<boolean>(false);
+  const [lawyerFieldsLocked, setLawyerFieldsLocked] = useState<boolean>(true);
 
   // Seleccionar campos según tipo de acto (CON VALIDACIÓN DE SEGURIDAD)
   const isJudicial = isJudicialActType(actInfo.act.id);
@@ -143,6 +150,25 @@ export function IntakeFormFlow({ actInfo }: IntakeFormFlowProps) {
 
   const handleFieldChange = (key: string, value: string) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleLawyerSelection = (lawyerId: string) => {
+    const lawyer = lawyers.find(l => l.id === lawyerId);
+    if (lawyer) {
+      setSelectedLawyer(lawyer);
+      setFormData(prev => ({
+        ...prev,
+        abogado_nombre: lawyer.nombre,
+        abogado_cedula: lawyer.cedula || '',
+        abogado_email: lawyer.email || '',
+        abogado_telefono: lawyer.telefono || ''
+      }));
+      setLawyerFieldsLocked(true);
+    }
+  };
+
+  const toggleLawyerLock = () => {
+    setLawyerFieldsLocked(!lawyerFieldsLocked);
   };
 
   const canProceedToNext = () => {
@@ -553,6 +579,81 @@ export function IntakeFormFlow({ actInfo }: IntakeFormFlowProps) {
         </CardContent>
       </Card>
 
+      {/* Selector de Abogado */}
+      {currentStep === 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <span>Abogado Responsable</span>
+              {autoFilledLawyer && (
+                <Badge variant="secondary" className="text-xs">Auto-asignado</Badge>
+              )}
+            </CardTitle>
+            <CardDescription>
+              Selecciona o edita los datos del abogado que firmará el documento
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {lawyers.length > 1 && !autoFilledLawyer && (
+              <div className="space-y-2">
+                <Label htmlFor="lawyer-select">Seleccionar Abogado</Label>
+                <Select onValueChange={handleLawyerSelection} value={selectedLawyer?.id}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecciona un abogado" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {lawyers.map((lawyer) => (
+                      <SelectItem key={lawyer.id} value={lawyer.id}>
+                        {lawyer.nombre} {lawyer.cedula ? `- ${lawyer.cedula}` : ''}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            
+            {selectedLawyer && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-medium">Datos del Abogado</Label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={toggleLawyerLock}
+                    className="h-8 gap-2"
+                  >
+                    {lawyerFieldsLocked ? (
+                      <>
+                        <Lock className="h-3 w-3" />
+                        Bloqueado
+                      </>
+                    ) : (
+                      <>
+                        <Unlock className="h-3 w-3" />
+                        Editable
+                      </>
+                    )}
+                  </Button>
+                </div>
+                <div className="rounded-lg border p-4 bg-muted/50 space-y-3">
+                  <p className="text-sm"><strong>Nombre:</strong> {formData.abogado_nombre}</p>
+                  <p className="text-sm"><strong>Cédula:</strong> {formData.abogado_cedula || 'No especificada'}</p>
+                  <p className="text-sm"><strong>Email:</strong> {formData.abogado_email || 'No especificado'}</p>
+                  <p className="text-sm"><strong>Teléfono:</strong> {formData.abogado_telefono || 'No especificado'}</p>
+                </div>
+              </div>
+            )}
+            
+            {!lawyerFieldsLocked && lawyers.length === 0 && (
+              <p className="text-sm text-muted-foreground">
+                No hay abogados registrados. Los datos se ingresarán manualmente.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       {/* Form */}
       <Card>
         <CardHeader>
@@ -562,30 +663,39 @@ export function IntakeFormFlow({ actInfo }: IntakeFormFlowProps) {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {currentFields.map((field) => (
-            <div key={field.key} className="space-y-2">
-              <Label htmlFor={field.key}>
-                {field.label}
-                {field.required && <span className="text-destructive ml-1">*</span>}
-              </Label>
-              {field.type === "textarea" ? (
-                <Textarea
-                  id={field.key}
-                  value={formData[field.key] || ""}
-                  onChange={(e) => handleFieldChange(field.key, e.target.value)}
-                  rows={4}
-                  className="resize-none"
-                />
-              ) : (
-                <Input
-                  id={field.key}
-                  type={field.type}
-                  value={formData[field.key] || ""}
-                  onChange={(e) => handleFieldChange(field.key, e.target.value)}
-                />
-              )}
-            </div>
-          ))}
+          {currentFields.map((field) => {
+            // Detectar si es campo de abogado
+            const isLawyerField = field.key.startsWith('abogado_');
+            const shouldLock = isLawyerField && lawyerFieldsLocked;
+            
+            return (
+              <div key={field.key} className="space-y-2">
+                <Label htmlFor={field.key}>
+                  {field.label}
+                  {field.required && <span className="text-destructive ml-1">*</span>}
+                  {shouldLock && <Lock className="inline h-3 w-3 ml-2 text-muted-foreground" />}
+                </Label>
+                {field.type === "textarea" ? (
+                  <Textarea
+                    id={field.key}
+                    value={formData[field.key] || ""}
+                    onChange={(e) => handleFieldChange(field.key, e.target.value)}
+                    rows={4}
+                    className="resize-none"
+                    disabled={shouldLock}
+                  />
+                ) : (
+                  <Input
+                    id={field.key}
+                    type={field.type}
+                    value={formData[field.key] || ""}
+                    onChange={(e) => handleFieldChange(field.key, e.target.value)}
+                    disabled={shouldLock}
+                  />
+                )}
+              </div>
+            );
+          })}
         </CardContent>
       </Card>
 
