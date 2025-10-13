@@ -138,7 +138,14 @@ const Hearings = () => {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) throw new Error("Usuario no autenticado");
 
+      const { data: tenantData, error: tenantError } = await supabase.rpc('get_user_tenant_id', { p_user_id: userData.user.id });
+      if (tenantError) throw tenantError;
+      const tenantId = tenantData as string | null;
+      if (!tenantId) throw new Error('No se pudo determinar el tenant del usuario');
+
       const { error } = await supabase.from("hearings").insert({
+        user_id: userData.user.id,
+        tenant_id: tenantId,
         case_id: data.case_id || null,
         caso: data.caso,
         juzgado: data.juzgado,

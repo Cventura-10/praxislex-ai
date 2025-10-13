@@ -134,6 +134,12 @@ const Clients = () => {
       } = await supabase.auth.getUser();
       if (!user) throw new Error("Usuario no autenticado");
 
+      // Obtener tenant del usuario para cumplir RLS
+      const { data: tenantData, error: tenantError } = await supabase.rpc('get_user_tenant_id', { p_user_id: user.id });
+      if (tenantError) throw tenantError;
+      const tenantId = tenantData as string | null;
+      if (!tenantId) throw new Error('No se pudo determinar el tenant del usuario');
+
       // Encrypt cedula before saving
       const { data: encryptedCedula, error: encryptError } = await supabase.rpc('encrypt_cedula', {
         p_cedula: validationResult.data.cedula_rnc_encrypted
@@ -146,6 +152,8 @@ const Clients = () => {
         .from("clients")
         .insert([
           {
+            user_id: user.id,
+            tenant_id: tenantId,
             nombre_completo: validationResult.data.nombre_completo,
             cedula_rnc_encrypted: encryptedCedula,
             email: validationResult.data.email || null,

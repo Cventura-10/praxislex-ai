@@ -167,17 +167,24 @@ const Cases = () => {
       } = await supabase.auth.getUser();
       if (!user) throw new Error("Usuario no autenticado");
 
+      // Obtener tenant del usuario para cumplir RLS
+      const { data: tenantData, error: tenantError } = await supabase.rpc('get_user_tenant_id', { p_user_id: user.id });
+      if (tenantError) throw tenantError;
+      const tenantId = tenantData as string | null;
+      if (!tenantId) throw new Error('No se pudo determinar el tenant del usuario');
+
       // Si numero_expediente está vacío, no lo enviamos para que el trigger lo genere
       const baseData: any = {
         ...validationResult.data,
         user_id: user.id,
+        tenant_id: tenantId,
       };
 
       if (!validationResult.data.numero_expediente) {
         delete baseData.numero_expediente;
       }
 
-      const { error } = await supabase.from("cases").insert([baseData]);
+      const { error } = await supabase.from('cases').insert([baseData]);
 
       if (error) throw error;
 
@@ -281,6 +288,12 @@ const Cases = () => {
   };
 
   const handleDeleteCase = async (caseId: string, titulo: string) => {
+    const confirmed = window.confirm(
+      `¿Está seguro que desea eliminar el caso "${titulo}"?\n\nEsta acción no se puede deshacer y puede afectar audiencias, plazos y documentos asociados.`
+    );
+
+    if (!confirmed) return;
+
     try {
       const { error } = await supabase.from("cases").delete().eq("id", caseId);
 
@@ -507,7 +520,7 @@ const Cases = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todas las etapas</SelectItem>
-                {ETAPAS_PROCESALES.slice(0, 6).map((etapa) => (
+                {ETAPAS_PROCESALES.map((etapa) => (
                   <SelectItem key={etapa.value} value={etapa.value}>
                     {etapa.label}
                   </SelectItem>
