@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 // Strict CORS - no wildcard fallback
 const allowedOrigin = Deno.env.get('ALLOWED_ORIGIN');
@@ -68,38 +69,47 @@ serve(async (req) => {
       rateLimitMap.set(user.id, { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
     }
 
-    const { format, body, intake, citations } = await req.json();
-
-    // Input validation
-    const allowedFormats = ['docx', 'pdf', 'txt'];
-    if (format && !allowedFormats.includes(format)) {
-      return new Response(JSON.stringify({ error: 'Invalid format' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    const requestBody = await req.json();
+    
+    // Comprehensive input validation with Zod
+    const GenerateDocumentSchema = z.object({
+      format: z.enum(['docx', 'pdf', 'txt']).optional().default('txt'),
+      body: z.string().min(1).max(100000),
+      intake: z.object({
+        materia: z.string().max(100).optional(),
+      }).optional(),
+      citations: z.array(z.object({
+        organo: z.string().max(200),
+        sala: z.string().max(200),
+        num: z.string().max(100),
+        fecha: z.string().max(50),
+        url: z.string().max(500),
+      })).max(50).optional(),
+    });
+    
+    let validated;
+    try {
+      validated = GenerateDocumentSchema.parse(requestBody);
+    } catch (validationError) {
+      console.error('⛔ Validation error:', validationError);
+      return new Response(
+        JSON.stringify({ error: 'Invalid document generation request', details: validationError }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
-
-    if (!body || typeof body !== 'string' || body.length > 100000) {
-      return new Response(JSON.stringify({ error: 'Invalid body content' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    if (citations && (!Array.isArray(citations) || citations.length > 50)) {
-      return new Response(JSON.stringify({ error: 'Invalid citations' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
+    
+    const { format, body, intake, citations } = validated;
 
     console.log('Generando documento en formato:', format);
 
     // Por ahora retornamos el contenido como texto
     // En producción aquí se usaría una librería para generar DOCX/PDF real
-    const content = `${body}\n\n---\nCITAS Y REFERENCIAS:\n${citations.map((c: any, i: number) => 
-      `${i + 1}. ${c.organo} - ${c.sala}\n   ${c.num} (${c.fecha})\n   ${c.url}`
-    ).join('\n\n')}`;
+    const citationsText = citations 
+      ? `\n\n---\nCITAS Y REFERENCIAS:\n${citations.map((c: any, i: number) => 
+          `${i + 1}. ${c.organo} - ${c.sala}\n   ${c.num} (${c.fecha})\n   ${c.url}`
+        ).join('\n\n')}`
+      : '';
+    const content = `${body}${citationsText}`;
 
     const blob = new TextEncoder().encode(content);
 

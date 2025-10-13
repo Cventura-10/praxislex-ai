@@ -44,7 +44,7 @@ export function useTasadores() {
 
       const { data, error } = await supabase
         .from("tasadores")
-        .insert({ ...tasador, user_id: user.id })
+        .insert([{ ...tasador, user_id: user.id } as any])
         .select()
         .single();
       

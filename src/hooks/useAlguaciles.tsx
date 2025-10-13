@@ -44,7 +44,7 @@ export function useAlguaciles() {
 
       const { data, error } = await supabase
         .from("alguaciles")
-        .insert({ ...alguacil, user_id: user.id })
+        .insert([{ ...alguacil, user_id: user.id } as any])
         .select()
         .single();
       

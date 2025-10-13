@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -64,7 +65,35 @@ serve(async (req) => {
     }
 
     const requestBody = await req.json();
-    console.log('📥 Request body recibido:', JSON.stringify(requestBody, null, 2));
+    
+    // Input validation schema
+    const RequestSchema = z.object({
+      tipo_documento: z.string().min(1).max(100).optional(),
+      actType: z.string().min(1).max(100).optional(),
+      materia: z.string().max(100).optional(),
+      formData: z.record(z.unknown()).optional(),
+      hechos: z.string().max(10000).optional(),
+      pretension: z.string().max(5000).optional(),
+    }).passthrough(); // Allow additional fields
+    
+    // Validate request
+    try {
+      RequestSchema.parse(requestBody);
+    } catch (validationError) {
+      console.error('⛔ Validation error:', validationError);
+      return new Response(
+        JSON.stringify({ error: 'Invalid request data', details: validationError }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    // Safe logging - no PII or sensitive data
+    console.log('📥 Request received:', {
+      tipo_documento: requestBody.tipo_documento || requestBody.actType,
+      userId: userId ? '[REDACTED]' : null,
+      timestamp: new Date().toISOString(),
+      hasFormData: !!requestBody.formData
+    });
     
     // Soportar tanto el formato antiguo como el nuevo
     const tipo_documento = requestBody.tipo_documento || requestBody.actType;

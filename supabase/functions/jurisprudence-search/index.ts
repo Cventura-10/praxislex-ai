@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 // Strict CORS - no wildcard fallback
 const allowedOrigin = Deno.env.get('ALLOWED_ORIGIN');
@@ -39,17 +40,27 @@ serve(async (req) => {
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    const { materia, keywords, limit = 5 } = await req.json();
-
-    // Input validation
-    if (materia && materia.length > 100) {
-      return new Response(JSON.stringify({ error: 'Invalid materia' }), 
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    const requestBody = await req.json();
+    
+    // Comprehensive input validation with Zod
+    const SearchSchema = z.object({
+      materia: z.string().max(100).optional(),
+      keywords: z.string().max(500).optional(),
+      limit: z.number().int().min(1).max(50).optional().default(5),
+    });
+    
+    let validated;
+    try {
+      validated = SearchSchema.parse(requestBody);
+    } catch (validationError) {
+      console.error('⛔ Validation error:', validationError);
+      return new Response(
+        JSON.stringify({ error: 'Invalid search parameters', details: validationError }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
-    if (keywords && keywords.length > 500) {
-      return new Response(JSON.stringify({ error: 'Keywords too long' }), 
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-    }
+    
+    const { materia, keywords, limit } = validated;
 
     console.log('Buscando jurisprudencia:', { materia, keywords, limit });
 

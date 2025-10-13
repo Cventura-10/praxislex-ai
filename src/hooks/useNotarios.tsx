@@ -44,7 +44,7 @@ export function useNotarios() {
 
       const { data, error } = await supabase
         .from("notarios")
-        .insert({ ...notario, user_id: user.id })
+        .insert([{ ...notario, user_id: user.id } as any])
         .select()
         .single();
       

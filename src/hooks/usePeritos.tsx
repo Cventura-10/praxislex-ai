@@ -45,7 +45,7 @@ export function usePeritos() {
 
       const { data, error } = await supabase
         .from("peritos")
-        .insert({ ...perito, user_id: user.id })
+        .insert([{ ...perito, user_id: user.id } as any])
         .select()
         .single();
       
