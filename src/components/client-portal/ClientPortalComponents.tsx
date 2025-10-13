@@ -42,17 +42,23 @@ export const ClientMessaging = ({ clientId, lawyerUserId }: ClientMessagingProps
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
 
-  // Query messages - usar any temporalmente hasta que tipos se regeneren
+  // Query messages - obtener mensajes usando auth.uid() del cliente
   const { data: messages, refetch: refetchMessages } = useQuery({
     queryKey: ['client-messages', clientId],
     queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('No autenticado');
+
       const { data, error } = await supabase
         .from('client_messages')
         .select('*')
-        .or(`sender_id.eq.${clientId},recipient_id.eq.${clientId}`)
+        .or(`sender_id.eq.${user.id},recipient_id.eq.${user.id}`)
         .order('created_at', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching messages:', error);
+        throw error;
+      }
       return data;
     },
     refetchInterval: 5000, // Poll every 5 seconds
@@ -78,9 +84,12 @@ export const ClientMessaging = ({ clientId, lawyerUserId }: ClientMessagingProps
         recipient_id: lawyerUserId,
         sender_type: 'client',
         message: newMessage.trim(),
-      } as any); // as any temporal
+      } as any);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error sending message:', error);
+        throw error;
+      }
 
       setNewMessage('');
       refetchMessages();
