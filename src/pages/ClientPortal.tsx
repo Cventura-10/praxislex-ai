@@ -137,7 +137,7 @@ const ClientPortal = () => {
             nombre_completo: user.user_metadata?.full_name || user.email?.split('@')[0] || "Cliente",
             email: user.email,
             accepted_terms: false,
-          })
+          } as any)
           .select()
           .single();
         

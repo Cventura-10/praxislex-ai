@@ -166,7 +166,7 @@ export function ManualEditorFlow({ actInfo }: ManualEditorFlowProps) {
           demandante_nombre: demandanteNombre,
           demandado_nombre: demandadoNombre,
           juzgado: juzgado,
-        })
+        } as any)
         .select()
         .single();
 

@@ -151,7 +151,7 @@ const Clients = () => {
             email: validationResult.data.email || null,
             telefono: validationResult.data.telefono || null,
             direccion: validationResult.data.direccion || null,
-          },
+          } as any,
         ])
         .select()
         .single();

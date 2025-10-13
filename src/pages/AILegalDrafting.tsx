@@ -890,7 +890,7 @@ const AILegalDrafting = () => {
             demandado_nombre: formData.demandado_nombre,
             juzgado: formData.juzgado,
             numero_expediente: formData.expediente_judicial,
-          });
+          } as any);
         }
         
         toast({

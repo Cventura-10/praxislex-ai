@@ -147,7 +147,7 @@ const Hearings = () => {
         hora: data.hora,   // Ya viene normalizado HH:mm
         ubicacion: data.ubicacion || null,
         estado: data.estado || 'programada',
-      });
+      } as any);
 
       if (error) throw error;
 
