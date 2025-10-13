@@ -42,7 +42,7 @@ export const ClientMessaging = ({ clientId, lawyerUserId }: ClientMessagingProps
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
 
-  // Query messages
+  // Query messages - usar any temporalmente hasta que tipos se regeneren
   const { data: messages, refetch: refetchMessages } = useQuery({
     queryKey: ['client-messages', clientId],
     queryFn: async () => {
@@ -53,10 +53,10 @@ export const ClientMessaging = ({ clientId, lawyerUserId }: ClientMessagingProps
         .order('created_at', { ascending: true });
 
       if (error) throw error;
-      return data as Message[];
+      return data;
     },
     refetchInterval: 5000, // Poll every 5 seconds
-  });
+  }) as any;
 
   const sendMessage = async () => {
     if (!newMessage.trim()) {
@@ -78,7 +78,7 @@ export const ClientMessaging = ({ clientId, lawyerUserId }: ClientMessagingProps
         recipient_id: lawyerUserId,
         sender_type: 'client',
         message: newMessage.trim(),
-      });
+      } as any); // as any temporal
 
       if (error) throw error;
 

@@ -19,7 +19,7 @@ interface ReportBuilderProps {
 export const ReportBuilder = ({ analyticsData }: ReportBuilderProps) => {
   const { toast } = useToast();
   const [reportType, setReportType] = useState<'financial' | 'cases' | 'clients' | 'custom'>('financial');
-  const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
+  const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>({
     from: undefined,
     to: undefined,
   });
