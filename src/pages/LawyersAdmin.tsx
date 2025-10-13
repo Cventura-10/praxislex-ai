@@ -28,15 +28,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Trash2, ArrowLeft, UserCheck } from "lucide-react";
+import { Plus, Eye, ArrowLeft, UserCheck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useLawyers } from "@/hooks/useLawyers";
+import { useLawyers, Lawyer } from "@/hooks/useLawyers";
 
 const LawyersAdmin = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { lawyers, loading, fetchLawyers, createLawyer } = useLawyers();
   const [showNewDialog, setShowNewDialog] = useState(false);
+  const [showViewDialog, setShowViewDialog] = useState(false);
+  const [selectedLawyer, setSelectedLawyer] = useState<Lawyer | null>(null);
   const [newLawyer, setNewLawyer] = useState({
     nombre: "",
     cedula: "",
@@ -73,6 +75,11 @@ const LawyersAdmin = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const handleViewLawyer = (lawyer: Lawyer) => {
+    setSelectedLawyer(lawyer);
+    setShowViewDialog(true);
   };
 
   return (
@@ -209,14 +216,15 @@ const LawyersAdmin = () => {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex gap-2 justify-end">
-                        <Button variant="ghost" size="icon">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon">
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </div>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleViewLawyer(lawyer)}
+                        className="gap-2"
+                      >
+                        <Eye className="h-4 w-4" />
+                        Ver Detalles
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -225,6 +233,73 @@ const LawyersAdmin = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* View Lawyer Dialog */}
+      <Dialog open={showViewDialog} onOpenChange={setShowViewDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Detalles del Abogado</DialogTitle>
+            <DialogDescription>Información completa del miembro del equipo</DialogDescription>
+          </DialogHeader>
+          {selectedLawyer && (
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label className="text-muted-foreground">Nombre Completo</Label>
+                  <p className="font-medium">{selectedLawyer.nombre}</p>
+                </div>
+                <div className="grid gap-2">
+                  <Label className="text-muted-foreground">Rol</Label>
+                  <Badge variant="outline" className="capitalize w-fit">
+                    {selectedLawyer.rol}
+                  </Badge>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label className="text-muted-foreground">Cédula</Label>
+                  <p className="font-medium">{selectedLawyer.cedula || "No especificada"}</p>
+                </div>
+                <div className="grid gap-2">
+                  <Label className="text-muted-foreground">Estado</Label>
+                  <Badge variant={selectedLawyer.estado === "activo" ? "default" : "secondary"} className="w-fit">
+                    {selectedLawyer.estado === "activo" ? "Activo" : "Inactivo"}
+                  </Badge>
+                </div>
+              </div>
+              <div className="grid gap-2">
+                <Label className="text-muted-foreground">Email</Label>
+                <p className="font-medium">{selectedLawyer.email || "No especificado"}</p>
+              </div>
+              <div className="grid gap-2">
+                <Label className="text-muted-foreground">Teléfono</Label>
+                <p className="font-medium">{selectedLawyer.telefono || "No especificado"}</p>
+              </div>
+              <div className="grid grid-cols-2 gap-4 pt-4 border-t">
+                <div className="grid gap-2">
+                  <Label className="text-muted-foreground text-xs">Fecha de Creación</Label>
+                  <p className="text-sm">{new Date(selectedLawyer.created_at).toLocaleDateString()}</p>
+                </div>
+                <div className="grid gap-2">
+                  <Label className="text-muted-foreground text-xs">Última Actualización</Label>
+                  <p className="text-sm">{new Date(selectedLawyer.updated_at).toLocaleDateString()}</p>
+                </div>
+              </div>
+            </div>
+          )}
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setShowViewDialog(false)}>
+              Cerrar
+            </Button>
+            <Button onClick={() => {
+              setShowViewDialog(false);
+              navigate('/casos');
+            }}>
+              Asignar a Caso
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
