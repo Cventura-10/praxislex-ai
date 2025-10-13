@@ -175,6 +175,75 @@ export type Database = {
         }
         Relationships: []
       }
+      alguaciles: {
+        Row: {
+          cedula: string | null
+          created_at: string | null
+          direccion_notificaciones: string | null
+          email: string | null
+          estado: string | null
+          firma_digital_url: string | null
+          id: string
+          jurisdiccion: string
+          matricula: string | null
+          nombre: string
+          telefono: string | null
+          tenant_id: string | null
+          tribunal_asignado: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          cedula?: string | null
+          created_at?: string | null
+          direccion_notificaciones?: string | null
+          email?: string | null
+          estado?: string | null
+          firma_digital_url?: string | null
+          id?: string
+          jurisdiccion: string
+          matricula?: string | null
+          nombre: string
+          telefono?: string | null
+          tenant_id?: string | null
+          tribunal_asignado?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          cedula?: string | null
+          created_at?: string | null
+          direccion_notificaciones?: string | null
+          email?: string | null
+          estado?: string | null
+          firma_digital_url?: string | null
+          id?: string
+          jurisdiccion?: string
+          matricula?: string | null
+          nombre?: string
+          telefono?: string | null
+          tenant_id?: string | null
+          tribunal_asignado?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alguaciles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "current_user_tenant"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alguaciles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       api_rate_limits: {
         Row: {
           created_at: string | null
@@ -1372,6 +1441,75 @@ export type Database = {
         }
         Relationships: []
       }
+      notarios: {
+        Row: {
+          cedula: string | null
+          colegio_notarial: string | null
+          created_at: string | null
+          email: string | null
+          estado: string | null
+          firma_digital_url: string | null
+          id: string
+          jurisdiccion: string | null
+          matricula_cdn: string | null
+          nombre: string
+          oficina_direccion: string | null
+          telefono: string | null
+          tenant_id: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          cedula?: string | null
+          colegio_notarial?: string | null
+          created_at?: string | null
+          email?: string | null
+          estado?: string | null
+          firma_digital_url?: string | null
+          id?: string
+          jurisdiccion?: string | null
+          matricula_cdn?: string | null
+          nombre: string
+          oficina_direccion?: string | null
+          telefono?: string | null
+          tenant_id?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          cedula?: string | null
+          colegio_notarial?: string | null
+          created_at?: string | null
+          email?: string | null
+          estado?: string | null
+          firma_digital_url?: string | null
+          id?: string
+          jurisdiccion?: string | null
+          matricula_cdn?: string | null
+          nombre?: string
+          oficina_direccion?: string | null
+          telefono?: string | null
+          tenant_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notarios_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "current_user_tenant"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notarios_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_preferences: {
         Row: {
           case_updates: boolean
@@ -1573,6 +1711,78 @@ export type Database = {
           },
         ]
       }
+      peritos: {
+        Row: {
+          cedula: string | null
+          certificaciones: Json | null
+          created_at: string | null
+          direccion: string | null
+          email: string | null
+          especialidad: string
+          estado: string | null
+          firma_digital_url: string | null
+          id: string
+          institucion: string | null
+          matricula: string | null
+          nombre: string
+          telefono: string | null
+          tenant_id: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          cedula?: string | null
+          certificaciones?: Json | null
+          created_at?: string | null
+          direccion?: string | null
+          email?: string | null
+          especialidad: string
+          estado?: string | null
+          firma_digital_url?: string | null
+          id?: string
+          institucion?: string | null
+          matricula?: string | null
+          nombre: string
+          telefono?: string | null
+          tenant_id?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          cedula?: string | null
+          certificaciones?: Json | null
+          created_at?: string | null
+          direccion?: string | null
+          email?: string | null
+          especialidad?: string
+          estado?: string | null
+          firma_digital_url?: string | null
+          id?: string
+          institucion?: string | null
+          matricula?: string | null
+          nombre?: string
+          telefono?: string | null
+          tenant_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "peritos_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "current_user_tenant"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "peritos_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pii_access_rate_limit: {
         Row: {
           access_count: number | null
@@ -1755,6 +1965,75 @@ export type Database = {
           window_start?: string
         }
         Relationships: []
+      }
+      tasadores: {
+        Row: {
+          cedula: string | null
+          certificaciones: Json | null
+          created_at: string | null
+          direccion: string | null
+          email: string | null
+          especialidad: string | null
+          estado: string | null
+          firma_digital_url: string | null
+          id: string
+          matricula: string | null
+          nombre: string
+          telefono: string | null
+          tenant_id: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          cedula?: string | null
+          certificaciones?: Json | null
+          created_at?: string | null
+          direccion?: string | null
+          email?: string | null
+          especialidad?: string | null
+          estado?: string | null
+          firma_digital_url?: string | null
+          id?: string
+          matricula?: string | null
+          nombre: string
+          telefono?: string | null
+          tenant_id?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          cedula?: string | null
+          certificaciones?: Json | null
+          created_at?: string | null
+          direccion?: string | null
+          email?: string | null
+          especialidad?: string | null
+          estado?: string | null
+          firma_digital_url?: string | null
+          id?: string
+          matricula?: string | null
+          nombre?: string
+          telefono?: string | null
+          tenant_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasadores_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "current_user_tenant"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasadores_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tenant_users: {
         Row: {
