@@ -26,7 +26,7 @@ export default function ClientMessages() {
     }
   });
 
-  // Obtener todos los mensajes donde soy el destinatario (abogado)
+  // Obtener todos los mensajes donde soy el destinatario o remitente (abogado)
   const { data: messages, refetch } = useQuery({
     queryKey: ['lawyer-messages', currentUser?.id],
     queryFn: async () => {
@@ -34,32 +34,30 @@ export default function ClientMessages() {
 
       const { data, error } = await supabase
         .from('client_messages')
-        .select(`
-          *,
-          sender:sender_id (
-            id,
-            email,
-            raw_user_meta_data
-          )
-        `)
-        .eq('recipient_id', currentUser.id)
+        .select('*')
+        .or(`sender_id.eq.${currentUser.id},recipient_id.eq.${currentUser.id}`)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching messages:', error);
+        throw error;
+      }
       return data;
     },
     enabled: !!currentUser,
     refetchInterval: 5000,
   });
 
-  // Agrupar mensajes por cliente
+  // Agrupar mensajes por cliente (sender o recipient que no sea el usuario actual)
   const messagesByClient = messages?.reduce((acc: any, msg: any) => {
-    const clientId = msg.sender_id;
+    // Determinar quién es el cliente (el que no es el usuario actual)
+    const clientId = msg.sender_id === currentUser?.id ? msg.recipient_id : msg.sender_id;
+    
     if (!acc[clientId]) {
       acc[clientId] = {
         clientId,
-        clientEmail: msg.sender?.email || 'Desconocido',
-        clientName: msg.sender?.raw_user_meta_data?.full_name || msg.sender?.email?.split('@')[0] || 'Cliente',
+        clientEmail: 'Cliente',
+        clientName: `Cliente ${clientId.substring(0, 8)}`,
         messages: []
       };
     }
