@@ -68,8 +68,17 @@ serve(async (req) => {
       });
 
     if (uploadError) {
-      console.error('Upload error:', uploadError);
-      return new Response(JSON.stringify({ error: 'Failed to upload file', details: uploadError.message }), {
+      // Log detailed error server-side only
+      console.error('[process-legal-model] Upload failed:', {
+        error: uploadError.message,
+        timestamp: new Date().toISOString()
+      });
+      
+      // Return sanitized error to client
+      return new Response(JSON.stringify({ 
+        error: 'Failed to upload file. Please try again.',
+        code: 'UPLOAD_FAILED'
+      }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -99,10 +108,20 @@ serve(async (req) => {
       .single();
 
     if (templateError) {
-      console.error('Template insert error:', templateError);
+      // Log detailed error server-side only
+      console.error('[process-legal-model] Template insert failed:', {
+        error: templateError.message,
+        timestamp: new Date().toISOString()
+      });
+      
       // Clean up uploaded file
       await supabase.storage.from('legal-models').remove([fileName]);
-      return new Response(JSON.stringify({ error: 'Failed to save template metadata', details: templateError.message }), {
+      
+      // Return sanitized error to client
+      return new Response(JSON.stringify({ 
+        error: 'Failed to save template. Please try again.',
+        code: 'TEMPLATE_SAVE_FAILED'
+      }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -118,8 +137,17 @@ serve(async (req) => {
     });
 
   } catch (error: any) {
-    console.error('Error processing legal model:', error);
-    return new Response(JSON.stringify({ error: error?.message || 'Internal server error' }), {
+    // Log detailed error server-side only
+    console.error('[process-legal-model] Error:', {
+      error: error?.message || 'Unknown error',
+      timestamp: new Date().toISOString()
+    });
+    
+    // Return sanitized error to client
+    return new Response(JSON.stringify({ 
+      error: 'An error occurred processing the legal model. Please try again.',
+      code: 'PROCESSING_ERROR'
+    }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

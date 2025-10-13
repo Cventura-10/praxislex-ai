@@ -53,9 +53,18 @@ serve(async (req) => {
     try {
       validated = SearchSchema.parse(requestBody);
     } catch (validationError) {
-      console.error('⛔ Validation error:', validationError);
+      // Log detailed error server-side only
+      console.error('[jurisprudence-search] Validation failed:', {
+        error: validationError instanceof Error ? validationError.message : 'Unknown error',
+        timestamp: new Date().toISOString()
+      });
+      
+      // Return sanitized error to client
       return new Response(
-        JSON.stringify({ error: 'Invalid search parameters', details: validationError }),
+        JSON.stringify({ 
+          error: 'Invalid search parameters. Please check your input and try again.',
+          code: 'VALIDATION_FAILED'
+        }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -128,9 +137,18 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Error en jurisprudence-search:', error);
+    // Log detailed error server-side only
+    console.error('[jurisprudence-search] Error:', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString()
+    });
+    
+    // Return sanitized error to client
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Error desconocido' }),
+      JSON.stringify({ 
+        error: 'An error occurred while searching. Please try again.',
+        code: 'SEARCH_ERROR'
+      }),
       {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

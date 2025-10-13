@@ -120,9 +120,18 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Error en transcribe-audio:', error);
+    // Log detailed error server-side only
+    console.error('[transcribe-audio] Error:', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString()
+    });
+    
+    // Return sanitized error to client
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Error desconocido' }),
+      JSON.stringify({ 
+        error: 'An error occurred during transcription. Please try again.',
+        code: 'TRANSCRIPTION_ERROR'
+      }),
       {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

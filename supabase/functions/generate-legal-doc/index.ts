@@ -66,7 +66,7 @@ serve(async (req) => {
 
     const requestBody = await req.json();
     
-    // Input validation schema - comprehensive
+    // Input validation schema - comprehensive and strict
     const RequestSchema = z.object({
       tipo_documento: z.string().min(1).max(100).optional(),
       actType: z.string().min(1).max(100).optional(),
@@ -76,26 +76,25 @@ serve(async (req) => {
       materia: z.string().max(100).optional(),
       formData: z.record(z.string(), z.unknown()).optional(),
       hechos: z.string().max(10000).optional(),
-      pretension: z.string().max(5000).optional(),
-      demandante: z.object({
-        nombre: z.string().max(200),
-        cedula: z.string().max(50).optional(),
-        domicilio: z.string().max(500).optional(),
-      }).optional(),
-      demandado: z.object({
-        nombre: z.string().max(200),
-        cedula: z.string().max(50).optional(),
-        domicilio: z.string().max(500).optional(),
-      }).optional(),
-      abogado: z.object({
-        nombre: z.string().max(200).optional(),
-        matricula: z.string().max(50).optional(),
-      }).optional(),
+      fundamentacion_juridica: z.string().max(10000).optional(),
+      petitorio: z.string().max(5000).optional(),
+      pruebas: z.array(z.string()).max(50).optional(),
+      lugar_ciudad: z.string().max(100).optional(),
+      jurisdiccion: z.string().max(100).optional(),
+      fecha_actuacion: z.string().max(100).optional(),
+      abogado_nombre: z.string().max(200).optional(),
+      abogado_cedula: z.string().max(50).optional(),
+      abogado_matricula: z.string().max(100).optional(),
+      demandante: z.string().max(200).optional(),
+      demandado: z.string().max(200).optional(),
+      compareciente: z.string().max(200).optional(),
+      numero_expediente: z.string().max(100).optional(),
+      tribunal: z.string().max(200).optional(),
       juzgado: z.string().max(200).optional(),
       ciudad_actuacion: z.string().max(100).optional(),
       legislacion: z.string().max(5000).optional(),
       jurisprudencia: z.string().max(5000).optional(),
-    }).passthrough(); // Allow additional fields for flexibility
+    }).strict(); // No additional fields allowed - strict validation
     
     // Validate request
     try {
