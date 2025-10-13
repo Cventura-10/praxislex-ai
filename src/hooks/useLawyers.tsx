@@ -16,6 +16,8 @@ export interface Lawyer {
   updated_at: string;
 }
 
+type CreateLawyerData = Omit<Lawyer, "id" | "created_at" | "updated_at" | "user_id" | "tenant_id">;
+
 export const useLawyers = () => {
   const [lawyers, setLawyers] = useState<Lawyer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,14 +53,23 @@ export const useLawyers = () => {
     fetchLawyers();
   }, []);
 
-  const createLawyer = async (lawyerData: Partial<Lawyer>) => {
+  const createLawyer = async (lawyerData: CreateLawyerData) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Usuario no autenticado");
 
+      if (!lawyerData.nombre) {
+        throw new Error("El nombre del abogado es requerido");
+      }
+
       const { error } = await supabase.from("lawyers").insert([
         {
-          ...lawyerData,
+          nombre: lawyerData.nombre,
+          cedula: lawyerData.cedula || null,
+          email: lawyerData.email || null,
+          telefono: lawyerData.telefono || null,
+          rol: lawyerData.rol || 'abogado',
+          estado: lawyerData.estado || 'activo',
           user_id: user.id,
         },
       ]);

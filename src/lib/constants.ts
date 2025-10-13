@@ -159,12 +159,16 @@ export const ORGANOS_JUDICIALES = [
 // Etapas procesales
 export const ETAPAS_PROCESALES = [
   { value: "demanda", label: "Demanda" },
+  { value: "primera_audiencia", label: "Primera Audiencia" },
+  { value: "comunicacion_documento", label: "Comunicación Documento" },
   { value: "contestacion", label: "Contestación" },
   { value: "excepciones", label: "Excepciones" },
   { value: "audiencia_preliminar", label: "Audiencia Preliminar" },
   { value: "pruebas", label: "Presentación de Pruebas" },
   { value: "alegatos", label: "Alegatos" },
+  { value: "conclusion", label: "Conclusión" },
   { value: "sentencia", label: "Sentencia" },
+  { value: "ejecucion_sentencia", label: "Ejecución de Sentencia" },
   { value: "apelacion", label: "Apelación" },
   { value: "casacion", label: "Casación" },
   { value: "ejecucion", label: "Ejecución" },
