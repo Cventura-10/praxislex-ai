@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,13 +14,44 @@ export function TwoFactorSetup() {
   const [secret, setSecret] = useState<string | null>(null);
   const [verifyCode, setVerifyCode] = useState("");
   const [isEnabled, setIsEnabled] = useState(false);
+  const [isChecking, setIsChecking] = useState(true);
   const { toast } = useToast();
+
+  // Verificar si ya hay 2FA habilitado al cargar
+  useEffect(() => {
+    checkExisting2FA();
+  }, []);
+
+  const checkExisting2FA = async () => {
+    try {
+      const { data } = await supabase.auth.mfa.listFactors();
+      if (data?.totp && data.totp.length > 0) {
+        setIsEnabled(true);
+      }
+    } catch (error) {
+      console.error("Error checking 2FA:", error);
+    } finally {
+      setIsChecking(false);
+    }
+  };
 
   const startEnrollment = async () => {
     setIsEnrolling(true);
     try {
+      // Primero verificar si ya existe un factor
+      const { data: existingFactors } = await supabase.auth.mfa.listFactors();
+      
+      // Si ya existe un factor, eliminarlo primero
+      if (existingFactors?.totp && existingFactors.totp.length > 0) {
+        for (const factor of existingFactors.totp) {
+          await supabase.auth.mfa.unenroll({ factorId: factor.id });
+        }
+      }
+
+      // Crear nuevo factor con nombre único
       const { data, error } = await supabase.auth.mfa.enroll({
         factorType: "totp",
+        friendlyName: `PraxisLex 2FA ${new Date().toISOString().split('T')[0]}`,
       });
 
       if (error) throw error;
@@ -122,7 +153,11 @@ export function TwoFactorSetup() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {!isEnabled && !isEnrolling && (
+        {isChecking ? (
+          <div className="text-center py-4">
+            <p className="text-sm text-muted-foreground">Verificando estado 2FA...</p>
+          </div>
+        ) : !isEnabled && !isEnrolling ? (
           <div className="space-y-4">
             <Alert>
               <Smartphone className="h-4 w-4" />
@@ -136,7 +171,7 @@ export function TwoFactorSetup() {
               Configurar 2FA
             </Button>
           </div>
-        )}
+        ) : null}
 
         {isEnrolling && qrCode && (
           <div className="space-y-4">
