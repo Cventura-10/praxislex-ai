@@ -205,6 +205,33 @@ export type Database = {
         }
         Relationships: []
       }
+      case_stages: {
+        Row: {
+          activo: boolean | null
+          created_at: string | null
+          descripcion: string | null
+          id: string
+          nombre: string
+          orden: number | null
+        }
+        Insert: {
+          activo?: boolean | null
+          created_at?: string | null
+          descripcion?: string | null
+          id?: string
+          nombre: string
+          orden?: number | null
+        }
+        Update: {
+          activo?: boolean | null
+          created_at?: string | null
+          descripcion?: string | null
+          id?: string
+          nombre?: string
+          orden?: number | null
+        }
+        Relationships: []
+      }
       cases: {
         Row: {
           case_number: string | null
@@ -215,6 +242,7 @@ export type Database = {
           etapa_procesal: string | null
           id: string
           juzgado: string | null
+          lawyer_id: string | null
           materia: string
           numero_expediente: string
           responsable: string | null
@@ -232,6 +260,7 @@ export type Database = {
           etapa_procesal?: string | null
           id?: string
           juzgado?: string | null
+          lawyer_id?: string | null
           materia: string
           numero_expediente: string
           responsable?: string | null
@@ -249,6 +278,7 @@ export type Database = {
           etapa_procesal?: string | null
           id?: string
           juzgado?: string | null
+          lawyer_id?: string | null
           materia?: string
           numero_expediente?: string
           responsable?: string | null
@@ -270,6 +300,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cases_lawyer_id_fkey"
+            columns: ["lawyer_id"]
+            isOneToOne: false
+            referencedRelation: "lawyers"
             referencedColumns: ["id"]
           },
           {
@@ -1122,6 +1159,48 @@ export type Database = {
         }
         Relationships: []
       }
+      lawyers: {
+        Row: {
+          cedula: string | null
+          created_at: string | null
+          email: string | null
+          estado: string | null
+          id: string
+          nombre: string
+          rol: string | null
+          telefono: string | null
+          tenant_id: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          cedula?: string | null
+          created_at?: string | null
+          email?: string | null
+          estado?: string | null
+          id?: string
+          nombre: string
+          rol?: string | null
+          telefono?: string | null
+          tenant_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          cedula?: string | null
+          created_at?: string | null
+          email?: string | null
+          estado?: string | null
+          id?: string
+          nombre?: string
+          rol?: string | null
+          telefono?: string | null
+          tenant_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       legal_documents: {
         Row: {
           case_number: string | null
@@ -1250,6 +1329,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      memberships: {
+        Row: {
+          ai_credits_monthly: number | null
+          ai_credits_reset_date: string | null
+          ai_credits_used: number | null
+          created_at: string | null
+          id: string
+          plan: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          ai_credits_monthly?: number | null
+          ai_credits_reset_date?: string | null
+          ai_credits_used?: number | null
+          created_at?: string | null
+          id?: string
+          plan?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          ai_credits_monthly?: number | null
+          ai_credits_reset_date?: string | null
+          ai_credits_used?: number | null
+          created_at?: string | null
+          id?: string
+          plan?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
       }
       notification_preferences: {
         Row: {
@@ -1951,6 +2063,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      check_ai_credits: {
+        Args: { p_user_id: string }
+        Returns: boolean
+      }
       check_and_log_pii_access: {
         Args: { p_client_id: string; p_user_id: string }
         Returns: boolean
@@ -1992,6 +2108,10 @@ export type Database = {
       cleanup_old_rate_limits: {
         Args: Record<PropertyKey, never>
         Returns: number
+      }
+      consume_ai_credit: {
+        Args: { p_user_id: string }
+        Returns: boolean
       }
       create_notification: {
         Args: {
