@@ -49,6 +49,7 @@ const Analytics = lazy(() => import("./pages/Analytics"));
 const LegalModels = lazy(() => import("./pages/LegalModels"));
 const LegalActsGenerator = lazy(() => import("./pages/LegalActsGenerator"));
 const LegalActWizard = lazy(() => import("./pages/LegalActWizard"));
+const SecurityShowcase = lazy(() => import("./pages/SecurityShowcase"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // React Query Error Fallback
@@ -131,6 +132,7 @@ const App = () => (
                                 <Route path="/modelos-juridicos" element={<LegalModels />} />
                                 <Route path="/generador-actos" element={<LegalActsGenerator />} />
                                 <Route path="/redaccion-ia" element={<LegalActWizard />} />
+                                <Route path="/security-showcase" element={<SecurityShowcase />} />
                                 <Route path="*" element={<NotFound />} />
                               </Routes>
                             </Suspense>
