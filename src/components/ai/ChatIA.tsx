@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Bot, Send, User, Loader2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Bot, Send, User, Loader2, Zap } from "lucide-react";
 import { toast } from "sonner";
 
 interface Message {
@@ -26,6 +27,33 @@ export function ChatIA({ context, onAction }: ChatIAProps) {
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [aiCredits, setAiCredits] = useState({ used: 0, monthly: 10 });
+
+  useEffect(() => {
+    fetchAICredits();
+  }, []);
+
+  const fetchAICredits = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data } = await supabase
+        .from("memberships")
+        .select("ai_credits_used, ai_credits_monthly")
+        .eq("user_id", user.id)
+        .single();
+
+      if (data) {
+        setAiCredits({
+          used: data.ai_credits_used || 0,
+          monthly: data.ai_credits_monthly || 10,
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching AI credits:", error);
+    }
+  };
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -51,17 +79,23 @@ export function ChatIA({ context, onAction }: ChatIAProps) {
         
         // Manejar errores específicos
         if (error.message?.includes('RATE_LIMIT') || error.message?.includes('rate limit')) {
-          throw new Error('Has excedido el límite de solicitudes. Por favor, espera unos minutos antes de intentar nuevamente.');
+          throw new Error('Has alcanzado el límite de solicitudes por minuto. Por favor espera un momento e intenta nuevamente.');
         }
         if (error.message?.includes('402') || error.message?.includes('Payment')) {
-          throw new Error('Créditos de IA agotados. Por favor, recarga en Configuración.');
+          throw new Error('Has agotado tus créditos de IA mensuales. Para continuar usando el asistente, actualiza tu plan en Configuración.');
         }
         if (error.message?.includes('429') || error.message?.includes('límite')) {
-          throw new Error('Límite de solicitudes excedido. Intenta nuevamente en unos momentos.');
+          throw new Error('Demasiadas solicitudes. Por favor espera unos segundos antes de continuar.');
+        }
+        if (error.message?.includes('AI_CREDITS_EXCEEDED')) {
+          throw new Error(`Has utilizado ${aiCredits.used} de ${aiCredits.monthly} créditos este mes. Actualiza tu plan para continuar.`);
         }
         
         throw error;
       }
+      
+      // Actualizar créditos después de uso exitoso
+      fetchAICredits();
 
       if (!data) {
         throw new Error('No se recibió respuesta del asistente');
@@ -154,13 +188,31 @@ export function ChatIA({ context, onAction }: ChatIAProps) {
     }
   };
 
+  const creditsRemaining = aiCredits.monthly - aiCredits.used;
+  const creditsPercentage = (aiCredits.used / aiCredits.monthly) * 100;
+
   return (
     <Card className="w-full max-w-2xl mx-auto shadow-elegant">
       <CardHeader className="border-b">
-        <CardTitle className="flex items-center gap-2">
-          <Bot className="h-5 w-5 text-primary" />
-          Asistente IA
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <Bot className="h-5 w-5 text-primary" />
+            Asistente IA
+          </CardTitle>
+          <div className="flex items-center gap-2">
+            <Zap className="h-4 w-4 text-primary" />
+            <Badge variant={creditsPercentage > 80 ? "destructive" : "secondary"}>
+              {creditsRemaining} / {aiCredits.monthly} créditos
+            </Badge>
+          </div>
+        </div>
+        {creditsPercentage > 80 && (
+          <p className="text-xs text-muted-foreground mt-2">
+            {creditsPercentage >= 100 
+              ? "Has agotado tus créditos mensuales. Actualiza tu plan para continuar." 
+              : `Te quedan ${creditsRemaining} consultas este mes.`}
+          </p>
+        )}
       </CardHeader>
       <CardContent className="p-0">
         <ScrollArea className="h-[400px] p-4">

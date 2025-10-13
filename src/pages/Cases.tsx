@@ -35,6 +35,7 @@ import { CaseStatusBadge } from "@/components/cases/CaseStatusBadge";
 import { Plus, Search, Filter, Download, Eye, Edit, Trash2, ArrowLeft } from "lucide-react";
 import { MATERIAS_JURIDICAS, ETAPAS_PROCESALES, TIPOS_ACCION_LEGAL } from "@/lib/constants";
 import { useToast } from "@/hooks/use-toast";
+import { useLawyers } from "@/hooks/useLawyers";
 
 interface Case {
   id: string;
@@ -57,6 +58,7 @@ interface Case {
 const Cases = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { lawyers } = useLawyers();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterMateria, setFilterMateria] = useState("all");
   const [filterEtapa, setFilterEtapa] = useState("all");
@@ -426,12 +428,27 @@ const Cases = () => {
                 </Select>
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="responsable">Responsable</Label>
+                <Label htmlFor="lawyer_id">Abogado Responsable</Label>
+                <Select value={newCase.responsable} onValueChange={(value) => setNewCase({ ...newCase, responsable: value })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar abogado" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {lawyers.map((lawyer) => (
+                      <SelectItem key={lawyer.id} value={lawyer.nombre}>
+                        {lawyer.nombre} - {lawyer.rol}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  O escriba un nombre manualmente si no está en la lista
+                </p>
                 <Input
-                  id="responsable"
+                  id="responsable_manual"
                   value={newCase.responsable}
                   onChange={(e) => setNewCase({ ...newCase, responsable: e.target.value })}
-                  placeholder="Ej: Dra. María González"
+                  placeholder="Escribir nombre manualmente..."
                 />
               </div>
               <div className="grid gap-2">

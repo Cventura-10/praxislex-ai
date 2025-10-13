@@ -376,6 +376,12 @@ const Clients = () => {
   };
 
   const handleDeleteClient = async (clientId: string, nombre: string) => {
+    const confirmed = window.confirm(
+      `¿Está seguro que desea eliminar a ${nombre}?\n\nEsta acción no se puede deshacer y eliminará:\n- Todos los casos asociados\n- Todas las facturas y pagos\n- Todo el historial del cliente`
+    );
+
+    if (!confirmed) return;
+
     try {
       const { error } = await supabase.from("clients").delete().eq("id", clientId);
 
@@ -383,7 +389,7 @@ const Clients = () => {
 
       toast({
         title: "Cliente eliminado",
-        description: `${nombre} ha sido eliminado`,
+        description: `${nombre} ha sido eliminado del sistema`,
       });
 
       fetchClients();
