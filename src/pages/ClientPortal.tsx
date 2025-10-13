@@ -459,7 +459,14 @@ const ClientPortal = () => {
                   <TableBody>
                     {cases.map((caso) => (
                       <TableRow key={caso.id}>
-                        <TableCell className="font-mono text-xs">{caso.numero_expediente}</TableCell>
+                        <TableCell className="font-mono text-xs">
+                          <div>
+                            <p className="font-semibold">{caso.numero_expediente}</p>
+                            <p className="text-muted-foreground text-xs mt-0.5">
+                              Creado: {formatDate(caso.created_at)}
+                            </p>
+                          </div>
+                        </TableCell>
                         <TableCell className="font-medium">{caso.titulo}</TableCell>
                         <TableCell>
                           <Badge variant="outline">{caso.materia}</Badge>
@@ -617,7 +624,12 @@ const ClientPortal = () => {
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <FileText className="h-4 w-4 text-muted-foreground" />
-                            <span className="font-medium">{doc.titulo}</span>
+                            <div>
+                              <p className="font-medium">{doc.titulo}</p>
+                              <p className="text-xs text-muted-foreground">
+                                Generado: {formatDate(doc.fecha_generacion)}
+                              </p>
+                            </div>
                           </div>
                         </TableCell>
                         <TableCell>

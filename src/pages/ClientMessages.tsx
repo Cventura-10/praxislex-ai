@@ -48,20 +48,20 @@ export default function ClientMessages() {
     refetchInterval: 5000,
   });
 
-  // Agrupar mensajes por cliente (sender o recipient que no sea el usuario actual)
+  // Agrupar mensajes por cliente/conversación
   const messagesByClient = messages?.reduce((acc: any, msg: any) => {
-    // Determinar quién es el cliente (el que no es el usuario actual)
-    const clientId = msg.sender_id === currentUser?.id ? msg.recipient_id : msg.sender_id;
+    // Determinar el ID de la otra persona en la conversación
+    const otherPersonId = msg.sender_id === currentUser?.id ? msg.recipient_id : msg.sender_id;
     
-    if (!acc[clientId]) {
-      acc[clientId] = {
-        clientId,
+    if (!acc[otherPersonId]) {
+      acc[otherPersonId] = {
+        clientId: otherPersonId,
         clientEmail: 'Cliente',
-        clientName: `Cliente ${clientId.substring(0, 8)}`,
+        clientName: `Cliente`,
         messages: []
       };
     }
-    acc[clientId].messages.push(msg);
+    acc[otherPersonId].messages.push(msg);
     return acc;
   }, {});
 
@@ -196,23 +196,23 @@ export default function ClientMessages() {
                     {selectedConversation.messages
                       .sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
                       .map((msg: any) => {
-                        const isFromClient = msg.sender_type === 'client';
+                        const isFromMe = msg.sender_id === currentUser?.id;
                         return (
                           <div
                             key={msg.id}
-                            className={`flex ${isFromClient ? 'justify-start' : 'justify-end'}`}
+                            className={`flex ${isFromMe ? 'justify-end' : 'justify-start'}`}
                           >
                             <div
                               className={`max-w-[80%] rounded-lg p-3 ${
-                                isFromClient
-                                  ? 'bg-muted'
-                                  : 'bg-primary text-primary-foreground'
+                                isFromMe
+                                  ? 'bg-primary text-primary-foreground'
+                                  : 'bg-muted'
                               }`}
                             >
                               <p className="text-sm">{msg.message}</p>
                               <p
                                 className={`text-xs mt-1 ${
-                                  isFromClient ? 'text-muted-foreground' : 'text-primary-foreground/70'
+                                  isFromMe ? 'text-primary-foreground/70' : 'text-muted-foreground'
                                 }`}
                               >
                                 {new Date(msg.created_at).toLocaleString('es-DO', {

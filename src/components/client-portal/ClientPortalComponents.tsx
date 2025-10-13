@@ -123,36 +123,41 @@ export const ClientMessaging = ({ clientId, lawyerUserId }: ClientMessagingProps
       <CardContent className="space-y-4">
         <ScrollArea className="h-[400px] pr-4">
           <div className="space-y-4">
-            {messages?.length === 0 && (
+            {!messages || messages.length === 0 ? (
               <p className="text-center text-muted-foreground py-8">
                 No hay mensajes todavía. ¡Envía el primero!
               </p>
-            )}
-            {messages?.map((msg) => (
-              <div
-                key={msg.id}
-                className={`flex ${msg.sender_type === 'client' ? 'justify-end' : 'justify-start'}`}
-              >
-                <div
-                  className={`max-w-[70%] rounded-lg p-3 ${
-                    msg.sender_type === 'client'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted'
-                  }`}
-                >
-                  <div className="flex items-center gap-2 mb-1">
-                    {msg.sender_type === 'lawyer' && <User className="w-3 h-3" />}
-                    <span className="text-xs opacity-70">
-                      {msg.sender_type === 'client' ? 'Tú' : 'Abogado'}
-                    </span>
-                    <span className="text-xs opacity-70">
-                      {format(new Date(msg.created_at), 'PPp', { locale: es })}
-                    </span>
+            ) : (
+              messages.map((msg) => {
+                const isMyMessage = msg.sender_type === 'client';
+                
+                return (
+                  <div
+                    key={msg.id}
+                    className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'}`}
+                  >
+                    <div
+                      className={`max-w-[70%] rounded-lg p-3 ${
+                        isMyMessage
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-muted'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 mb-1">
+                        {!isMyMessage && <User className="w-3 h-3" />}
+                        <span className="text-xs opacity-70">
+                          {isMyMessage ? 'Tú' : 'Abogado'}
+                        </span>
+                        <span className="text-xs opacity-70">
+                          {format(new Date(msg.created_at), 'PPp', { locale: es })}
+                        </span>
+                      </div>
+                      <p className="text-sm">{msg.message}</p>
+                    </div>
                   </div>
-                  <p className="text-sm">{msg.message}</p>
-                </div>
-              </div>
-            ))}
+                );
+              })
+            )}
           </div>
         </ScrollArea>
 
@@ -175,7 +180,7 @@ export const ClientMessaging = ({ clientId, lawyerUserId }: ClientMessagingProps
             <Paperclip className="w-4 h-4 mr-2" />
             Adjuntar archivo
           </Button>
-          <Button onClick={sendMessage} disabled={sending}>
+          <Button onClick={sendMessage} disabled={sending || !newMessage.trim()}>
             <Send className="w-4 h-4 mr-2" />
             {sending ? 'Enviando...' : 'Enviar'}
           </Button>
