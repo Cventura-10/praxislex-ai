@@ -572,15 +572,17 @@ ${normasAplicables.map((n, i) => `${i + 1}. ${n}`).join('\n')}
     
     Firmado:
     
-    LA VENDEDORA:
     
-    _________________________
-    [Nombre Primera Parte]
+                                   LA VENDEDORA:
     
-    EL COMPRADOR:
+                              _________________________
+                              [Nombre Primera Parte]
     
-    _______________________________
-    [Nombre Segunda Parte]
+    
+                                   EL COMPRADOR:
+    
+                              _______________________________
+                              [Nombre Segunda Parte]
     ` : ''}
     
     📐 DISEÑO Y FORMATO:
