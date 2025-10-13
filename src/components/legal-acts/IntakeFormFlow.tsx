@@ -115,6 +115,13 @@ const EXTRAJUDICIAL_FIELDS = [
   { key: "plazo_vigencia", label: "Plazo de Vigencia", type: "text" },
   { key: "gastos_asume", label: "Gastos Asumidos Por", type: "text" },
   { key: "jurisdiccion", label: "Jurisdicción/Fuero", type: "text", required: true },
+  
+  // DATOS DEL NOTARIO (para coletilla notarial)
+  { key: "notario_nombre", label: "Notario - Nombre Completo", type: "text" },
+  { key: "notario_matricula", label: "Notario - Matrícula CDN", type: "text" },
+  { key: "notario_cedula", label: "Notario - Cédula", type: "text" },
+  { key: "notario_oficina", label: "Notario - Oficina Profesional", type: "textarea" },
+  { key: "notario_jurisdiccion", label: "Notario - Jurisdicción (Números/Distrito)", type: "text" },
 ];
 
 export function IntakeFormFlow({ actInfo }: IntakeFormFlowProps) {

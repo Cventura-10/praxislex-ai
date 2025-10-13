@@ -501,12 +501,12 @@ ${normasAplicables.map((n, i) => `${i + 1}. ${n}`).join('\n')}
     1. FORMATO: A4, texto justificado, títulos centrados, párrafos unidos y completos
     2. NO LLENAR información que no fue proporcionada (excepto datos del cliente/abogado si están en sistema)
     3. Si falta información requerida, DEJAR EN BLANCO o usar [Campo a completar] con advertencia
-    1. Terminología EXCLUSIVAMENTE civil/contractual
-    2. Identificación de partes según naturaleza del documento
-    3. Lenguaje claro, directo y profesional
-    4. Enfoque contractual o comunicativo
-    5. Formato elegante con tipografía Times New Roman
-    6. Espaciado generoso y estructura limpia
+    4. Terminología EXCLUSIVAMENTE civil/contractual
+    5. Identificación de partes según naturaleza del documento
+    6. Lenguaje claro, directo y profesional
+    7. Enfoque contractual o comunicativo
+    8. Formato elegante con tipografía Times New Roman
+    9. Espaciado generoso y estructura limpia
     
     📐 DISEÑO Y FORMATO:
     1. Tipografía: Times New Roman 12pt
@@ -516,6 +516,27 @@ ${normasAplicables.map((n, i) => `${i + 1}. ${n}`).join('\n')}
     5. Títulos: CENTRADOS Y MAYÚSCULAS
     6. Separadores visuales con líneas (═)
     7. Minimalismo y elegancia
+    
+    ════════════════════════════════════════════════════════════════════
+    ⚠️ COLETILLA NOTARIAL OBLIGATORIA (AL FINAL DEL DOCUMENTO)
+    ════════════════════════════════════════════════════════════════════
+    
+    INCLUIR AL FINAL del documento (después de sección de firmas):
+    
+    ${formData.notario_nombre ? `
+    CERTIFICACIÓN NOTARIAL:
+    
+    Yo, ${formData.notario_nombre}, Notario Público ${formData.notario_jurisdiccion || 'de los Números para el Distrito Nacional'}, Miembro activo del Colegio Dominicano de Notarios de la República Dominicana con matrícula al día y No. ${formData.notario_matricula || '[matrícula]'}, portador de la Cédula de identidad y electoral No. ${formData.notario_cedula || '[cédula]'}, con Oficina Profesional abierta de manera permanente en ${formData.notario_oficina || '[dirección oficina]'}, CERTIFICO que las firmas que aparecen en el presente documento, han sido puestas en mi presencia, libre y voluntariamente por los señores ${formData.primera_parte_nombre || '[Primera Parte]'} y ${formData.segunda_parte_nombre || '[Segunda Parte]'}, de generales y cualidades que constan en el presente acto; quienes me han declarado que esas son las firmas que acostumbran utilizar para todos los actos de sus vidas, por lo que merecen entera fe y crédito. En ${formData.lugar_ciudad || '[Ciudad]'}, República Dominicana, a los ${formData.fecha_texto || '[fecha]'}.
+    
+    DOY FE:
+    
+    
+    _____________________________
+    ${formData.notario_nombre}
+    NOTARIO PÚBLICO
+    ` : `
+    ⚠️ NOTA: Si se proporcionan datos del notario, incluir coletilla notarial completa al final.
+    `}
     
     Genera documentos COMPLETOS, ELEGANTES y EXTRAJUDICIALES PUROS.`;
     } else {
