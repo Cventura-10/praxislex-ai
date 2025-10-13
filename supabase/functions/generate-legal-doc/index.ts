@@ -66,10 +66,13 @@ serve(async (req) => {
 
     const requestBody = await req.json();
     
-    // Input validation schema - comprehensive and strict
+    // Input validation schema - comprehensive
     const RequestSchema = z.object({
       tipo_documento: z.string().min(1).max(100).optional(),
       actType: z.string().min(1).max(100).optional(),
+      actName: z.string().max(200).optional(),
+      category: z.string().max(100).optional(),
+      categoryType: z.string().max(100).optional(),
       materia: z.string().max(100).optional(),
       formData: z.record(z.string(), z.unknown()).optional(),
       hechos: z.string().max(10000).optional(),
@@ -92,7 +95,7 @@ serve(async (req) => {
       ciudad_actuacion: z.string().max(100).optional(),
       legislacion: z.string().max(5000).optional(),
       jurisprudencia: z.string().max(5000).optional(),
-    }).strict(); // No additional fields allowed
+    }).passthrough(); // Allow additional fields for flexibility
     
     // Validate request
     try {
