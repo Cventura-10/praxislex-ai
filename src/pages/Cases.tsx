@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { CaseStatusBadge } from "@/components/cases/CaseStatusBadge";
-import { Plus, Search, Filter, Download, Eye, Edit, Trash2, ArrowLeft } from "lucide-react";
+import { Plus, Search, Filter, Download, Eye, Edit, Trash2, ArrowLeft, Scale, ExternalLink } from "lucide-react";
 import { MATERIAS_JURIDICAS, ETAPAS_PROCESALES, TIPOS_ACCION_LEGAL } from "@/lib/constants";
 import { 
   TODAS_MATERIAS, 
@@ -89,6 +89,9 @@ const Cases = () => {
     lawyer_id: "",
     client_id: "",
     descripcion: "",
+    numero_gedex: "",
+    tribunal_gedex: "",
+    fecha_inicio_proceso: "",
   });
 
   // Acciones disponibles según materia seleccionada (Lógica Condicional)
@@ -218,6 +221,9 @@ const Cases = () => {
         lawyer_id: "",
         client_id: "",
         descripcion: "",
+        numero_gedex: "",
+        tribunal_gedex: "",
+        fecha_inicio_proceso: "",
       });
       fetchCases();
     } catch (error: any) {
@@ -574,6 +580,71 @@ const Cases = () => {
                       placeholder="Detalles adicionales del caso"
                       className="h-11"
                     />
+                  </div>
+                </div>
+              </div>
+
+              {/* Integración GEDEX - Poder Judicial */}
+              <div className="space-y-4 border-t pt-4">
+                <h3 className="text-lg font-medium flex items-center gap-2">
+                  <Scale className="h-5 w-5 text-primary" />
+                  Integración Poder Judicial (GEDEX)
+                </h3>
+                
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="grid gap-2">
+                    <Label htmlFor="numero_gedex" className="text-sm font-medium">
+                      Número GEDEX
+                      <span className="text-muted-foreground ml-2 font-normal">(Opcional)</span>
+                    </Label>
+                    <Input
+                      id="numero_gedex"
+                      value={newCase.numero_gedex}
+                      onChange={(e) => setNewCase({ ...newCase, numero_gedex: e.target.value })}
+                      placeholder="Ej: 001-2024-CIVI-12345"
+                      className="h-11"
+                    />
+                    {newCase.numero_gedex && (
+                      <p className="text-xs text-muted-foreground">
+                        <a
+                          href={`https://consultasenlinea.poderjudicial.gob.do/ConsultaExpediente.aspx`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary hover:underline inline-flex items-center gap-1"
+                        >
+                          Ver en Portal PJD <ExternalLink className="h-3 w-3" />
+                        </a>
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="grid gap-2">
+                    <Label htmlFor="tribunal_gedex" className="text-sm font-medium">
+                      Tribunal GEDEX
+                    </Label>
+                    <Input
+                      id="tribunal_gedex"
+                      value={newCase.tribunal_gedex}
+                      onChange={(e) => setNewCase({ ...newCase, tribunal_gedex: e.target.value })}
+                      placeholder="Ej: 1ra. Cámara Civil JCE"
+                      className="h-11"
+                    />
+                  </div>
+
+                  <div className="grid gap-2">
+                    <Label htmlFor="fecha_inicio_proceso" className="text-sm font-medium">
+                      Fecha Inicio Proceso
+                    </Label>
+                    <Input
+                      id="fecha_inicio_proceso"
+                      type="date"
+                      value={newCase.fecha_inicio_proceso}
+                      onChange={(e) => setNewCase({ ...newCase, fecha_inicio_proceso: e.target.value })}
+                      className="h-11"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      ⚡ Se calcularán automáticamente plazos procesales según materia
+                    </p>
                   </div>
                 </div>
               </div>

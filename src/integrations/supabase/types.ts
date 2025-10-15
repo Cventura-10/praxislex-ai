@@ -309,14 +309,17 @@ export type Database = {
           descripcion: string | null
           estado: string | null
           etapa_procesal: string | null
+          fecha_inicio_proceso: string | null
           id: string
           juzgado: string | null
           lawyer_id: string | null
           materia: string
           numero_expediente: string
+          numero_gedex: string | null
           responsable: string | null
           tenant_id: string
           titulo: string
+          tribunal_gedex: string | null
           updated_at: string | null
           user_id: string
         }
@@ -327,14 +330,17 @@ export type Database = {
           descripcion?: string | null
           estado?: string | null
           etapa_procesal?: string | null
+          fecha_inicio_proceso?: string | null
           id?: string
           juzgado?: string | null
           lawyer_id?: string | null
           materia: string
           numero_expediente: string
+          numero_gedex?: string | null
           responsable?: string | null
           tenant_id: string
           titulo: string
+          tribunal_gedex?: string | null
           updated_at?: string | null
           user_id: string
         }
@@ -345,14 +351,17 @@ export type Database = {
           descripcion?: string | null
           estado?: string | null
           etapa_procesal?: string | null
+          fecha_inicio_proceso?: string | null
           id?: string
           juzgado?: string | null
           lawyer_id?: string | null
           materia?: string
           numero_expediente?: string
+          numero_gedex?: string | null
           responsable?: string | null
           tenant_id?: string
           titulo?: string
+          tribunal_gedex?: string | null
           updated_at?: string | null
           user_id?: string
         }
@@ -1944,6 +1953,71 @@ export type Database = {
         }
         Relationships: []
       }
+      plazos_procesales: {
+        Row: {
+          alerta_enviada: boolean | null
+          base_legal: string | null
+          case_id: string
+          created_at: string | null
+          descripcion: string
+          dias_plazo: number
+          estado: string | null
+          fecha_inicio: string
+          fecha_vencimiento: string
+          id: string
+          notas: string | null
+          prioridad: string | null
+          tenant_id: string
+          tipo_plazo: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          alerta_enviada?: boolean | null
+          base_legal?: string | null
+          case_id: string
+          created_at?: string | null
+          descripcion: string
+          dias_plazo: number
+          estado?: string | null
+          fecha_inicio: string
+          fecha_vencimiento: string
+          id?: string
+          notas?: string | null
+          prioridad?: string | null
+          tenant_id: string
+          tipo_plazo: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          alerta_enviada?: boolean | null
+          base_legal?: string | null
+          case_id?: string
+          created_at?: string | null
+          descripcion?: string
+          dias_plazo?: number
+          estado?: string | null
+          fecha_inicio?: string
+          fecha_vencimiento?: string
+          id?: string
+          notas?: string | null
+          prioridad?: string | null
+          tenant_id?: string
+          tipo_plazo?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plazos_procesales_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string | null
@@ -2520,6 +2594,22 @@ export type Database = {
         Returns: {
           error_message: string
           success: boolean
+        }[]
+      }
+      actualizar_estado_plazos: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      calcular_plazo_procesal: {
+        Args: {
+          p_fecha_inicio: string
+          p_materia?: string
+          p_tipo_plazo: string
+        }
+        Returns: {
+          base_legal: string
+          dias_plazo: number
+          fecha_vencimiento: string
         }[]
       }
       can_access_client: {
