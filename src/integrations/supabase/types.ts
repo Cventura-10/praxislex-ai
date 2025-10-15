@@ -2801,6 +2801,10 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: string[]
       }
+      get_user_tenant_ids_safe: {
+        Args: { _user_id: string }
+        Returns: string[]
+      }
       has_admin_verification: {
         Args: { _user_id: string }
         Returns: boolean
@@ -2819,6 +2823,10 @@ export type Database = {
       hash_payload: {
         Args: { data: Json }
         Returns: string
+      }
+      is_tenant_admin: {
+        Args: { _tenant_id: string; _user_id: string }
+        Returns: boolean
       }
       link_client_to_auth_user: {
         Args: {
