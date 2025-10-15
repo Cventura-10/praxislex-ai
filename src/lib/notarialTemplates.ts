@@ -37,7 +37,9 @@ export const CONTRATO_PRESTAMO_HIPOTECA: NotarialActTemplate = {
   requiere_testigos: true,
   fields: [
     // DATOS GENERALES
+    { id: 'numero_acto', label: 'Número del Acto', type: 'text', required: true, placeholder: 'ACT-2025-001' },
     { id: 'numero_protocolo', label: 'Número de Protocolo', type: 'text', required: true, placeholder: '2025-001' },
+    { id: 'folios', label: 'Número de Folios', type: 'number', required: true, placeholder: '1' },
     { id: 'fecha_instrumentacion', label: 'Fecha de Instrumentación', type: 'date', required: true },
     { id: 'ciudad', label: 'Ciudad', type: 'text', required: true, placeholder: 'Santo Domingo' },
     { id: 'provincia', label: 'Provincia', type: 'text', required: false, placeholder: 'Distrito Nacional' },
@@ -45,12 +47,12 @@ export const CONTRATO_PRESTAMO_HIPOTECA: NotarialActTemplate = {
     // NOTARIO
     { id: 'notario_nombre', label: 'Nombre del Notario', type: 'text', required: true },
     { id: 'notario_matricula', label: 'Matrícula CDN', type: 'text', required: true },
-    { id: 'notario_colegio', label: 'Colegio Notarial', type: 'text', required: true },
+    { id: 'notario_colegio', label: 'Colegio Notarial', type: 'text', required: true, placeholder: 'Colegio de Notarios de la República Dominicana' },
     { id: 'notario_estudio', label: 'Dirección del Estudio', type: 'textarea', required: true },
     
-    // PRESTAMISTA (ACREEDOR)
-    { id: 'prestamista_nombre', label: 'Prestamista - Nombre Completo', type: 'text', required: true },
-    { id: 'prestamista_cedula', label: 'Prestamista - Cédula/RNC', type: 'text', required: true },
+    // PRESTAMISTA (ACREEDOR) - OPCIONAL
+    { id: 'prestamista_nombre', label: 'Prestamista - Nombre Completo', type: 'text', required: false },
+    { id: 'prestamista_cedula', label: 'Prestamista - Cédula/RNC', type: 'text', required: false },
     { id: 'prestamista_nacionalidad', label: 'Prestamista - Nacionalidad', type: 'text', required: true },
     { id: 'prestamista_estado_civil', label: 'Prestamista - Estado Civil', type: 'select', required: true, 
       options: ['Soltero(a)', 'Casado(a)', 'Divorciado(a)', 'Viudo(a)', 'Unión libre'] },
@@ -101,9 +103,17 @@ export const ACTA_NOTORIEDAD: NotarialActTemplate = {
   descripcion: 'Para acreditar hechos notorios (sucesiones, deslindes, identidad)',
   requiere_testigos: true,
   fields: [
+    { id: 'numero_acto', label: 'Número del Acto', type: 'text', required: true, placeholder: 'ACT-2025-001' },
     { id: 'numero_protocolo', label: 'Número de Protocolo', type: 'text', required: true },
+    { id: 'folios', label: 'Número de Folios', type: 'number', required: true, placeholder: '1' },
     { id: 'fecha_instrumentacion', label: 'Fecha de Instrumentación', type: 'date', required: true },
     { id: 'ciudad', label: 'Ciudad', type: 'text', required: true },
+    
+    // NOTARIO
+    { id: 'notario_nombre', label: 'Nombre del Notario', type: 'text', required: true },
+    { id: 'notario_matricula', label: 'Matrícula CDN', type: 'text', required: true },
+    { id: 'notario_colegio', label: 'Colegio Notarial', type: 'text', required: true, placeholder: 'Colegio de Notarios de la República Dominicana' },
+    { id: 'notario_estudio', label: 'Dirección del Estudio', type: 'textarea', required: true },
     
     { id: 'solicitante_nombre', label: 'Solicitante - Nombre Completo', type: 'text', required: true },
     { id: 'solicitante_cedula', label: 'Solicitante - Cédula', type: 'text', required: true },
@@ -133,9 +143,17 @@ export const LEGALIZACION_FIRMAS: NotarialActTemplate = {
   descripcion: 'Certificación de firma libre y voluntaria en documento privado',
   requiere_testigos: false,
   fields: [
+    { id: 'numero_acto', label: 'Número del Acto', type: 'text', required: true, placeholder: 'ACT-2025-001' },
     { id: 'numero_acta', label: 'Número de Acta', type: 'text', required: true },
+    { id: 'folios', label: 'Número de Folios', type: 'number', required: true, placeholder: '1' },
     { id: 'fecha_legalizacion', label: 'Fecha de Legalización', type: 'date', required: true },
     { id: 'ciudad', label: 'Ciudad', type: 'text', required: true },
+    
+    // NOTARIO
+    { id: 'notario_nombre', label: 'Nombre del Notario', type: 'text', required: true },
+    { id: 'notario_matricula', label: 'Matrícula CDN', type: 'text', required: true },
+    { id: 'notario_colegio', label: 'Colegio Notarial', type: 'text', required: true, placeholder: 'Colegio de Notarios de la República Dominicana' },
+    { id: 'notario_estudio', label: 'Dirección del Estudio', type: 'textarea', required: true },
     
     { id: 'tipo_documento', label: 'Tipo de Documento', type: 'select', required: true,
       options: ['Contrato de Venta', 'Contrato de Arrendamiento', 'Poder', 'Reconocimiento de Deuda', 'Otro'] },
@@ -162,8 +180,16 @@ export const PODER_ESPECIAL: NotarialActTemplate = {
   descripcion: 'Poder limitado a actos específicos',
   requiere_testigos: false,
   fields: [
+    { id: 'numero_acto', label: 'Número del Acto', type: 'text', required: true, placeholder: 'ACT-2025-001' },
+    { id: 'folios', label: 'Número de Folios', type: 'number', required: true, placeholder: '1' },
     { id: 'fecha', label: 'Fecha', type: 'date', required: true },
     { id: 'ciudad', label: 'Ciudad', type: 'text', required: true },
+    
+    // NOTARIO
+    { id: 'notario_nombre', label: 'Nombre del Notario', type: 'text', required: true },
+    { id: 'notario_matricula', label: 'Matrícula CDN', type: 'text', required: true },
+    { id: 'notario_colegio', label: 'Colegio Notarial', type: 'text', required: true, placeholder: 'Colegio de Notarios de la República Dominicana' },
+    { id: 'notario_estudio', label: 'Dirección del Estudio', type: 'textarea', required: true },
     
     { id: 'poderdante_nombre', label: 'Poderdante - Nombre Completo', type: 'text', required: true },
     { id: 'poderdante_cedula', label: 'Poderdante - Cédula', type: 'text', required: true },
@@ -191,9 +217,17 @@ export const DECLARACION_JURADA_PROPIEDAD: NotarialActTemplate = {
   descripcion: 'Declaración unilateral sobre propiedad de bienes',
   requiere_testigos: false,
   fields: [
+    { id: 'numero_acto', label: 'Número del Acto', type: 'text', required: true, placeholder: 'ACT-2025-001' },
     { id: 'numero_acta', label: 'Número de Acta', type: 'text', required: true },
+    { id: 'folios', label: 'Número de Folios', type: 'number', required: true, placeholder: '1' },
     { id: 'fecha', label: 'Fecha', type: 'date', required: true },
     { id: 'ciudad', label: 'Ciudad', type: 'text', required: true },
+    
+    // NOTARIO
+    { id: 'notario_nombre', label: 'Nombre del Notario', type: 'text', required: true },
+    { id: 'notario_matricula', label: 'Matrícula CDN', type: 'text', required: true },
+    { id: 'notario_colegio', label: 'Colegio Notarial', type: 'text', required: true, placeholder: 'Colegio de Notarios de la República Dominicana' },
+    { id: 'notario_estudio', label: 'Dirección del Estudio', type: 'textarea', required: true },
     
     { id: 'declarante_nombre', label: 'Declarante - Nombre Completo', type: 'text', required: true },
     { id: 'declarante_cedula', label: 'Declarante - Cédula', type: 'text', required: true },
@@ -216,9 +250,17 @@ export const TESTAMENTO_AUTENTICO: NotarialActTemplate = {
   descripcion: 'Testamento otorgado ante notario (acto solemne)',
   requiere_testigos: true,
   fields: [
+    { id: 'numero_acto', label: 'Número del Acto', type: 'text', required: true, placeholder: 'ACT-2025-001' },
     { id: 'numero_protocolo', label: 'Número de Protocolo', type: 'text', required: true },
+    { id: 'folios', label: 'Número de Folios', type: 'number', required: true, placeholder: '1' },
     { id: 'fecha_instrumentacion', label: 'Fecha de Instrumentación', type: 'date', required: true },
     { id: 'ciudad', label: 'Ciudad', type: 'text', required: true },
+    
+    // NOTARIO
+    { id: 'notario_nombre', label: 'Nombre del Notario', type: 'text', required: true },
+    { id: 'notario_matricula', label: 'Matrícula CDN', type: 'text', required: true },
+    { id: 'notario_colegio', label: 'Colegio Notarial', type: 'text', required: true, placeholder: 'Colegio de Notarios de la República Dominicana' },
+    { id: 'notario_estudio', label: 'Dirección del Estudio', type: 'textarea', required: true },
     
     { id: 'testador_nombre', label: 'Testador - Nombre Completo', type: 'text', required: true },
     { id: 'testador_cedula', label: 'Testador - Cédula', type: 'text', required: true },
@@ -252,9 +294,17 @@ export const ACTA_COMPROBACION: NotarialActTemplate = {
   descripcion: 'Levantamiento de hechos y comprobación de circunstancias por el notario',
   requiere_testigos: false,
   fields: [
+    { id: 'numero_acto', label: 'Número del Acto', type: 'text', required: true, placeholder: 'ACT-2025-001' },
     { id: 'numero_protocolo', label: 'Número de Protocolo', type: 'text', required: true },
+    { id: 'folios', label: 'Número de Folios', type: 'number', required: true, placeholder: '1' },
     { id: 'fecha_instrumentacion', label: 'Fecha de Instrumentación', type: 'date', required: true },
     { id: 'ciudad', label: 'Ciudad', type: 'text', required: true },
+    
+    // NOTARIO
+    { id: 'notario_nombre', label: 'Nombre del Notario', type: 'text', required: true },
+    { id: 'notario_matricula', label: 'Matrícula CDN', type: 'text', required: true },
+    { id: 'notario_colegio', label: 'Colegio Notarial', type: 'text', required: true, placeholder: 'Colegio de Notarios de la República Dominicana' },
+    { id: 'notario_estudio', label: 'Dirección del Estudio', type: 'textarea', required: true },
     
     { id: 'solicitante_nombre', label: 'Solicitante - Nombre Completo', type: 'text', required: true },
     { id: 'solicitante_cedula', label: 'Solicitante - Cédula', type: 'text', required: true },
@@ -278,9 +328,17 @@ export const LEGALIZACION_COMPRAVENTA: NotarialActTemplate = {
   descripcion: 'Certificación de firmas en contrato de compraventa',
   requiere_testigos: false,
   fields: [
+    { id: 'numero_acto', label: 'Número del Acto', type: 'text', required: true, placeholder: 'ACT-2025-001' },
     { id: 'numero_acta', label: 'Número de Acta', type: 'text', required: true },
+    { id: 'folios', label: 'Número de Folios', type: 'number', required: true, placeholder: '1' },
     { id: 'fecha_legalizacion', label: 'Fecha de Legalización', type: 'date', required: true },
     { id: 'ciudad', label: 'Ciudad', type: 'text', required: true },
+    
+    // NOTARIO
+    { id: 'notario_nombre', label: 'Nombre del Notario', type: 'text', required: true },
+    { id: 'notario_matricula', label: 'Matrícula CDN', type: 'text', required: true },
+    { id: 'notario_colegio', label: 'Colegio Notarial', type: 'text', required: true, placeholder: 'Colegio de Notarios de la República Dominicana' },
+    { id: 'notario_estudio', label: 'Dirección del Estudio', type: 'textarea', required: true },
     
     // Vendedor
     { id: 'vendedor_nombre', label: 'Vendedor - Nombre Completo', type: 'text', required: true },
@@ -305,8 +363,16 @@ export const PODER_GENERAL: NotarialActTemplate = {
   descripcion: 'Poder amplísimo para administración de bienes',
   requiere_testigos: false,
   fields: [
+    { id: 'numero_acto', label: 'Número del Acto', type: 'text', required: true, placeholder: 'ACT-2025-001' },
+    { id: 'folios', label: 'Número de Folios', type: 'number', required: true, placeholder: '1' },
     { id: 'fecha', label: 'Fecha', type: 'date', required: true },
     { id: 'ciudad', label: 'Ciudad', type: 'text', required: true },
+    
+    // NOTARIO
+    { id: 'notario_nombre', label: 'Nombre del Notario', type: 'text', required: true },
+    { id: 'notario_matricula', label: 'Matrícula CDN', type: 'text', required: true },
+    { id: 'notario_colegio', label: 'Colegio Notarial', type: 'text', required: true, placeholder: 'Colegio de Notarios de la República Dominicana' },
+    { id: 'notario_estudio', label: 'Dirección del Estudio', type: 'textarea', required: true },
     
     { id: 'poderdante_nombre', label: 'Poderdante - Nombre Completo', type: 'text', required: true },
     { id: 'poderdante_cedula', label: 'Poderdante - Cédula', type: 'text', required: true },
@@ -331,8 +397,16 @@ export const CESION_DERECHO: NotarialActTemplate = {
   descripcion: 'Transferencia de derechos entre partes',
   requiere_testigos: false,
   fields: [
+    { id: 'numero_acto', label: 'Número del Acto', type: 'text', required: true, placeholder: 'ACT-2025-001' },
+    { id: 'folios', label: 'Número de Folios', type: 'number', required: true, placeholder: '1' },
     { id: 'fecha', label: 'Fecha', type: 'date', required: true },
     { id: 'ciudad', label: 'Ciudad', type: 'text', required: true },
+    
+    // NOTARIO
+    { id: 'notario_nombre', label: 'Nombre del Notario', type: 'text', required: true },
+    { id: 'notario_matricula', label: 'Matrícula CDN', type: 'text', required: true },
+    { id: 'notario_colegio', label: 'Colegio Notarial', type: 'text', required: true, placeholder: 'Colegio de Notarios de la República Dominicana' },
+    { id: 'notario_estudio', label: 'Dirección del Estudio', type: 'textarea', required: true },
     
     { id: 'cedente_nombre', label: 'Cedente - Nombre Completo', type: 'text', required: true },
     { id: 'cedente_cedula', label: 'Cedente - Cédula', type: 'text', required: true },
@@ -356,9 +430,17 @@ export const CESION_CREDITO: NotarialActTemplate = {
   descripcion: 'Transferencia de crédito entre acreedor original y nuevo acreedor',
   requiere_testigos: false,
   fields: [
+    { id: 'numero_acto', label: 'Número del Acto', type: 'text', required: true, placeholder: 'ACT-2025-001' },
     { id: 'numero_acta', label: 'Número de Acta', type: 'text', required: true },
+    { id: 'folios', label: 'Número de Folios', type: 'number', required: true, placeholder: '1' },
     { id: 'fecha', label: 'Fecha', type: 'date', required: true },
     { id: 'ciudad', label: 'Ciudad', type: 'text', required: true },
+    
+    // NOTARIO
+    { id: 'notario_nombre', label: 'Nombre del Notario', type: 'text', required: true },
+    { id: 'notario_matricula', label: 'Matrícula CDN', type: 'text', required: true },
+    { id: 'notario_colegio', label: 'Colegio Notarial', type: 'text', required: true, placeholder: 'Colegio de Notarios de la República Dominicana' },
+    { id: 'notario_estudio', label: 'Dirección del Estudio', type: 'textarea', required: true },
     
     { id: 'cedente_nombre', label: 'Cedente (Acreedor Original) - Nombre', type: 'text', required: true },
     { id: 'cedente_cedula', label: 'Cedente - Cédula', type: 'text', required: true },
@@ -382,9 +464,17 @@ export const DETERMINACION_HEREDEROS: NotarialActTemplate = {
   descripcion: 'Acta notarial para acreditar la calidad de herederos',
   requiere_testigos: true,
   fields: [
+    { id: 'numero_acto', label: 'Número del Acto', type: 'text', required: true, placeholder: 'ACT-2025-001' },
     { id: 'numero_protocolo', label: 'Número de Protocolo', type: 'text', required: true },
+    { id: 'folios', label: 'Número de Folios', type: 'number', required: true, placeholder: '1' },
     { id: 'fecha_instrumentacion', label: 'Fecha', type: 'date', required: true },
     { id: 'ciudad', label: 'Ciudad', type: 'text', required: true },
+    
+    // NOTARIO
+    { id: 'notario_nombre', label: 'Nombre del Notario', type: 'text', required: true },
+    { id: 'notario_matricula', label: 'Matrícula CDN', type: 'text', required: true },
+    { id: 'notario_colegio', label: 'Colegio Notarial', type: 'text', required: true, placeholder: 'Colegio de Notarios de la República Dominicana' },
+    { id: 'notario_estudio', label: 'Dirección del Estudio', type: 'textarea', required: true },
     
     // Datos del De Cujus (fallecido)
     { id: 'decujus_nombre', label: 'De Cujus - Nombre Completo', type: 'text', required: true },
@@ -417,9 +507,17 @@ export const DECLARACION_SOLTERIA: NotarialActTemplate = {
   descripcion: 'Declaración unilateral sobre el estado civil',
   requiere_testigos: false,
   fields: [
+    { id: 'numero_acto', label: 'Número del Acto', type: 'text', required: true, placeholder: 'ACT-2025-001' },
     { id: 'numero_acta', label: 'Número de Acta', type: 'text', required: true },
+    { id: 'folios', label: 'Número de Folios', type: 'number', required: true, placeholder: '1' },
     { id: 'fecha', label: 'Fecha', type: 'date', required: true },
     { id: 'ciudad', label: 'Ciudad', type: 'text', required: true },
+    
+    // NOTARIO
+    { id: 'notario_nombre', label: 'Nombre del Notario', type: 'text', required: true },
+    { id: 'notario_matricula', label: 'Matrícula CDN', type: 'text', required: true },
+    { id: 'notario_colegio', label: 'Colegio Notarial', type: 'text', required: true, placeholder: 'Colegio de Notarios de la República Dominicana' },
+    { id: 'notario_estudio', label: 'Dirección del Estudio', type: 'textarea', required: true },
     
     { id: 'declarante_nombre', label: 'Declarante - Nombre Completo', type: 'text', required: true },
     { id: 'declarante_cedula', label: 'Declarante - Cédula', type: 'text', required: true },
@@ -443,8 +541,16 @@ export const CONTRATO_ARRENDAMIENTO_NOTARIAL: NotarialActTemplate = {
   descripcion: 'Legalización de firmas en contrato de alquiler',
   requiere_testigos: false,
   fields: [
+    { id: 'numero_acto', label: 'Número del Acto', type: 'text', required: true, placeholder: 'ACT-2025-001' },
+    { id: 'folios', label: 'Número de Folios', type: 'number', required: true, placeholder: '1' },
     { id: 'fecha', label: 'Fecha', type: 'date', required: true },
     { id: 'ciudad', label: 'Ciudad', type: 'text', required: true },
+    
+    // NOTARIO
+    { id: 'notario_nombre', label: 'Nombre del Notario', type: 'text', required: true },
+    { id: 'notario_matricula', label: 'Matrícula CDN', type: 'text', required: true },
+    { id: 'notario_colegio', label: 'Colegio Notarial', type: 'text', required: true, placeholder: 'Colegio de Notarios de la República Dominicana' },
+    { id: 'notario_estudio', label: 'Dirección del Estudio', type: 'textarea', required: true },
     
     { id: 'arrendador_nombre', label: 'Arrendador - Nombre', type: 'text', required: true },
     { id: 'arrendador_cedula', label: 'Arrendador - Cédula', type: 'text', required: true },
@@ -465,8 +571,16 @@ export const RECONOCIMIENTO_DEUDA: NotarialActTemplate = {
   descripcion: 'Legalización de reconocimiento de adeudo',
   requiere_testigos: false,
   fields: [
+    { id: 'numero_acto', label: 'Número del Acto', type: 'text', required: true, placeholder: 'ACT-2025-001' },
+    { id: 'folios', label: 'Número de Folios', type: 'number', required: true, placeholder: '1' },
     { id: 'fecha', label: 'Fecha', type: 'date', required: true },
     { id: 'ciudad', label: 'Ciudad', type: 'text', required: true },
+    
+    // NOTARIO
+    { id: 'notario_nombre', label: 'Nombre del Notario', type: 'text', required: true },
+    { id: 'notario_matricula', label: 'Matrícula CDN', type: 'text', required: true },
+    { id: 'notario_colegio', label: 'Colegio Notarial', type: 'text', required: true, placeholder: 'Colegio de Notarios de la República Dominicana' },
+    { id: 'notario_estudio', label: 'Dirección del Estudio', type: 'textarea', required: true },
     
     { id: 'deudor_nombre', label: 'Deudor - Nombre Completo', type: 'text', required: true },
     { id: 'deudor_cedula', label: 'Deudor - Cédula', type: 'text', required: true },
@@ -487,9 +601,17 @@ export const ACTA_PROTESTO: NotarialActTemplate = {
   descripcion: 'Protesto de títulos valores (cheques, letras)',
   requiere_testigos: false,
   fields: [
+    { id: 'numero_acto', label: 'Número del Acto', type: 'text', required: true, placeholder: 'ACT-2025-001' },
     { id: 'numero_protocolo', label: 'Número de Protocolo', type: 'text', required: true },
+    { id: 'folios', label: 'Número de Folios', type: 'number', required: true, placeholder: '1' },
     { id: 'fecha', label: 'Fecha del Protesto', type: 'date', required: true },
     { id: 'ciudad', label: 'Ciudad', type: 'text', required: true },
+    
+    // NOTARIO
+    { id: 'notario_nombre', label: 'Nombre del Notario', type: 'text', required: true },
+    { id: 'notario_matricula', label: 'Matrícula CDN', type: 'text', required: true },
+    { id: 'notario_colegio', label: 'Colegio Notarial', type: 'text', required: true, placeholder: 'Colegio de Notarios de la República Dominicana' },
+    { id: 'notario_estudio', label: 'Dirección del Estudio', type: 'textarea', required: true },
     
     { id: 'tenedor_nombre', label: 'Tenedor del Título - Nombre', type: 'text', required: true },
     { id: 'tenedor_cedula', label: 'Tenedor - Cédula', type: 'text', required: true },

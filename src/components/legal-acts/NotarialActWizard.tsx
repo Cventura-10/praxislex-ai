@@ -23,7 +23,9 @@ interface NotarialActWizardProps {
 }
 
 export function NotarialActWizard({ template, onCancel, onSuccess }: NotarialActWizardProps) {
-  const [formData, setFormData] = useState<Record<string, any>>({});
+  const [formData, setFormData] = useState<Record<string, any>>({
+    notario_colegio: 'Colegio de Notarios de la República Dominicana'
+  });
   const [selectedNotario, setSelectedNotario] = useState<string | null>(null);
   const { createAct } = useNotarialActs();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -42,7 +44,7 @@ export function NotarialActWizard({ template, onCancel, onSuccess }: NotarialAct
       ...prev,
       notario_nombre: fields.notario_nombre || '',
       notario_matricula: fields.notario_matricula || '',
-      notario_colegio: fields.notario_colegio || '',
+      notario_colegio: fields.notario_colegio || 'Colegio de Notarios de la República Dominicana',
       notario_estudio: fields.notario_oficina || '',
     }));
   };
@@ -81,7 +83,9 @@ export function NotarialActWizard({ template, onCancel, onSuccess }: NotarialAct
         tipo_acto: template.tipo_acto,
         acto_especifico: template.actId,
         titulo: formData.titulo || template.titulo,
-        numero_protocolo: formData.numero_protocolo,
+        numero_acto: formData.numero_acto,
+        numero_protocolo: formData.numero_protocolo || formData.numero_acta,
+        folios: formData.folios ? parseInt(formData.folios) : 1,
         fecha_instrumentacion: formData.fecha_instrumentacion || formData.fecha || new Date().toISOString(),
         ciudad: formData.ciudad,
         provincia: formData.provincia,
@@ -220,7 +224,7 @@ export function NotarialActWizard({ template, onCancel, onSuccess }: NotarialAct
               {...commonProps}
               type={field.type === 'money' || field.type === 'number' ? 'number' : field.type === 'date' ? 'date' : 'text'}
               placeholder={field.placeholder}
-              value={formData[field.id] || ''}
+              value={formData[field.id] || (field.placeholder && field.id === 'notario_colegio' ? field.placeholder : '')}
               onChange={(e) => handleFieldChange(field.id, e.target.value)}
               step={field.type === 'money' ? '0.01' : undefined}
             />
