@@ -1590,6 +1590,119 @@ export type Database = {
         }
         Relationships: []
       }
+      notarial_acts: {
+        Row: {
+          acto_especifico: string
+          case_id: string | null
+          ciudad: string
+          clausulas: Json | null
+          client_id: string | null
+          comparecientes: Json
+          contenido_completo: string | null
+          created_at: string
+          documento_url: string | null
+          fecha_firma: string | null
+          fecha_instrumentacion: string
+          firma_digital_url: string | null
+          firmado: boolean | null
+          formato_exportado: string | null
+          id: string
+          notario_id: string | null
+          numero_protocolo: string | null
+          objeto: string
+          provincia: string | null
+          tenant_id: string
+          testigos: Json | null
+          tipo_acto: string
+          titulo: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          acto_especifico: string
+          case_id?: string | null
+          ciudad: string
+          clausulas?: Json | null
+          client_id?: string | null
+          comparecientes?: Json
+          contenido_completo?: string | null
+          created_at?: string
+          documento_url?: string | null
+          fecha_firma?: string | null
+          fecha_instrumentacion?: string
+          firma_digital_url?: string | null
+          firmado?: boolean | null
+          formato_exportado?: string | null
+          id?: string
+          notario_id?: string | null
+          numero_protocolo?: string | null
+          objeto: string
+          provincia?: string | null
+          tenant_id: string
+          testigos?: Json | null
+          tipo_acto: string
+          titulo: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          acto_especifico?: string
+          case_id?: string | null
+          ciudad?: string
+          clausulas?: Json | null
+          client_id?: string | null
+          comparecientes?: Json
+          contenido_completo?: string | null
+          created_at?: string
+          documento_url?: string | null
+          fecha_firma?: string | null
+          fecha_instrumentacion?: string
+          firma_digital_url?: string | null
+          firmado?: boolean | null
+          formato_exportado?: string | null
+          id?: string
+          notario_id?: string | null
+          numero_protocolo?: string | null
+          objeto?: string
+          provincia?: string | null
+          tenant_id?: string
+          testigos?: Json | null
+          tipo_acto?: string
+          titulo?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notarial_acts_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notarial_acts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "client_portal_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notarial_acts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notarial_acts_notario_id_fkey"
+            columns: ["notario_id"]
+            isOneToOne: false
+            referencedRelation: "notarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notarios: {
         Row: {
           cedula_encrypted: string | null
@@ -3039,6 +3152,10 @@ export type Database = {
         Args: { p_client_id: string; p_user_id: string }
         Returns: boolean
       }
+      user_has_permission: {
+        Args: { p_permission: string; p_user_id: string }
+        Returns: boolean
+      }
       user_in_tenant: {
         Args: { p_tenant_id: string; p_user_id: string }
         Returns: boolean
@@ -3088,6 +3205,14 @@ export type Database = {
     }
     Enums: {
       app_role: "free" | "pro" | "admin"
+      app_role_new:
+        | "admin"
+        | "abogado"
+        | "notario"
+        | "asistente"
+        | "alguacil"
+        | "cliente"
+        | "desarrollador"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -3216,6 +3341,15 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["free", "pro", "admin"],
+      app_role_new: [
+        "admin",
+        "abogado",
+        "notario",
+        "asistente",
+        "alguacil",
+        "cliente",
+        "desarrollador",
+      ],
     },
   },
 } as const

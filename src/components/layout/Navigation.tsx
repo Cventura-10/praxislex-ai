@@ -19,6 +19,7 @@ import {
   UserCog,
   MessageSquare,
   Video,
+  Stamp,
 } from "lucide-react";
 
 const navItems = [
@@ -30,6 +31,7 @@ const navItems = [
   { href: "/audiencias", icon: Calendar, label: "Audiencias" },
   { href: "/sala-virtual", icon: Video, label: "Sala Virtual" },
   { href: "/documentos", icon: FileText, label: "Documentos" },
+  { href: "/actos-notariales", icon: Stamp, label: "Actos Notariales" },
   { href: "/generador-actos", icon: FileStack, label: "Generador de Actos" },
   { href: "/asistente-ia", icon: Bot, label: "Asistente IA" },
   { href: "/modelos-juridicos", icon: Upload, label: "Modelos Jurídicos" },
