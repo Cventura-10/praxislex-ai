@@ -34,7 +34,7 @@ export function useNotarialActs() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: acts = [], isLoading } = useQuery({
+  const { data: acts = [], isLoading, error } = useQuery({
     queryKey: ["notarial_acts"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -42,10 +42,22 @@ export function useNotarialActs() {
         .select("*")
         .order("fecha_instrumentacion", { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching notarial acts:", error);
+        throw error;
+      }
       return data as NotarialAct[];
     },
   });
+
+  // Show error toast if query fails
+  if (error) {
+    toast({
+      title: "Error al cargar actos notariales",
+      description: error.message,
+      variant: "destructive",
+    });
+  }
 
   const createMutation = useMutation({
     mutationFn: async (act: Partial<NotarialAct>) => {
