@@ -69,10 +69,16 @@ export const useLawyers = () => {
         throw new Error("El nombre del abogado es requerido");
       }
 
-      // Get user's tenant_id
-      const { data: tenantData } = await supabase.rpc('get_user_tenant_id', {
-        p_user_id: user.id
-      });
+      // Get user's tenant_id directly from tenant_users
+      const { data: tenantData, error: tenantError } = await supabase
+        .from('tenant_users')
+        .select('tenant_id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (tenantError) {
+        console.error('Error getting tenant:', tenantError);
+      }
 
       const { error } = await supabase.from("lawyers").insert([
         {
@@ -86,11 +92,14 @@ export const useLawyers = () => {
           firma_digital_url: lawyerData.firma_digital_url || null,
           despacho_direccion: lawyerData.despacho_direccion || null,
           user_id: user.id,
-          tenant_id: tenantData || null,
+          tenant_id: tenantData?.tenant_id || null,
         },
       ]);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error creating lawyer:', error);
+        throw error;
+      }
 
       toast({
         title: "Abogado creado",
@@ -100,6 +109,7 @@ export const useLawyers = () => {
       await fetchLawyers();
       return { success: true };
     } catch (error: any) {
+      console.error('Create lawyer error:', error);
       toast({
         title: "Error",
         description: error.message || "No se pudo crear el abogado",
