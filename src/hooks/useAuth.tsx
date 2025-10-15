@@ -20,7 +20,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        console.log('Auth event:', event, session?.user?.id);
+        // Only log in development to prevent session ID exposure
+        if (import.meta.env.DEV) {
+          console.log('Auth event:', event);
+        }
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
