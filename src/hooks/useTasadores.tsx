@@ -16,6 +16,7 @@ export interface Tasador {
   email?: string;
   firma_digital_url?: string;
   estado?: string;
+  jurisdiccion?: string;
   created_at?: string;
   updated_at?: string;
 }

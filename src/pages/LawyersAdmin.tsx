@@ -102,6 +102,7 @@ const LawyersAdmin = () => {
             email: formData.email,
             telefono: formData.telefono,
             matricula_cdn: formData.matricula,
+            jurisdiccion: formData.jurisdiccion,
             oficina_direccion: formData.direccion,
             estado: formData.estado,
           });
@@ -126,6 +127,7 @@ const LawyersAdmin = () => {
             telefono: formData.telefono,
             especialidad: formData.especialidad,
             matricula: formData.matricula,
+            jurisdiccion: formData.jurisdiccion,
             institucion: formData.institucion,
             direccion: formData.direccion,
             estado: formData.estado,
@@ -139,6 +141,7 @@ const LawyersAdmin = () => {
             telefono: formData.telefono,
             especialidad: formData.especialidad,
             matricula: formData.matricula,
+            jurisdiccion: formData.jurisdiccion,
             direccion: formData.direccion,
             estado: formData.estado,
           });
@@ -326,14 +329,26 @@ const LawyersAdmin = () => {
                 </div>
               )}
 
-              {activeTab === "alguaciles" && (
+              {(activeTab === "notarios" || activeTab === "alguaciles" || activeTab === "peritos" || activeTab === "tasadores") && (
                 <div className="grid gap-2">
-                  <Label htmlFor="jurisdiccion">Jurisdicción *</Label>
+                  <Label htmlFor="jurisdiccion">Jurisdicción de Actuación</Label>
                   <Input
                     id="jurisdiccion"
                     value={formData.jurisdiccion}
                     onChange={(e) => setFormData({ ...formData, jurisdiccion: e.target.value })}
-                    placeholder="Ej: Santo Domingo"
+                    placeholder="Ej: Santo Domingo, Distrito Nacional"
+                  />
+                </div>
+              )}
+
+              {activeTab === "alguaciles" && (
+                <div className="grid gap-2">
+                  <Label htmlFor="tribunal">Tribunal Asignado</Label>
+                  <Input
+                    id="tribunal"
+                    value={formData.direccion}
+                    onChange={(e) => setFormData({ ...formData, direccion: e.target.value })}
+                    placeholder="Ej: Primera Sala Civil y Comercial"
                   />
                 </div>
               )}
@@ -425,7 +440,7 @@ const LawyersAdmin = () => {
                       <TableHead>Teléfono</TableHead>
                       {activeTab === "abogados" && <TableHead>Rol</TableHead>}
                       {(activeTab === "peritos" || activeTab === "tasadores") && <TableHead>Especialidad</TableHead>}
-                      {activeTab === "alguaciles" && <TableHead>Jurisdicción</TableHead>}
+                      {(activeTab === "notarios" || activeTab === "alguaciles" || activeTab === "peritos" || activeTab === "tasadores") && <TableHead>Jurisdicción</TableHead>}
                       <TableHead>Estado</TableHead>
                       <TableHead className="text-right">Acciones</TableHead>
                     </TableRow>
@@ -446,7 +461,7 @@ const LawyersAdmin = () => {
                         {(activeTab === "peritos" || activeTab === "tasadores") && (
                           <TableCell>{item.especialidad || "N/A"}</TableCell>
                         )}
-                        {activeTab === "alguaciles" && (
+                        {(activeTab === "notarios" || activeTab === "alguaciles" || activeTab === "peritos" || activeTab === "tasadores") && (
                           <TableCell>{item.jurisdiccion || "N/A"}</TableCell>
                         )}
                         <TableCell>
@@ -520,7 +535,7 @@ const LawyersAdmin = () => {
               )}
               {selectedItem.jurisdiccion && (
                 <div className="grid gap-2">
-                  <Label className="text-muted-foreground">Jurisdicción</Label>
+                  <Label className="text-muted-foreground">Jurisdicción de Actuación</Label>
                   <p className="font-medium">{selectedItem.jurisdiccion}</p>
                 </div>
               )}
@@ -528,6 +543,12 @@ const LawyersAdmin = () => {
                 <div className="grid gap-2">
                   <Label className="text-muted-foreground">Institución</Label>
                   <p className="font-medium">{selectedItem.institucion}</p>
+                </div>
+              )}
+              {selectedItem.direccion && (
+                <div className="grid gap-2">
+                  <Label className="text-muted-foreground">Dirección</Label>
+                  <p className="font-medium">{selectedItem.direccion}</p>
                 </div>
               )}
               <div className="grid gap-2">

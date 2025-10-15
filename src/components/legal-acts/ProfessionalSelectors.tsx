@@ -188,7 +188,9 @@ export function PeritoSelector({ value, onChange, onFieldUpdate }: PeritoSelecto
         perito_nombre: perito.nombre,
         perito_cedula: perito.cedula_encrypted || '',
         perito_especialidad: perito.especialidad || '',
-        perito_matricula: Array.isArray(perito.certificaciones) ? perito.certificaciones.join(', ') : '',
+        perito_matricula: perito.matricula || '',
+        perito_jurisdiccion: perito.jurisdiccion || '',
+        perito_institucion: perito.institucion || '',
         perito_telefono: perito.telefono || '',
         perito_email: perito.email || '',
       });
@@ -243,6 +245,8 @@ export function TasadorSelector({ value, onChange, onFieldUpdate }: TasadorSelec
         tasador_cedula: tasador.cedula_encrypted || '',
         tasador_especialidad: tasador.especialidad || '',
         tasador_matricula: tasador.matricula || '',
+        tasador_jurisdiccion: tasador.jurisdiccion || '',
+        tasador_direccion: tasador.direccion || '',
         tasador_telefono: tasador.telefono || '',
         tasador_email: tasador.email || '',
       });

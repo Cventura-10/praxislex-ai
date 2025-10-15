@@ -1863,6 +1863,7 @@ export type Database = {
           firma_digital_url: string | null
           id: string
           institucion: string | null
+          jurisdiccion: string | null
           matricula: string | null
           nombre: string
           telefono: string | null
@@ -1881,6 +1882,7 @@ export type Database = {
           firma_digital_url?: string | null
           id?: string
           institucion?: string | null
+          jurisdiccion?: string | null
           matricula?: string | null
           nombre: string
           telefono?: string | null
@@ -1899,6 +1901,7 @@ export type Database = {
           firma_digital_url?: string | null
           id?: string
           institucion?: string | null
+          jurisdiccion?: string | null
           matricula?: string | null
           nombre?: string
           telefono?: string | null
@@ -2150,6 +2153,7 @@ export type Database = {
           estado: string | null
           firma_digital_url: string | null
           id: string
+          jurisdiccion: string | null
           matricula: string | null
           nombre: string
           telefono: string | null
@@ -2167,6 +2171,7 @@ export type Database = {
           estado?: string | null
           firma_digital_url?: string | null
           id?: string
+          jurisdiccion?: string | null
           matricula?: string | null
           nombre: string
           telefono?: string | null
@@ -2184,6 +2189,7 @@ export type Database = {
           estado?: string | null
           firma_digital_url?: string | null
           id?: string
+          jurisdiccion?: string | null
           matricula?: string | null
           nombre?: string
           telefono?: string | null
