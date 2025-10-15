@@ -2533,6 +2533,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_access_log: {
+        Row: {
+          access_granted: boolean
+          accessed_at: string
+          id: string
+          ip_address: unknown | null
+          module_accessed: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          access_granted?: boolean
+          accessed_at?: string
+          id?: string
+          ip_address?: unknown | null
+          module_accessed: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          access_granted?: boolean
+          accessed_at?: string
+          id?: string
+          ip_address?: unknown | null
+          module_accessed?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       user_clients: {
         Row: {
           client_id: string
@@ -2621,18 +2651,21 @@ export type Database = {
           created_at: string | null
           id: string
           role: Database["public"]["Enums"]["app_role"]
+          role_extended: Database["public"]["Enums"]["app_role_extended"]
           user_id: string
         }
         Insert: {
           created_at?: string | null
           id?: string
           role: Database["public"]["Enums"]["app_role"]
+          role_extended: Database["public"]["Enums"]["app_role_extended"]
           user_id: string
         }
         Update: {
           created_at?: string | null
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          role_extended?: Database["public"]["Enums"]["app_role_extended"]
           user_id?: string
         }
         Relationships: []
@@ -3040,6 +3073,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      has_role_extended: {
+        Args: { _role: string; _user_id: string }
+        Returns: boolean
+      }
       hash_invitation_token: {
         Args: { p_token: string }
         Returns: string
@@ -3070,6 +3107,10 @@ export type Database = {
           p_user_agent?: string
         }
         Returns: string
+      }
+      log_module_access: {
+        Args: { p_access_granted?: boolean; p_module: string }
+        Returns: undefined
       }
       log_token_validation: {
         Args: {
@@ -3152,6 +3193,10 @@ export type Database = {
         Args: { p_client_id: string; p_user_id: string }
         Returns: boolean
       }
+      user_can_access_module: {
+        Args: { p_module: string; p_user_id: string }
+        Returns: boolean
+      }
       user_has_permission: {
         Args: { p_permission: string; p_user_id: string }
         Returns: boolean
@@ -3205,6 +3250,15 @@ export type Database = {
     }
     Enums: {
       app_role: "free" | "pro" | "admin"
+      app_role_extended:
+        | "admin"
+        | "desarrollador"
+        | "abogado"
+        | "notario"
+        | "asistente"
+        | "alguacil"
+        | "perito"
+        | "tasador"
       app_role_new:
         | "admin"
         | "abogado"
@@ -3341,6 +3395,16 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["free", "pro", "admin"],
+      app_role_extended: [
+        "admin",
+        "desarrollador",
+        "abogado",
+        "notario",
+        "asistente",
+        "alguacil",
+        "perito",
+        "tasador",
+      ],
       app_role_new: [
         "admin",
         "abogado",

@@ -16,28 +16,43 @@ export function usePermissions() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return {};
 
-      // Verificar cada permiso usando la función de base de datos
-      const permissionTypes: Permission[] = [
-        'generate_legal_acts',
-        'create_invoices', 
-        'manage_professionals',
-        'access_security',
-        'full_access',
-        'notarial_acts'
-      ];
+      // Obtener rol del usuario usando el nuevo sistema
+      const { data: userRole, error: roleError } = await supabase.rpc('get_user_role', {
+        p_user_id: user.id
+      });
 
-      const permissionsMap: Record<string, boolean> = {};
-
-      for (const perm of permissionTypes) {
-        const { data, error } = await supabase.rpc('user_has_permission', {
-          p_user_id: user.id,
-          p_permission: perm
-        });
-
-        if (!error && data !== null) {
-          permissionsMap[perm] = data;
-        }
+      if (roleError || !userRole) {
+        console.error("Error fetching user role:", roleError);
+        return {};
       }
+
+      // Mapeo de permisos basado en roles
+      const permissionsMap: Record<string, boolean> = {};
+      const role = userRole as string;
+
+      // generate_legal_acts: todos excepto asistente
+      permissionsMap['generate_legal_acts'] = 
+        role !== 'asistente';
+
+      // create_invoices: admin, desarrollador, abogado
+      permissionsMap['create_invoices'] = 
+        ['admin', 'desarrollador', 'abogado'].includes(role);
+
+      // manage_professionals: admin, desarrollador, abogado
+      permissionsMap['manage_professionals'] = 
+        ['admin', 'desarrollador', 'abogado'].includes(role);
+
+      // access_security: admin, desarrollador
+      permissionsMap['access_security'] = 
+        ['admin', 'desarrollador'].includes(role);
+
+      // full_access: admin, desarrollador
+      permissionsMap['full_access'] = 
+        ['admin', 'desarrollador'].includes(role);
+
+      // notarial_acts: admin, desarrollador, notario, abogado
+      permissionsMap['notarial_acts'] = 
+        ['admin', 'desarrollador', 'notario', 'abogado'].includes(role);
 
       return permissionsMap;
     },
