@@ -1605,6 +1605,7 @@ export type Database = {
           fecha_instrumentacion: string
           firma_digital_url: string | null
           firmado: boolean | null
+          folios: number | null
           formato_exportado: string | null
           id: string
           notario_id: string | null
@@ -1632,6 +1633,7 @@ export type Database = {
           fecha_instrumentacion?: string
           firma_digital_url?: string | null
           firmado?: boolean | null
+          folios?: number | null
           formato_exportado?: string | null
           id?: string
           notario_id?: string | null
@@ -1659,6 +1661,7 @@ export type Database = {
           fecha_instrumentacion?: string
           firma_digital_url?: string | null
           firmado?: boolean | null
+          folios?: number | null
           formato_exportado?: string | null
           id?: string
           notario_id?: string | null

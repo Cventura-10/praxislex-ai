@@ -63,15 +63,19 @@ export function NotarialActWizard({ template, onCancel, onSuccess }: NotarialAct
     setIsSubmitting(true);
 
     try {
-      // Validar campos requeridos
+      // Validar campos requeridos visibles
       const missingFields = template.fields
         .filter(f => f.required && shouldShowField(f))
-        .filter(f => !formData[f.id] || formData[f.id] === '');
+        .filter(f => {
+          const value = formData[f.id];
+          return !value || value === '' || (typeof value === 'string' && value.trim() === '');
+        });
 
       if (missingFields.length > 0) {
+        const fieldNames = missingFields.map(f => f.label).join(', ');
         toast({
           title: "Campos requeridos faltantes",
-          description: `Por favor complete: ${missingFields.map(f => f.label).join(', ')}`,
+          description: `Por favor complete: ${fieldNames}`,
           variant: "destructive",
         });
         setIsSubmitting(false);
@@ -86,7 +90,7 @@ export function NotarialActWizard({ template, onCancel, onSuccess }: NotarialAct
         numero_acto: formData.numero_acto,
         numero_protocolo: formData.numero_protocolo || formData.numero_acta,
         folios: formData.folios ? parseInt(formData.folios) : 1,
-        fecha_instrumentacion: formData.fecha_instrumentacion || formData.fecha || new Date().toISOString(),
+        fecha_instrumentacion: formData.fecha_instrumentacion || formData.fecha || new Date().toISOString().split('T')[0],
         ciudad: formData.ciudad,
         provincia: formData.provincia,
         comparecientes: extractComparecientes(formData),
