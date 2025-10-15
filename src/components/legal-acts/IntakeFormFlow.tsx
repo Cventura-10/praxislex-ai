@@ -302,11 +302,21 @@ export function IntakeFormFlow({ actInfo }: IntakeFormFlowProps) {
         throw new Error("No se recibió respuesta del servicio");
       }
 
-      const generatedContent = data?.cuerpo || data?.document || data?.content || "";
+      // Extraer contenido del response (soporta múltiples formatos)
+      let generatedContent = data?.contenido || data?.cuerpo || data?.document || data?.content || "";
       
-      if (!generatedContent) {
+      // Si el contenido viene envuelto en markdown code blocks, extraerlo
+      if (generatedContent.startsWith('```') && generatedContent.endsWith('```')) {
+        // Remover los code blocks de markdown
+        generatedContent = generatedContent
+          .replace(/^```[a-z]*\n?/, '') // Remover apertura (```text, ```html, etc.)
+          .replace(/\n?```$/, '')       // Remover cierre
+          .trim();
+      }
+      
+      if (!generatedContent || generatedContent.length < 50) {
         console.error("Response data:", data);
-        throw new Error("No se generó contenido del documento");
+        throw new Error("No se generó contenido del documento válido");
       }
       
       setGeneratedDocument(generatedContent);
