@@ -1,0 +1,535 @@
+/**
+ * ============================================================
+ * ESTILOS PARA ACTOS JURÍDICOS DOMINICANOS
+ * ============================================================
+ * 
+ * Diseño: Profesional, Minimalista, Hermoso
+ * Uso: Generación de actos jurídicos en Lovable
+ * Autor: Manus AI
+ * Fecha: 15 de octubre de 2025
+ * 
+ * Principios:
+ * - Profesionalismo: Seriedad y credibilidad jurídica
+ * - Minimalismo: Sin elementos decorativos innecesarios
+ * - Legibilidad: Estructura y tipografía que facilitan la lectura
+ * ============================================================
+ */
+
+/* ============================================================
+   CONFIGURACIÓN DE PÁGINA
+   ============================================================ */
+
+@page {
+  size: letter; /* 8.5 x 11 pulgadas (estándar dominicano) */
+  margin: 2.5cm 2.5cm 2.5cm 3cm; /* Superior, Derecho, Inferior, Izquierdo */
+}
+
+@media print {
+  body {
+    margin: 0;
+    padding: 0;
+  }
+  
+  .no-print {
+    display: none;
+  }
+  
+  .page-break {
+    page-break-before: always;
+  }
+}
+
+/* ============================================================
+   ESTILOS GENERALES
+   ============================================================ */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Times New Roman', Georgia, 'Crimson Text', serif;
+  font-size: 12pt;
+  line-height: 1.5;
+  color: #000000;
+  background-color: #ffffff;
+  text-align: justify;
+  max-width: 21.59cm; /* Ancho carta */
+  margin: 0 auto;
+  padding: 2.5cm 3cm;
+}
+
+/* ============================================================
+   ENCABEZADO DEL ACTO
+   ============================================================ */
+
+.acto-encabezado {
+  margin-bottom: 30pt;
+}
+
+.acto-titulo {
+  font-size: 14pt;
+  font-weight: bold;
+  text-transform: uppercase;
+  text-align: center;
+  margin: 20pt 0 10pt 0;
+  border-top: 2pt double #000000;
+  border-bottom: 2pt double #000000;
+  padding: 10pt 0;
+  letter-spacing: 0.5pt;
+}
+
+.acto-metadata {
+  font-size: 11pt;
+  margin-bottom: 15pt;
+  border-bottom: 1pt solid #000000;
+  padding-bottom: 10pt;
+  line-height: 1.3;
+}
+
+.acto-metadata strong {
+  font-weight: bold;
+}
+
+.acto-metadata-linea {
+  margin-bottom: 5pt;
+}
+
+/* ============================================================
+   SECCIONES DEL DOCUMENTO
+   ============================================================ */
+
+.seccion {
+  margin-bottom: 20pt;
+}
+
+.seccion-titulo {
+  font-size: 12pt;
+  font-weight: bold;
+  text-transform: uppercase;
+  margin-top: 20pt;
+  margin-bottom: 10pt;
+  border-bottom: 1pt solid #000000;
+  padding-bottom: 5pt;
+  letter-spacing: 0.3pt;
+}
+
+.seccion-subtitulo {
+  font-size: 12pt;
+  font-weight: bold;
+  margin-top: 15pt;
+  margin-bottom: 8pt;
+}
+
+.seccion-contenido {
+  text-indent: 1.27cm; /* Sangría de primera línea */
+  margin-bottom: 12pt;
+  text-align: justify;
+}
+
+.seccion-contenido.sin-sangria {
+  text-indent: 0;
+}
+
+/* ============================================================
+   DATOS ESTRUCTURADOS (PARTES, PROFESIONALES)
+   ============================================================ */
+
+.datos-parte {
+  margin-left: 2cm;
+  margin-bottom: 15pt;
+  line-height: 1.3;
+  text-indent: 0;
+}
+
+.datos-parte-titulo {
+  font-weight: bold;
+  text-transform: uppercase;
+  margin-bottom: 5pt;
+}
+
+.datos-parte-campo {
+  margin-bottom: 3pt;
+  display: flex;
+}
+
+.datos-parte-etiqueta {
+  display: inline-block;
+  width: 3cm;
+  font-weight: bold;
+}
+
+.datos-parte-valor {
+  flex: 1;
+}
+
+/* ============================================================
+   PETITORIO / DISPOSITIVO
+   ============================================================ */
+
+.petitorio {
+  margin-top: 30pt;
+  border-top: 2pt double #000000;
+  padding-top: 15pt;
+}
+
+.petitorio-titulo {
+  font-size: 13pt;
+  font-weight: bold;
+  text-transform: uppercase;
+  text-align: center;
+  margin-bottom: 15pt;
+  letter-spacing: 0.5pt;
+}
+
+.petitorio-introduccion {
+  font-style: italic;
+  margin-bottom: 15pt;
+  text-indent: 1.27cm;
+}
+
+.conclusion {
+  margin-left: 2cm;
+  margin-bottom: 12pt;
+  text-indent: -1.27cm; /* Sangría francesa */
+  padding-left: 1.27cm;
+  text-align: justify;
+}
+
+.conclusion-numero {
+  font-weight: bold;
+  text-transform: uppercase;
+  margin-right: 5pt;
+}
+
+.formula-sacramental {
+  text-align: center;
+  font-weight: bold;
+  text-transform: uppercase;
+  margin-top: 20pt;
+  margin-bottom: 30pt;
+  letter-spacing: 0.5pt;
+}
+
+/* ============================================================
+   CIERRE Y FIRMA
+   ============================================================ */
+
+.cierre {
+  margin-top: 40pt;
+  border-top: 1pt solid #000000;
+  padding-top: 15pt;
+}
+
+.fecha-juridica {
+  text-align: justify;
+  margin-bottom: 60pt; /* Espacio para firma física */
+  text-indent: 1.27cm;
+}
+
+.espacio-firma {
+  height: 60pt;
+  margin-bottom: 10pt;
+}
+
+.firma {
+  text-align: center;
+  border-top: 1pt solid #000000;
+  width: 60%;
+  margin: 0 auto;
+  padding-top: 5pt;
+}
+
+.firma-nombre {
+  font-weight: bold;
+  margin-bottom: 3pt;
+}
+
+.firma-cargo {
+  font-style: italic;
+  margin-bottom: 3pt;
+}
+
+.firma-matricula {
+  font-size: 11pt;
+}
+
+/* ============================================================
+   SEPARADORES VISUALES
+   ============================================================ */
+
+.separador {
+  border-bottom: 1pt solid #000000;
+  margin: 15pt 0;
+  height: 0;
+}
+
+.separador-doble {
+  border-bottom: 2pt double #000000;
+  margin: 20pt 0;
+  height: 0;
+}
+
+.separador-con-simbolo {
+  text-align: center;
+  margin: 15pt 0;
+  position: relative;
+}
+
+.separador-con-simbolo::before {
+  content: "◆";
+  background-color: #ffffff;
+  padding: 0 10pt;
+  position: relative;
+  z-index: 1;
+}
+
+.separador-con-simbolo::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  border-bottom: 1pt solid #000000;
+  z-index: 0;
+}
+
+/* ============================================================
+   LISTAS Y NUMERACIÓN
+   ============================================================ */
+
+.lista-romana {
+  list-style-type: upper-roman;
+  margin-left: 2cm;
+  margin-bottom: 12pt;
+}
+
+.lista-alfabetica {
+  list-style-type: upper-alpha;
+  margin-left: 2.5cm;
+  margin-bottom: 12pt;
+}
+
+.lista-numerica {
+  list-style-type: decimal;
+  margin-left: 2.5cm;
+  margin-bottom: 12pt;
+}
+
+.lista-item {
+  margin-bottom: 8pt;
+  text-align: justify;
+}
+
+/* ============================================================
+   ÉNFASIS TIPOGRÁFICO
+   ============================================================ */
+
+.negrita {
+  font-weight: bold;
+}
+
+.cursiva {
+  font-style: italic;
+}
+
+.mayusculas {
+  text-transform: uppercase;
+}
+
+.subrayado {
+  text-decoration: underline;
+}
+
+.centrado {
+  text-align: center;
+}
+
+.derecha {
+  text-align: right;
+}
+
+.izquierda {
+  text-align: left;
+}
+
+/* ============================================================
+   CITAS Y REFERENCIAS
+   ============================================================ */
+
+.cita-textual {
+  margin-left: 2cm;
+  margin-right: 2cm;
+  margin-bottom: 12pt;
+  font-style: italic;
+  border-left: 2pt solid #000000;
+  padding-left: 10pt;
+  text-indent: 0;
+}
+
+.referencia-legal {
+  font-weight: bold;
+}
+
+.termino-latin {
+  font-style: italic;
+}
+
+/* ============================================================
+   TABLAS (PARA DATOS ESTRUCTURADOS)
+   ============================================================ */
+
+.tabla-datos {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 15pt;
+}
+
+.tabla-datos th {
+  background-color: #f0f0f0;
+  border: 1pt solid #000000;
+  padding: 8pt;
+  text-align: left;
+  font-weight: bold;
+}
+
+.tabla-datos td {
+  border: 1pt solid #000000;
+  padding: 8pt;
+  text-align: left;
+}
+
+/* ============================================================
+   NOTAS AL PIE
+   ============================================================ */
+
+.nota-pie {
+  font-size: 10pt;
+  margin-top: 30pt;
+  border-top: 1pt solid #000000;
+  padding-top: 10pt;
+}
+
+.nota-pie-numero {
+  vertical-align: super;
+  font-size: 9pt;
+}
+
+/* ============================================================
+   UTILIDADES
+   ============================================================ */
+
+.espacio-pequeno {
+  margin-bottom: 6pt;
+}
+
+.espacio-mediano {
+  margin-bottom: 12pt;
+}
+
+.espacio-grande {
+  margin-bottom: 20pt;
+}
+
+.sin-margen {
+  margin: 0;
+}
+
+.sin-sangria {
+  text-indent: 0;
+}
+
+.sangria-francesa {
+  text-indent: -1.27cm;
+  padding-left: 1.27cm;
+}
+
+/* ============================================================
+   CLASES ESPECÍFICAS POR TIPO DE ACTO
+   ============================================================ */
+
+/* EMPLAZAMIENTO */
+.emplazamiento-actuacion {
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.emplazamiento-citacion {
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.emplazamiento-advertencia {
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+/* QUERELLA PENAL */
+.querella-infraccion {
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.querella-calificacion {
+  margin-left: 1.5cm;
+  margin-bottom: 12pt;
+}
+
+/* CONTRATO */
+.contrato-clausula {
+  margin-bottom: 15pt;
+}
+
+.contrato-clausula-titulo {
+  font-weight: bold;
+  text-transform: uppercase;
+  margin-bottom: 5pt;
+}
+
+/* ============================================================
+   RESPONSIVE (PARA VISTA PREVIA EN PANTALLA)
+   ============================================================ */
+
+@media screen and (max-width: 768px) {
+  body {
+    padding: 1cm;
+    font-size: 11pt;
+  }
+  
+  .acto-titulo {
+    font-size: 13pt;
+  }
+  
+  .datos-parte {
+    margin-left: 1cm;
+  }
+  
+  .conclusion {
+    margin-left: 1cm;
+  }
+}
+
+/* ============================================================
+   MODO OSCURO (OPCIONAL, SOLO PARA VISTA PREVIA)
+   ============================================================ */
+
+@media (prefers-color-scheme: dark) {
+  body.preview-mode {
+    background-color: #1a1a1a;
+    color: #e0e0e0;
+  }
+  
+  body.preview-mode .acto-titulo,
+  body.preview-mode .seccion-titulo,
+  body.preview-mode .separador,
+  body.preview-mode .separador-doble {
+    border-color: #666666;
+  }
+}
+
+/* ============================================================
+   FIN DE ESTILOS
+   ============================================================ */
+
