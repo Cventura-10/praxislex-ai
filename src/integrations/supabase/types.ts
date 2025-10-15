@@ -2707,6 +2707,10 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: string
       }
+      get_user_tenant_ids: {
+        Args: { p_user_id: string }
+        Returns: string[]
+      }
       has_admin_verification: {
         Args: { _user_id: string }
         Returns: boolean
@@ -2817,6 +2821,10 @@ export type Database = {
           tribunal: string
           url_fuente: string
         }[]
+      }
+      user_belongs_to_tenant: {
+        Args: { p_tenant_id: string; p_user_id: string }
+        Returns: boolean
       }
       user_can_access_client: {
         Args: { p_client_id: string; p_user_id: string }
