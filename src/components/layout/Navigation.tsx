@@ -18,6 +18,7 @@ import {
   FileStack,
   UserCog,
   MessageSquare,
+  Video,
 } from "lucide-react";
 
 const navItems = [
@@ -27,6 +28,7 @@ const navItems = [
   { href: "/abogados", icon: UserCog, label: "Gestión de Profesionales" },
   { href: "/mensajes", icon: MessageSquare, label: "Mensajes Clientes" },
   { href: "/audiencias", icon: Calendar, label: "Audiencias" },
+  { href: "/sala-virtual", icon: Video, label: "Sala Virtual" },
   { href: "/documentos", icon: FileText, label: "Documentos" },
   { href: "/generador-actos", icon: FileStack, label: "Generador de Actos" },
   { href: "/asistente-ia", icon: Bot, label: "Asistente IA" },

@@ -2524,6 +2524,87 @@ export type Database = {
         }
         Relationships: []
       }
+      video_sessions: {
+        Row: {
+          case_id: string | null
+          client_id: string | null
+          created_at: string
+          duration_minutes: number
+          id: string
+          meeting_link: string
+          notes: string | null
+          scheduled_at: string
+          status: string
+          tenant_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          case_id?: string | null
+          client_id?: string | null
+          created_at?: string
+          duration_minutes?: number
+          id?: string
+          meeting_link: string
+          notes?: string | null
+          scheduled_at: string
+          status?: string
+          tenant_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          case_id?: string | null
+          client_id?: string | null
+          created_at?: string
+          duration_minutes?: number
+          id?: string
+          meeting_link?: string
+          notes?: string | null
+          scheduled_at?: string
+          status?: string
+          tenant_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_sessions_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_sessions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "client_portal_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_sessions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_sessions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "current_user_tenant"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_sessions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       client_portal_view: {

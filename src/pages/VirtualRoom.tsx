@@ -85,12 +85,12 @@ export default function VirtualRoom() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Cargar sesiones
+      // Cargar sesiones - usando any temporalmente hasta que TypeScript se actualice
       const { data: sessionsData, error: sessionsError } = await supabase
         .from('video_sessions')
         .select('*')
         .eq('user_id', user!.id)
-        .order('scheduled_at', { ascending: false });
+        .order('scheduled_at', { ascending: false }) as { data: any[], error: any };
 
       if (sessionsError) throw sessionsError;
       setSessions(sessionsData || []);
@@ -151,11 +151,11 @@ export default function VirtualRoom() {
           notes: newSession.notes || null
         }])
         .select()
-        .single();
+        .single() as { data: any, error: any };
 
       if (error) throw error;
 
-      setSessions([data, ...sessions]);
+      setSessions([data, ...sessions] as VideoSession[]);
       
       // Enviar email al cliente
       const selectedClient = clients.find(c => c.id === newSession.client_id);

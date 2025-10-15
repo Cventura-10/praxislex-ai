@@ -52,6 +52,7 @@ const LegalActWizard = lazy(() => import("./pages/LegalActWizard"));
 const SecurityShowcase = lazy(() => import("./pages/SecurityShowcase"));
 const LawyersAdmin = lazy(() => import("./pages/LawyersAdmin"));
 const ClientMessages = lazy(() => import("./pages/ClientMessages"));
+const VirtualRoom = lazy(() => import("./pages/VirtualRoom"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // React Query Error Fallback
@@ -136,6 +137,7 @@ const App = () => (
                                 <Route path="/redaccion-ia" element={<LegalActWizard />} />
                                 <Route path="/abogados" element={<LawyersAdmin />} />
                                 <Route path="/mensajes" element={<ClientMessages />} />
+                                <Route path="/sala-virtual" element={<VirtualRoom />} />
                                 <Route path="/security-showcase" element={<SecurityShowcase />} />
                                 <Route path="*" element={<NotFound />} />
                               </Routes>
