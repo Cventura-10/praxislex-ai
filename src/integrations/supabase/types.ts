@@ -1953,6 +1953,36 @@ export type Database = {
         }
         Relationships: []
       }
+      pii_access_violations: {
+        Row: {
+          blocked_until: string | null
+          created_at: string
+          first_violation_at: string
+          id: string
+          last_violation_at: string
+          user_id: string
+          violation_count: number
+        }
+        Insert: {
+          blocked_until?: string | null
+          created_at?: string
+          first_violation_at?: string
+          id?: string
+          last_violation_at?: string
+          user_id: string
+          violation_count?: number
+        }
+        Update: {
+          blocked_until?: string | null
+          created_at?: string
+          first_violation_at?: string
+          id?: string
+          last_violation_at?: string
+          user_id?: string
+          violation_count?: number
+        }
+        Relationships: []
+      }
       plazos_procesales: {
         Row: {
           alerta_enviada: boolean | null
