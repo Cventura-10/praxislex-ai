@@ -26,6 +26,7 @@ import { AlertCircle, RotateCcw } from "lucide-react";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import InvitationAccept from "./pages/InvitationAccept";
+import LegalActWizard from "./pages/LegalActWizard";
 
 // Lazy load all other routes for better performance
 const Cases = lazy(() => import("./pages/Cases"));
@@ -48,7 +49,6 @@ const Security = lazy(() => import("./pages/Security"));
 const Analytics = lazy(() => import("./pages/Analytics"));
 const LegalModels = lazy(() => import("./pages/LegalModels"));
 const LegalActsGenerator = lazy(() => import("./pages/LegalActsGenerator"));
-const LegalActWizard = lazy(() => import("./pages/LegalActWizard"));
 const SecurityShowcase = lazy(() => import("./pages/SecurityShowcase"));
 const LawyersAdmin = lazy(() => import("./pages/LawyersAdmin"));
 const ClientMessages = lazy(() => import("./pages/ClientMessages"));
