@@ -59,7 +59,7 @@ const civilJudicialActs: LegalAct[] = [
 
 const penalJudicialActs: LegalAct[] = [
   // ESCRITOS/INSTANCIAS (NO son actos de alguacil)
-  { id: 'querella_actor_civil', name: 'Querella con Constitución Actor Civil', type: 'judicial', hasIntake: true, hasManual: true },
+  { id: 'querella_penal', name: 'Querella con Constitución Actor Civil', type: 'judicial', hasIntake: true, hasManual: true },
   { id: 'querella_simple', name: 'Querella Simple', type: 'judicial', hasIntake: true, hasManual: true },
   { id: 'denuncia', name: 'Denuncia', type: 'judicial', hasIntake: true, hasManual: true },
   

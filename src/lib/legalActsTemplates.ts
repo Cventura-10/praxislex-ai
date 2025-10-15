@@ -206,13 +206,86 @@ export const CARTA_COBRANZA_TEMPLATE: LegalActTemplate = {
 };
 
 // ============================================
+// EMPLAZAMIENTO (Acto de notificación pura)
+// CRÍTICO: NO incluye relato fáctico ni fundamentos
+// ============================================
+
+export const EMPLAZAMIENTO_TEMPLATE: LegalActTemplate = {
+  actId: 'emplazamiento',
+  templateKind: 'procesal_alguacil',
+  fields: [
+    { id: 'numero_acto', label: 'Número de Acto', type: 'text', required: true },
+    { id: 'fecha_actuacion', label: 'Fecha de Actuación', type: 'date', required: true },
+    { id: 'alguacil_nombre', label: 'Nombre del Alguacil', type: 'text', required: true },
+    { id: 'alguacil_cedula', label: 'Cédula del Alguacil', type: 'text', required: true },
+    { id: 'alguacil_tribunal', label: 'Tribunal del Alguacil', type: 'text', required: true },
+    { id: 'requeriente_nombre', label: 'Nombre del Requeriente', type: 'text', required: true },
+    { id: 'requeriente_cedula', label: 'Cédula del Requeriente', type: 'text', required: true },
+    { id: 'requeriente_domicilio', label: 'Domicilio del Requeriente', type: 'textarea', required: true },
+    { id: 'abogado_nombre', label: 'Nombre del Abogado', type: 'text', required: true },
+    { id: 'abogado_estudio', label: 'Dirección del Estudio', type: 'textarea', required: true },
+    { id: 'emplazado_nombre', label: 'Nombre del Emplazado', type: 'text', required: true },
+    { id: 'emplazado_domicilio', label: 'Domicilio del Emplazado', type: 'textarea', required: true },
+    { id: 'tribunal_nombre', label: 'Tribunal', type: 'text', required: true },
+    { id: 'audiencia_fecha', label: 'Fecha de Audiencia', type: 'date', required: true },
+    { id: 'audiencia_hora', label: 'Hora de Audiencia', type: 'text', required: true },
+    { id: 'objeto_demanda', label: 'Objeto de la Demanda (breve)', type: 'textarea', required: true, helpText: 'Máximo 200 caracteres' },
+  ]
+};
+
+// ============================================
+// QUERELLA PENAL (Escrito de depósito)
+// CRÍTICO: NO es acto de alguacil
+// ============================================
+
+export const QUERELLA_PENAL_TEMPLATE: LegalActTemplate = {
+  actId: 'querella_penal',
+  templateKind: 'procesal_conclusion',
+  fields: [
+    { id: 'tribunal_nombre', label: 'Tribunal', type: 'text', required: true },
+    { id: 'numero_expediente', label: 'Número de Expediente (si existe)', type: 'text', required: false },
+    { id: 'querellante_nombre', label: 'Nombre del Querellante', type: 'text', required: true },
+    { id: 'querellante_cedula', label: 'Cédula del Querellante', type: 'text', required: true },
+    { id: 'querellante_domicilio', label: 'Domicilio del Querellante', type: 'textarea', required: true },
+    { id: 'imputado_nombre', label: 'Nombre del Imputado', type: 'text', required: true },
+    { id: 'imputado_cedula', label: 'Cédula del Imputado (si se conoce)', type: 'text', required: false },
+    { id: 'relato_hechos', label: 'Relato de los Hechos', type: 'textarea', required: true },
+    { id: 'calificacion_juridica', label: 'Calificación Jurídica (Infracción Penal)', type: 'textarea', required: true },
+    { id: 'pruebas', label: 'Pruebas', type: 'textarea', required: true },
+    { id: 'constitucion_actor_civil', label: 'Constitución en Actor Civil', type: 'textarea', required: false },
+    { id: 'petitorio', label: 'Petitorio', type: 'textarea', required: true },
+  ]
+};
+
+// ============================================
+// INVENTARIO DE DOCUMENTOS
+// ============================================
+
+export const INVENTARIO_DOCUMENTOS_TEMPLATE: LegalActTemplate = {
+  actId: 'inventario_documentos',
+  templateKind: 'procesal_conclusion',
+  fields: [
+    { id: 'tribunal_nombre', label: 'Tribunal', type: 'text', required: true },
+    { id: 'numero_expediente', label: 'Número de Expediente', type: 'text', required: true },
+    { id: 'depositante_nombre', label: 'Nombre del Depositante', type: 'text', required: true },
+    { id: 'depositante_calidad', label: 'Calidad (Demandante/Demandado/Interventor)', type: 'text', required: true },
+    { id: 'abogado_nombre', label: 'Nombre del Abogado', type: 'text', required: true },
+    { id: 'documentos', label: 'Lista de Documentos (uno por línea)', type: 'textarea', required: true },
+  ]
+};
+
+// ============================================
 // REGISTRO DE PLANTILLAS
 // ============================================
 
 export const TEMPLATES_REGISTRY: Record<string, LegalActTemplate> = {
   'demanda_civil': DEMANDA_CIVIL_TEMPLATE,
+  'emplazamiento': EMPLAZAMIENTO_TEMPLATE,
+  'querella_penal': QUERELLA_PENAL_TEMPLATE,
+  'inventario_documentos': INVENTARIO_DOCUMENTOS_TEMPLATE,
   'conclusiones': CONCLUSIONES_TEMPLATE,
   'contrato_venta': CONTRATO_VENTA_TEMPLATE,
+  'contrato_compraventa': CONTRATO_VENTA_TEMPLATE, // Alias
   'carta_cobranza': CARTA_COBRANZA_TEMPLATE,
 };
 

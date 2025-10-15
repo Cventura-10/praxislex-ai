@@ -332,10 +332,72 @@ serve(async (req) => {
     const esJudicial = actosJudiciales.includes(tipo_documento);
     const esExtrajudicial = actosExtrajudiciales.includes(tipo_documento);
 
+    // MANDATOS DE CORRECCIÓN por tipo de acto
+    const mandatos: Record<string, string> = {
+      'emplazamiento': `
+⚠️ MANDATO CRÍTICO: EMPLAZAMIENTO PURO (Acto de Notificación)
+
+ESTRUCTURA OBLIGATORIA (solo estas secciones):
+1. Encabezado del Alguacil: Designación, juramentación, cédula, tribunal
+2. Actuando a Requerimiento: Datos del requeriente y abogado con domicilio procesal
+3. Proceso Verbal de Traslado: Lugar, fecha, hora, persona que recibe
+4. Notificación y Citación (Avenir): Objeto breve de la demanda, tribunal, fecha/hora audiencia
+5. Advertencia de Defecto: Consecuencias de no comparecer
+6. Cierre del Alguacil: Certificación, firma
+
+⛔ PROHIBIDO INCLUIR:
+- Relato fáctico detallado
+- Fundamentos de derecho
+- Tesis jurídica
+- Petitorio con dispositivos
+
+✅ LONGITUD MÁXIMA: 2 páginas
+`,
+      'querella_penal': `
+⚠️ MANDATO CRÍTICO: QUERELLA PENAL (Escrito de Depósito)
+
+⛔ NO ES ACTO DE ALGUACIL - NO incluir designación de alguacil ni proceso verbal de traslado
+
+ESTRUCTURA:
+1. Tribunal penal competente
+2. QUERELLANTE (no demandante), IMPUTADO (no demandado)
+3. Relato de Hechos: Cronología de la infracción penal
+4. Calificación Jurídica: INFRACCIÓN PENAL (artículos del Código Penal)
+5. Pruebas
+6. Constitución en Actor Civil
+7. Petitorio
+
+✅ TERMINOLOGÍA PENAL: Querellante, Imputado, Infracción
+`,
+      'inventario_documentos': `
+MANDATO: INVENTARIO DE DOCUMENTOS
+
+ESTRUCTURA:
+1. Tribunal y Expediente
+2. Calidad del Depositante (Demandante/Demandado/Interventor)
+3. Abogado constituido
+4. Lista numerada de documentos
+5. Fecha y firma
+`,
+      'contrato_compraventa': `
+MANDATO: CONTRATO PRIVADO
+
+⛔ TERMINOLOGÍA PROHIBIDA: Tribunal, Demandante, Demandado, Emplazamiento
+✅ USAR: Vendedor, Comprador, Partes Contratantes
+
+ESTRUCTURA: Partes → Preámbulo (POR CUANTO) → Articulado → Firmas
+`
+    };
+
     let systemPrompt = '';
+
+    // Aplicar mandato específico si existe
+    const mandatoEspecifico = mandatos[tipo_documento] || '';
 
     if (esJudicial) {
       systemPrompt = `Eres un asistente jurídico experto especializado en República Dominicana.
+
+${mandatoEspecifico ? `${mandatoEspecifico}\n\n` : ''}
 
 CARÁTULA DE LA FIRMA:
 ${firmaNombre}${rncFirma ? ` - RNC: ${rncFirma}` : ''}
