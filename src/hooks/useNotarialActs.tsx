@@ -64,9 +64,21 @@ export function useNotarialActs() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No autenticado");
 
+      // Obtener tenant_id del usuario
+      const { data: tenantData } = await supabase
+        .from("current_user_tenant")
+        .select("id")
+        .single();
+      
+      if (!tenantData) throw new Error("No se encontró el tenant del usuario");
+
       const { data, error } = await supabase
         .from("notarial_acts")
-        .insert([{ ...act, user_id: user.id } as any])
+        .insert([{ 
+          ...act, 
+          user_id: user.id,
+          tenant_id: tenantData.id 
+        } as any])
         .select()
         .single();
       
