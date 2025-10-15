@@ -8,39 +8,43 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileText, Plus, Search, FileSignature, Stamp, ScrollText } from "lucide-react";
 import { useNotarialActs } from "@/hooks/useNotarialActs";
-import { usePermissions } from "@/hooks/usePermissions";
+import { useTenant } from "@/hooks/useTenant";
 import { getNotarialTemplatesByType, NOTARIAL_TEMPLATES_REGISTRY } from "@/lib/notarialTemplates";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
 export default function NotarialActs() {
   const { acts, loading } = useNotarialActs();
-  const { canAccessNotarialActs, loading: permissionsLoading } = usePermissions();
+  const { isPro, isEnterprise, isLoading: tenantLoading } = useTenant();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState<"all" | "autentico" | "firma_privada" | "declaracion_unilateral">("all");
 
-  if (permissionsLoading) {
+  if (tenantLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Verificando permisos...</p>
+          <p className="text-muted-foreground">Cargando...</p>
         </div>
       </div>
     );
   }
 
-  if (!canAccessNotarialActs) {
+  if (!isPro && !isEnterprise) {
     return (
       <div className="container mx-auto py-8">
         <Card className="border-destructive">
           <CardHeader>
             <CardTitle className="text-destructive">Acceso Denegado</CardTitle>
             <CardDescription>
-              No tiene permisos para acceder al módulo de actos notariales.
-              Contacte al administrador del sistema.
+              El módulo de actos notariales requiere un plan Pro o Enterprise.
             </CardDescription>
           </CardHeader>
+          <CardContent>
+            <Button onClick={() => window.location.href = '/upgrade'}>
+              Actualizar Plan
+            </Button>
+          </CardContent>
         </Card>
       </div>
     );
