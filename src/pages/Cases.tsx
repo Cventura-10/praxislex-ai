@@ -34,6 +34,14 @@ import { Label } from "@/components/ui/label";
 import { CaseStatusBadge } from "@/components/cases/CaseStatusBadge";
 import { Plus, Search, Filter, Download, Eye, Edit, Trash2, ArrowLeft } from "lucide-react";
 import { MATERIAS_JURIDICAS, ETAPAS_PROCESALES, TIPOS_ACCION_LEGAL } from "@/lib/constants";
+import { 
+  TODAS_MATERIAS, 
+  ACCIONES_POR_MATERIA, 
+  TIPOS_JUZGADOS, 
+  ETAPAS_PROCESALES_DETALLADAS,
+  getAccionesPorMateria 
+} from "@/lib/judicialData";
+import { Combobox } from "@/components/ui/combobox";
 import { useToast } from "@/hooks/use-toast";
 import { useLawyers } from "@/hooks/useLawyers";
 
@@ -73,6 +81,7 @@ const Cases = () => {
   const [newCase, setNewCase] = useState({
     numero_expediente: "", // Will be auto-generated if empty
     titulo: "",
+    tipo_accion: "", // NEW: Para lógica condicional
     materia: "",
     juzgado: "",
     etapa_procesal: "",
@@ -81,6 +90,9 @@ const Cases = () => {
     client_id: "",
     descripcion: "",
   });
+
+  // Acciones disponibles según materia seleccionada (Lógica Condicional)
+  const accionesDisponibles = newCase.materia ? getAccionesPorMateria(newCase.materia) : [];
 
   useEffect(() => {
     fetchCases();
@@ -198,6 +210,7 @@ const Cases = () => {
       setNewCase({
         numero_expediente: "",
         titulo: "",
+        tipo_accion: "",
         materia: "",
         juzgado: "",
         etapa_procesal: "",
@@ -348,130 +361,221 @@ const Cases = () => {
               Nuevo caso
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Crear Nuevo Caso</DialogTitle>
-              <DialogDescription>Complete los datos del nuevo caso legal</DialogDescription>
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-background">
+            <DialogHeader className="border-b pb-4">
+              <DialogTitle className="text-2xl font-semibold">Crear Nuevo Caso</DialogTitle>
+              <DialogDescription className="text-base">
+                Complete los datos del nuevo expediente legal. Los campos marcados con * son obligatorios.
+              </DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="numero_expediente">Número de Expediente (Opcional - Se genera automáticamente)</Label>
-                <Input
-                  id="numero_expediente"
-                  value={newCase.numero_expediente}
-                  onChange={(e) => setNewCase({ ...newCase, numero_expediente: e.target.value })}
-                  placeholder="Dejar vacío para generar automáticamente"
-                />
-                <p className="text-xs text-muted-foreground">Si se deja vacío, se generará automáticamente con formato CASO-YYYY-NNNN</p>
+            
+            <div className="grid gap-6 py-6">
+              {/* Información Básica */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium border-b pb-2">Información Básica</h3>
+                
+                <div className="grid gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="numero_expediente" className="text-sm font-medium">
+                      Número de Expediente <span className="text-muted-foreground font-normal">(Opcional)</span>
+                    </Label>
+                    <Input
+                      id="numero_expediente"
+                      value={newCase.numero_expediente}
+                      onChange={(e) => setNewCase({ ...newCase, numero_expediente: e.target.value })}
+                      placeholder="Dejar vacío para generar automáticamente"
+                      className="h-11"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Se generará automáticamente con formato CASO-YYYY-NNNN
+                    </p>
+                  </div>
+
+                  <div className="grid gap-2">
+                    <Label htmlFor="client_id" className="text-sm font-medium">Cliente</Label>
+                    <Select 
+                      value={newCase.client_id} 
+                      onValueChange={(value) => setNewCase({ ...newCase, client_id: value })}
+                    >
+                      <SelectTrigger className="h-11 bg-background">
+                        <SelectValue placeholder="Seleccionar cliente" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-background">
+                        {clients.map((client) => (
+                          <SelectItem key={client.id} value={client.id}>
+                            {client.nombre_completo}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="tipo_accion">Tipo de Acción (Opcional)</Label>
-                <Select value="" onValueChange={(value) => setNewCase({ ...newCase, titulo: value })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar una acción predefinida..." />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-[300px]">
-                    {TIPOS_ACCION_LEGAL.map((accion) => (
-                      <SelectItem key={accion.value} value={accion.label}>
-                        {accion.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+
+              {/* Clasificación Legal */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium border-b pb-2">Clasificación Legal</h3>
+                
+                <div className="grid gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="materia" className="text-sm font-medium">
+                      Materia <span className="text-destructive">*</span>
+                    </Label>
+                    <Combobox
+                      options={TODAS_MATERIAS}
+                      value={newCase.materia}
+                      onValueChange={(value) => setNewCase({ 
+                        ...newCase, 
+                        materia: value,
+                        tipo_accion: "", // Reset tipo_accion cuando cambia materia
+                        titulo: "" // Reset titulo también
+                      })}
+                      placeholder="Seleccionar materia..."
+                      searchPlaceholder="Buscar materia..."
+                      emptyMessage="No se encontró ninguna materia."
+                      className="h-11"
+                    />
+                  </div>
+
+                  {/* LÓGICA CONDICIONAL: Solo mostrar si hay materia seleccionada */}
+                  {newCase.materia && accionesDisponibles.length > 0 && (
+                    <div className="grid gap-2">
+                      <Label htmlFor="tipo_accion" className="text-sm font-medium">
+                        Tipo de Acción
+                      </Label>
+                      <Combobox
+                        options={accionesDisponibles}
+                        value={newCase.tipo_accion}
+                        onValueChange={(value) => {
+                          const selectedAction = accionesDisponibles.find(a => a.value === value);
+                          setNewCase({ 
+                            ...newCase, 
+                            tipo_accion: value,
+                            titulo: selectedAction?.label || newCase.titulo
+                          });
+                        }}
+                        placeholder="Seleccionar tipo de acción..."
+                        searchPlaceholder="Buscar acción..."
+                        emptyMessage="No se encontró ninguna acción."
+                        className="h-11"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Mostrando {accionesDisponibles.length} acciones disponibles para {TODAS_MATERIAS.find(m => m.value === newCase.materia)?.label}
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="grid gap-2">
+                    <Label htmlFor="titulo" className="text-sm font-medium">
+                      Título del Caso <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      id="titulo"
+                      value={newCase.titulo}
+                      onChange={(e) => setNewCase({ ...newCase, titulo: e.target.value })}
+                      placeholder="Ej: Demanda de Desalojo"
+                      className="h-11"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Se completa automáticamente al seleccionar una acción
+                    </p>
+                  </div>
+                </div>
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="titulo">Título del Caso * (o escriba uno personalizado)</Label>
-                <Input
-                  id="titulo"
-                  value={newCase.titulo}
-                  onChange={(e) => setNewCase({ ...newCase, titulo: e.target.value })}
-                  placeholder="Ej: Demanda de Desalojo o seleccione una acción arriba"
-                />
+
+              {/* Información Procesal */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium border-b pb-2">Información Procesal</h3>
+                
+                <div className="grid gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="juzgado" className="text-sm font-medium">
+                      Juzgado / Tribunal
+                    </Label>
+                    <Combobox
+                      options={TIPOS_JUZGADOS}
+                      value={newCase.juzgado}
+                      onValueChange={(value) => setNewCase({ ...newCase, juzgado: value })}
+                      placeholder="Seleccionar juzgado..."
+                      searchPlaceholder="Buscar juzgado... (ej: 'Tribunal de')"
+                      emptyMessage="No se encontró ningún juzgado."
+                      className="h-11"
+                    />
+                  </div>
+
+                  <div className="grid gap-2">
+                    <Label htmlFor="etapa_procesal" className="text-sm font-medium">
+                      Etapa Procesal
+                    </Label>
+                    <Combobox
+                      options={ETAPAS_PROCESALES_DETALLADAS}
+                      value={newCase.etapa_procesal}
+                      onValueChange={(value) => setNewCase({ ...newCase, etapa_procesal: value })}
+                      placeholder="Seleccionar etapa..."
+                      searchPlaceholder="Buscar etapa..."
+                      emptyMessage="No se encontró ninguna etapa."
+                      className="h-11"
+                    />
+                  </div>
+                </div>
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="client_id">Cliente</Label>
-                <Select value={newCase.client_id} onValueChange={(value) => setNewCase({ ...newCase, client_id: value })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar cliente" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {clients.map((client) => (
-                      <SelectItem key={client.id} value={client.id}>
-                        {client.nombre_completo}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="materia">Materia *</Label>
-                <Select value={newCase.materia} onValueChange={(value) => setNewCase({ ...newCase, materia: value })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar materia" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {MATERIAS_JURIDICAS.map((materia) => (
-                      <SelectItem key={materia.value} value={materia.value}>
-                        {materia.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="juzgado">Juzgado</Label>
-                <Input
-                  id="juzgado"
-                  value={newCase.juzgado}
-                  onChange={(e) => setNewCase({ ...newCase, juzgado: e.target.value })}
-                  placeholder="Ej: 1ra Cámara Civil"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="etapa_procesal">Etapa Procesal</Label>
-                <Select value={newCase.etapa_procesal} onValueChange={(value) => setNewCase({ ...newCase, etapa_procesal: value })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar etapa" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ETAPAS_PROCESALES.map((etapa) => (
-                      <SelectItem key={etapa.value} value={etapa.value}>
-                        {etapa.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="lawyer_id">Abogado Responsable</Label>
-                <Select value={newCase.lawyer_id} onValueChange={(value) => setNewCase({ ...newCase, lawyer_id: value, responsable: lawyers.find(l => l.id === value)?.nombre || "" })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar abogado" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {lawyers.map((lawyer) => (
-                      <SelectItem key={lawyer.id} value={lawyer.id}>
-                        {lawyer.nombre} - {lawyer.rol}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Input
-                  id="responsable_manual"
-                  value={newCase.responsable}
-                  onChange={(e) => setNewCase({ ...newCase, responsable: e.target.value })}
-                  placeholder="O escribir nombre manualmente..."
-                  className="mt-2"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="descripcion">Descripción</Label>
-                <Input
-                  id="descripcion"
-                  value={newCase.descripcion}
-                  onChange={(e) => setNewCase({ ...newCase, descripcion: e.target.value })}
-                  placeholder="Descripción del caso"
-                />
+
+              {/* Responsables */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium border-b pb-2">Responsables</h3>
+                
+                <div className="grid gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="lawyer_id" className="text-sm font-medium">
+                      Abogado Responsable
+                    </Label>
+                    <Select 
+                      value={newCase.lawyer_id} 
+                      onValueChange={(value) => setNewCase({ 
+                        ...newCase, 
+                        lawyer_id: value, 
+                        responsable: lawyers.find(l => l.id === value)?.nombre || "" 
+                      })}
+                    >
+                      <SelectTrigger className="h-11 bg-background">
+                        <SelectValue placeholder="Seleccionar abogado" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-background">
+                        {lawyers.map((lawyer) => (
+                          <SelectItem key={lawyer.id} value={lawyer.id}>
+                            {lawyer.nombre} - {lawyer.rol}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="grid gap-2">
+                    <Label htmlFor="responsable_manual" className="text-sm font-medium">
+                      O escribir nombre manualmente
+                    </Label>
+                    <Input
+                      id="responsable_manual"
+                      value={newCase.responsable}
+                      onChange={(e) => setNewCase({ ...newCase, responsable: e.target.value })}
+                      placeholder="Ej: Dra. María González"
+                      className="h-11"
+                    />
+                  </div>
+
+                  <div className="grid gap-2">
+                    <Label htmlFor="descripcion" className="text-sm font-medium">
+                      Descripción / Notas
+                    </Label>
+                    <Input
+                      id="descripcion"
+                      value={newCase.descripcion}
+                      onChange={(e) => setNewCase({ ...newCase, descripcion: e.target.value })}
+                      placeholder="Detalles adicionales del caso"
+                      className="h-11"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
             <div className="flex justify-end gap-2">

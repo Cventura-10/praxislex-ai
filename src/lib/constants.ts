@@ -1,18 +1,25 @@
-// Materias jurídicas en República Dominicana
+// NOTA: Materias actualizadas - usar src/lib/judicialData.ts para datos completos del sistema judicial
 export const MATERIAS_JURIDICAS = [
-  { value: "civil", label: "Civil" },
+  { value: "civil_comercial", label: "Civil y Comercial" },
   { value: "penal", label: "Penal" },
-  { value: "trabajo", label: "Trabajo" },
+  { value: "laboral", label: "Laboral" },
+  { value: "administrativo", label: "Administrativo" },
+  { value: "inmobiliaria_tierras", label: "Inmobiliaria y Tierras" },
+  { value: "juzgado_paz", label: "Juzgado de Paz (Competencia Ampliada)" },
+  { value: "municipal_ambiental", label: "Municipal y Ambiental" },
+  { value: "notarial_corporativo", label: "Derecho Notarial y Corporativo" },
+  { value: "mediacion_conciliacion", label: "Manejo de Conflictos (Mediación/Conciliación)" },
+  // Mantener para compatibilidad
+  { value: "civil", label: "Civil" },
   { value: "comercial", label: "Comercial" },
+  { value: "trabajo", label: "Trabajo" },
   { value: "inmobiliaria", label: "Inmobiliaria" },
-  { value: "administrativo", label: "Contencioso Administrativo" },
   { value: "tributario", label: "Contencioso Tributario" },
   { value: "reestructuracion", label: "Reestructuración" },
   { value: "familia", label: "Asuntos de Familia" },
   { value: "electoral", label: "Electoral" },
   { value: "penal_laboral", label: "Penal-Laboral" },
   { value: "municipal", label: "Municipal" },
-  { value: "laboral", label: "Laboral" },
   { value: "tierras", label: "Tierras" },
   { value: "nna", label: "Niños, Niñas y Adolescentes" },
   { value: "transito", label: "Tránsito" },
@@ -156,8 +163,16 @@ export const ORGANOS_JUDICIALES = [
   { value: "camara_penal", label: "Cámara Penal" },
 ] as const;
 
-// Etapas procesales
+// Etapas procesales - Usar src/lib/judicialData.ts para versión detallada
 export const ETAPAS_PROCESALES = [
+  { value: "fase_inicial", label: "Fase Inicial (Intake y Análisis)" },
+  { value: "fase_traslado", label: "Fase de Traslado/Emplazamiento" },
+  { value: "fase_conciliacion", label: "Fase de Conciliación/Instrucción" },
+  { value: "fase_fondo", label: "Fase de Fondo (Audiencias/Pruebas)" },
+  { value: "fase_recursos", label: "Fase de Recursos (Apelación/Casación)" },
+  { value: "fase_ejecucion", label: "Fase de Ejecución" },
+  { value: "caso_concluido", label: "Caso Concluido (Sentencia Definitiva)" },
+  // Mantener para compatibilidad
   { value: "demanda", label: "Demanda" },
   { value: "primera_audiencia", label: "Primera Audiencia" },
   { value: "comunicacion_documento", label: "Comunicación Documento" },
