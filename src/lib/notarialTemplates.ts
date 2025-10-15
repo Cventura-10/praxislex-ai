@@ -241,6 +241,272 @@ export const TESTAMENTO_AUTENTICO: NotarialActTemplate = {
 };
 
 // ============================================
+// NUEVAS PLANTILLAS - EXPANSIÓN NOTARIAL
+// ============================================
+
+// 1. ACTA DE COMPROBACIÓN NOTARIAL (Levantamiento de hechos)
+export const ACTA_COMPROBACION: NotarialActTemplate = {
+  actId: 'acta_comprobacion_notarial',
+  tipo_acto: 'autentico',
+  titulo: 'Acta de Comprobación Notarial',
+  descripcion: 'Levantamiento de hechos y comprobación de circunstancias por el notario',
+  requiere_testigos: false,
+  fields: [
+    { id: 'numero_protocolo', label: 'Número de Protocolo', type: 'text', required: true },
+    { id: 'fecha_instrumentacion', label: 'Fecha de Instrumentación', type: 'date', required: true },
+    { id: 'ciudad', label: 'Ciudad', type: 'text', required: true },
+    
+    { id: 'solicitante_nombre', label: 'Solicitante - Nombre Completo', type: 'text', required: true },
+    { id: 'solicitante_cedula', label: 'Solicitante - Cédula', type: 'text', required: true },
+    
+    { id: 'lugar_comprobacion', label: 'Lugar de la Comprobación', type: 'textarea', required: true,
+      helpText: 'Dirección exacta donde se realiza la comprobación' },
+    
+    { id: 'hechos_comprobados', label: 'Hechos Comprobados', type: 'textarea', required: true,
+      helpText: 'Descripción detallada de los hechos verificados por el notario' },
+    
+    { id: 'finalidad_acta', label: 'Finalidad del Acta', type: 'text', required: true,
+      placeholder: 'Ej. Para trámite judicial, administrativo, etc.' },
+  ]
+};
+
+// 2. LEGALIZACIÓN DE FIRMA - CONTRATO DE COMPRAVENTA
+export const LEGALIZACION_COMPRAVENTA: NotarialActTemplate = {
+  actId: 'legalizacion_compraventa',
+  tipo_acto: 'firma_privada',
+  titulo: 'Legalización de Firma - Contrato de Compraventa',
+  descripcion: 'Certificación de firmas en contrato de compraventa',
+  requiere_testigos: false,
+  fields: [
+    { id: 'numero_acta', label: 'Número de Acta', type: 'text', required: true },
+    { id: 'fecha_legalizacion', label: 'Fecha de Legalización', type: 'date', required: true },
+    { id: 'ciudad', label: 'Ciudad', type: 'text', required: true },
+    
+    // Vendedor
+    { id: 'vendedor_nombre', label: 'Vendedor - Nombre Completo', type: 'text', required: true },
+    { id: 'vendedor_cedula', label: 'Vendedor - Cédula', type: 'text', required: true },
+    
+    // Comprador
+    { id: 'comprador_nombre', label: 'Comprador - Nombre Completo', type: 'text', required: true },
+    { id: 'comprador_cedula', label: 'Comprador - Cédula', type: 'text', required: true },
+    
+    // Objeto
+    { id: 'objeto_venta', label: 'Objeto de la Venta', type: 'textarea', required: true,
+      helpText: 'Descripción del bien vendido' },
+    { id: 'precio_venta', label: 'Precio de Venta', type: 'money', required: true },
+  ]
+};
+
+// 3. PODER GENERAL (Amplios poderes)
+export const PODER_GENERAL: NotarialActTemplate = {
+  actId: 'poder_general',
+  tipo_acto: 'firma_privada',
+  titulo: 'Poder General',
+  descripcion: 'Poder amplísimo para administración de bienes',
+  requiere_testigos: false,
+  fields: [
+    { id: 'fecha', label: 'Fecha', type: 'date', required: true },
+    { id: 'ciudad', label: 'Ciudad', type: 'text', required: true },
+    
+    { id: 'poderdante_nombre', label: 'Poderdante - Nombre Completo', type: 'text', required: true },
+    { id: 'poderdante_cedula', label: 'Poderdante - Cédula', type: 'text', required: true },
+    { id: 'poderdante_domicilio', label: 'Poderdante - Domicilio', type: 'textarea', required: true },
+    
+    { id: 'apoderado_nombre', label: 'Apoderado - Nombre Completo', type: 'text', required: true },
+    { id: 'apoderado_cedula', label: 'Apoderado - Cédula', type: 'text', required: true },
+    
+    { id: 'ambito_poder', label: 'Ámbito del Poder', type: 'select', required: true,
+      options: ['Administración general de bienes', 'Representación judicial', 'Actos comerciales', 'Todos los actos'] },
+    
+    { id: 'facultades_especificas', label: 'Facultades Específicas', type: 'textarea', required: true,
+      helpText: 'Enumerar facultades adicionales' },
+  ]
+};
+
+// 4. CESIÓN DE DERECHO
+export const CESION_DERECHO: NotarialActTemplate = {
+  actId: 'cesion_derecho',
+  tipo_acto: 'firma_privada',
+  titulo: 'Cesión de Derecho',
+  descripcion: 'Transferencia de derechos entre partes',
+  requiere_testigos: false,
+  fields: [
+    { id: 'fecha', label: 'Fecha', type: 'date', required: true },
+    { id: 'ciudad', label: 'Ciudad', type: 'text', required: true },
+    
+    { id: 'cedente_nombre', label: 'Cedente - Nombre Completo', type: 'text', required: true },
+    { id: 'cedente_cedula', label: 'Cedente - Cédula', type: 'text', required: true },
+    
+    { id: 'cesionario_nombre', label: 'Cesionario - Nombre Completo', type: 'text', required: true },
+    { id: 'cesionario_cedula', label: 'Cesionario - Cédula', type: 'text', required: true },
+    
+    { id: 'derecho_cedido', label: 'Derecho Cedido', type: 'textarea', required: true,
+      helpText: 'Descripción del derecho que se transfiere' },
+    
+    { id: 'contraprestacion', label: 'Contraprestación', type: 'money', required: false,
+      helpText: 'Precio o valor de la cesión (si aplica)' },
+  ]
+};
+
+// 5. CESIÓN DE CRÉDITO
+export const CESION_CREDITO: NotarialActTemplate = {
+  actId: 'cesion_credito',
+  tipo_acto: 'firma_privada',
+  titulo: 'Cesión de Crédito',
+  descripcion: 'Transferencia de crédito entre acreedor original y nuevo acreedor',
+  requiere_testigos: false,
+  fields: [
+    { id: 'numero_acta', label: 'Número de Acta', type: 'text', required: true },
+    { id: 'fecha', label: 'Fecha', type: 'date', required: true },
+    { id: 'ciudad', label: 'Ciudad', type: 'text', required: true },
+    
+    { id: 'cedente_nombre', label: 'Cedente (Acreedor Original) - Nombre', type: 'text', required: true },
+    { id: 'cedente_cedula', label: 'Cedente - Cédula', type: 'text', required: true },
+    
+    { id: 'cesionario_nombre', label: 'Cesionario (Nuevo Acreedor) - Nombre', type: 'text', required: true },
+    { id: 'cesionario_cedula', label: 'Cesionario - Cédula', type: 'text', required: true },
+    
+    { id: 'deudor_nombre', label: 'Deudor - Nombre Completo', type: 'text', required: true },
+    
+    { id: 'monto_credito', label: 'Monto del Crédito Cedido', type: 'money', required: true },
+    { id: 'origen_credito', label: 'Origen del Crédito', type: 'textarea', required: true,
+      helpText: 'Contrato, factura, préstamo, etc.' },
+  ]
+};
+
+// 6. DETERMINACIÓN DE HEREDEROS (vía Acta de Notoriedad)
+export const DETERMINACION_HEREDEROS: NotarialActTemplate = {
+  actId: 'determinacion_herederos',
+  tipo_acto: 'autentico',
+  titulo: 'Determinación de Herederos',
+  descripcion: 'Acta notarial para acreditar la calidad de herederos',
+  requiere_testigos: true,
+  fields: [
+    { id: 'numero_protocolo', label: 'Número de Protocolo', type: 'text', required: true },
+    { id: 'fecha_instrumentacion', label: 'Fecha', type: 'date', required: true },
+    { id: 'ciudad', label: 'Ciudad', type: 'text', required: true },
+    
+    // Datos del De Cujus (fallecido)
+    { id: 'decujus_nombre', label: 'De Cujus - Nombre Completo', type: 'text', required: true },
+    { id: 'decujus_cedula', label: 'De Cujus - Cédula', type: 'text', required: true },
+    { id: 'fecha_fallecimiento', label: 'Fecha de Fallecimiento', type: 'date', required: true },
+    { id: 'lugar_fallecimiento', label: 'Lugar de Fallecimiento', type: 'text', required: true },
+    
+    // Requirentes (solicitantes del acta)
+    { id: 'requirentes', label: 'Requirentes (Herederos que solicitan)', type: 'array', required: true,
+      helpText: 'Nombres, cédulas y parentesco de los requirentes' },
+    
+    { id: 'herederos_determinados', label: 'Herederos Determinados', type: 'textarea', required: true,
+      helpText: 'Lista completa de herederos con su parentesco' },
+    
+    // Testigos del hecho notorio
+    { id: 'testigo1_nombre', label: 'Testigo 1 - Nombre', type: 'text', required: true },
+    { id: 'testigo1_cedula', label: 'Testigo 1 - Cédula', type: 'text', required: true },
+    { id: 'testigo2_nombre', label: 'Testigo 2 - Nombre', type: 'text', required: true },
+    { id: 'testigo2_cedula', label: 'Testigo 2 - Cédula', type: 'text', required: true },
+    { id: 'testigo3_nombre', label: 'Testigo 3 - Nombre', type: 'text', required: true },
+    { id: 'testigo3_cedula', label: 'Testigo 3 - Cédula', type: 'text', required: true },
+  ]
+};
+
+// 7. DECLARACIÓN JURADA DE SOLTERÍA / ESTADO CIVIL
+export const DECLARACION_SOLTERIA: NotarialActTemplate = {
+  actId: 'declaracion_solteria',
+  tipo_acto: 'declaracion_unilateral',
+  titulo: 'Declaración Jurada de Soltería',
+  descripcion: 'Declaración unilateral sobre el estado civil',
+  requiere_testigos: false,
+  fields: [
+    { id: 'numero_acta', label: 'Número de Acta', type: 'text', required: true },
+    { id: 'fecha', label: 'Fecha', type: 'date', required: true },
+    { id: 'ciudad', label: 'Ciudad', type: 'text', required: true },
+    
+    { id: 'declarante_nombre', label: 'Declarante - Nombre Completo', type: 'text', required: true },
+    { id: 'declarante_cedula', label: 'Declarante - Cédula', type: 'text', required: true },
+    { id: 'declarante_domicilio', label: 'Declarante - Domicilio', type: 'textarea', required: true },
+    { id: 'declarante_nacionalidad', label: 'Declarante - Nacionalidad', type: 'text', required: true },
+    
+    { id: 'estado_civil_declarado', label: 'Estado Civil', type: 'select', required: true,
+      options: ['Soltero(a)', 'Divorciado(a)', 'Viudo(a)'] },
+    
+    { id: 'finalidad', label: 'Finalidad de la Declaración', type: 'text', required: true,
+      placeholder: 'Ej. Trámite matrimonial, visa, etc.' },
+  ]
+};
+
+// 8-10: TRES ACTOS ADICIONALES (para completar los 10 solicitados)
+
+export const CONTRATO_ARRENDAMIENTO_NOTARIAL: NotarialActTemplate = {
+  actId: 'contrato_arrendamiento',
+  tipo_acto: 'firma_privada',
+  titulo: 'Legalización - Contrato de Arrendamiento',
+  descripcion: 'Legalización de firmas en contrato de alquiler',
+  requiere_testigos: false,
+  fields: [
+    { id: 'fecha', label: 'Fecha', type: 'date', required: true },
+    { id: 'ciudad', label: 'Ciudad', type: 'text', required: true },
+    
+    { id: 'arrendador_nombre', label: 'Arrendador - Nombre', type: 'text', required: true },
+    { id: 'arrendador_cedula', label: 'Arrendador - Cédula', type: 'text', required: true },
+    
+    { id: 'arrendatario_nombre', label: 'Arrendatario - Nombre', type: 'text', required: true },
+    { id: 'arrendatario_cedula', label: 'Arrendatario - Cédula', type: 'text', required: true },
+    
+    { id: 'inmueble_arrendado', label: 'Inmueble Arrendado', type: 'textarea', required: true },
+    { id: 'renta_mensual', label: 'Renta Mensual', type: 'money', required: true },
+    { id: 'plazo_arrendamiento', label: 'Plazo', type: 'text', required: true, placeholder: 'Ej. 12 meses' },
+  ]
+};
+
+export const RECONOCIMIENTO_DEUDA: NotarialActTemplate = {
+  actId: 'reconocimiento_deuda',
+  tipo_acto: 'firma_privada',
+  titulo: 'Reconocimiento de Deuda',
+  descripcion: 'Legalización de reconocimiento de adeudo',
+  requiere_testigos: false,
+  fields: [
+    { id: 'fecha', label: 'Fecha', type: 'date', required: true },
+    { id: 'ciudad', label: 'Ciudad', type: 'text', required: true },
+    
+    { id: 'deudor_nombre', label: 'Deudor - Nombre Completo', type: 'text', required: true },
+    { id: 'deudor_cedula', label: 'Deudor - Cédula', type: 'text', required: true },
+    
+    { id: 'acreedor_nombre', label: 'Acreedor - Nombre Completo', type: 'text', required: true },
+    { id: 'acreedor_cedula', label: 'Acreedor - Cédula', type: 'text', required: true },
+    
+    { id: 'monto_deuda', label: 'Monto de la Deuda', type: 'money', required: true },
+    { id: 'origen_deuda', label: 'Origen de la Deuda', type: 'textarea', required: true },
+    { id: 'plan_pago', label: 'Plan de Pago', type: 'textarea', required: false },
+  ]
+};
+
+export const ACTA_PROTESTO: NotarialActTemplate = {
+  actId: 'acta_protesto',
+  tipo_acto: 'autentico',
+  titulo: 'Acta de Protesto',
+  descripcion: 'Protesto de títulos valores (cheques, letras)',
+  requiere_testigos: false,
+  fields: [
+    { id: 'numero_protocolo', label: 'Número de Protocolo', type: 'text', required: true },
+    { id: 'fecha', label: 'Fecha del Protesto', type: 'date', required: true },
+    { id: 'ciudad', label: 'Ciudad', type: 'text', required: true },
+    
+    { id: 'tenedor_nombre', label: 'Tenedor del Título - Nombre', type: 'text', required: true },
+    { id: 'tenedor_cedula', label: 'Tenedor - Cédula', type: 'text', required: true },
+    
+    { id: 'tipo_titulo', label: 'Tipo de Título', type: 'select', required: true,
+      options: ['Cheque', 'Letra de Cambio', 'Pagaré'] },
+    
+    { id: 'numero_titulo', label: 'Número del Título', type: 'text', required: true },
+    { id: 'monto_titulo', label: 'Monto', type: 'money', required: true },
+    { id: 'librado_nombre', label: 'Librado/Girado - Nombre', type: 'text', required: true },
+    
+    { id: 'motivo_protesto', label: 'Motivo del Protesto', type: 'select', required: true,
+      options: ['Falta de pago', 'Falta de aceptación', 'Otro'] },
+  ]
+};
+
+// ============================================
 // REGISTRO DE PLANTILLAS NOTARIALES
 // ============================================
 
@@ -248,13 +514,23 @@ export const NOTARIAL_TEMPLATES_REGISTRY: Record<string, NotarialActTemplate> = 
   // Actos Auténticos
   'contrato_prestamo_hipoteca': CONTRATO_PRESTAMO_HIPOTECA,
   'acta_notoriedad': ACTA_NOTORIEDAD,
+  'acta_comprobacion_notarial': ACTA_COMPROBACION,
+  'determinacion_herederos': DETERMINACION_HEREDEROS,
+  'acta_protesto': ACTA_PROTESTO,
   
   // Firma Privada
   'legalizacion_firmas': LEGALIZACION_FIRMAS,
+  'legalizacion_compraventa': LEGALIZACION_COMPRAVENTA,
   'poder_especial': PODER_ESPECIAL,
+  'poder_general': PODER_GENERAL,
+  'cesion_derecho': CESION_DERECHO,
+  'cesion_credito': CESION_CREDITO,
+  'contrato_arrendamiento': CONTRATO_ARRENDAMIENTO_NOTARIAL,
+  'reconocimiento_deuda': RECONOCIMIENTO_DEUDA,
   
   // Declaraciones Unilaterales
   'declaracion_jurada_propiedad': DECLARACION_JURADA_PROPIEDAD,
+  'declaracion_solteria': DECLARACION_SOLTERIA,
   'testamento_autentico': TESTAMENTO_AUTENTICO,
 };
 

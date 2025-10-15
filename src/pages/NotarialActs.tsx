@@ -9,15 +9,33 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileText, Plus, Search, FileSignature, Stamp, ScrollText } from "lucide-react";
 import { useNotarialActs } from "@/hooks/useNotarialActs";
 import { useTenant } from "@/hooks/useTenant";
-import { getNotarialTemplatesByType, NOTARIAL_TEMPLATES_REGISTRY } from "@/lib/notarialTemplates";
+import { getNotarialTemplatesByType, NOTARIAL_TEMPLATES_REGISTRY, NotarialActTemplate } from "@/lib/notarialTemplates";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { NotarialActWizard } from "@/components/legal-acts/NotarialActWizard";
 
 export default function NotarialActs() {
   const { acts, loading } = useNotarialActs();
   const { isPro, isEnterprise, isLoading: tenantLoading } = useTenant();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState<"all" | "autentico" | "firma_privada" | "declaracion_unilateral">("all");
+  const [showWizard, setShowWizard] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<NotarialActTemplate | null>(null);
+
+  const handleCreateAct = (template: NotarialActTemplate) => {
+    setSelectedTemplate(template);
+    setShowWizard(true);
+  };
+
+  const handleWizardSuccess = () => {
+    setShowWizard(false);
+    setSelectedTemplate(null);
+  };
+
+  const handleWizardCancel = () => {
+    setShowWizard(false);
+    setSelectedTemplate(null);
+  };
 
   if (tenantLoading) {
     return (
@@ -96,6 +114,19 @@ export default function NotarialActs() {
     }
   };
 
+  // Si está en modo wizard, mostrar el wizard
+  if (showWizard && selectedTemplate) {
+    return (
+      <div className="container mx-auto py-6">
+        <NotarialActWizard
+          template={selectedTemplate}
+          onCancel={handleWizardCancel}
+          onSuccess={handleWizardSuccess}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto py-6 space-y-6">
       {/* Header */}
@@ -106,10 +137,6 @@ export default function NotarialActs() {
             Gestión de actos notariales según Ley No. 140-15
           </p>
         </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Nuevo Acto Notarial
-        </Button>
       </div>
 
       {/* Estadísticas rápidas */}
@@ -321,7 +348,11 @@ export default function NotarialActs() {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <Button className="w-full" size="sm">
+                    <Button 
+                      className="w-full" 
+                      size="sm"
+                      onClick={() => handleCreateAct(template)}
+                    >
                       <Plus className="h-4 w-4 mr-2" />
                       Crear este acto
                     </Button>
@@ -353,7 +384,11 @@ export default function NotarialActs() {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <Button className="w-full" size="sm">
+                    <Button 
+                      className="w-full" 
+                      size="sm"
+                      onClick={() => handleCreateAct(template)}
+                    >
                       <Plus className="h-4 w-4 mr-2" />
                       Crear este acto
                     </Button>
@@ -390,7 +425,11 @@ export default function NotarialActs() {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <Button className="w-full" size="sm">
+                    <Button 
+                      className="w-full" 
+                      size="sm"
+                      onClick={() => handleCreateAct(template)}
+                    >
                       <Plus className="h-4 w-4 mr-2" />
                       Crear este acto
                     </Button>
