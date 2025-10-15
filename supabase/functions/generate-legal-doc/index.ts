@@ -23,8 +23,6 @@ function isJudicialField(key: string): boolean {
   return judicialFields.has(base);
 }
 
-// Note: In production, replace '*' with your specific domain for better security
-
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -66,11 +64,10 @@ serve(async (req) => {
 
     const requestBody = await req.json();
     
-    // Input validation schema - comprehensive and strict
-    // Validate formData values with Spanish legal character set
+    // Input validation schema
     const SpanishLegalTextSchema = z.string()
       .max(5000, "Campo excede el límite de 5000 caracteres")
-      .regex(/^[\w\s.,;:()\u00a1\u00bf!?"\-áéíóúñÑÁÉÍÓÚüÜ/\\@#$%&*+=\[\]{}|<>'\n\r\t]*$/u, "Contiene caracteres no permitidos");
+      .regex(/^[\w\s.,;:()\u00a1\u00bf!?"\-áéíóúñÑÁÉÍÓÚüÜ/\\@#$%&*+=\[\]\{\}|<>'\n\r\t]*$/u, "Contiene caracteres no permitidos");
     
     const FormDataSchema = z.record(
       z.string().max(100, "Nombre de campo demasiado largo"),
@@ -104,19 +101,16 @@ serve(async (req) => {
       ciudad_actuacion: z.string().max(100).optional(),
       legislacion: z.string().max(5000).optional(),
       jurisprudencia: z.string().max(5000).optional(),
-    }).strict(); // No additional fields allowed - strict validation
+    }).strict();
     
-    // Validate request
     try {
       RequestSchema.parse(requestBody);
     } catch (validationError) {
-      // Log full details server-side only
       console.error('[generate-legal-doc] Validation failed:', {
         error: validationError instanceof Error ? validationError.message : 'Unknown validation error',
         timestamp: new Date().toISOString()
       });
       
-      // Return sanitized error to client
       return new Response(
         JSON.stringify({ 
           error: 'Invalid request data. Please check your input and try again.',
@@ -126,7 +120,6 @@ serve(async (req) => {
       );
     }
     
-    // Safe logging - no PII or sensitive data
     console.log('📥 Request received:', {
       tipo_documento: requestBody.tipo_documento || requestBody.actType,
       userId: userId ? '[REDACTED]' : null,
@@ -134,7 +127,6 @@ serve(async (req) => {
       hasFormData: !!requestBody.formData
     });
     
-    // Soportar tanto el formato antiguo como el nuevo
     const tipo_documento = requestBody.tipo_documento || requestBody.actType;
     
     if (!tipo_documento) {
@@ -143,13 +135,15 @@ serve(async (req) => {
     
     console.log('📋 Tipo de documento:', tipo_documento);
 
-    // Security: Block judicial fields in extrajudicial acts BEFORE processing
+    const formData = requestBody.formData || {};
+
+    // Security: Block judicial fields in extrajudicial acts
     if (FEATURE_EXTRAPROCESAL_HIDE_JUDICIAL && tipo_documento) {
       const actosExtrajudiciales = [
         'contrato_venta_inmueble', 'contrato_venta_mueble', 'contrato_venta', 'contrato_alquiler', 'poder_general', 'poder_especial', 'testamento',
         'declaracion_jurada', 'intimacion_pago', 'notificacion_desalojo', 'carta_cobranza',
         'contrato_trabajo', 'carta_despido', 'carta_renuncia', 'acta_conciliacion',
-        'solicitud_admin', 'recurso_reconsideracion'
+        'solicitud_admin', 'recurso_reconsideracion', 'contrato_compraventa'
       ];
       
       const isExtrajudicial = actosExtrajudiciales.includes(tipo_documento) || 
@@ -159,14 +153,12 @@ serve(async (req) => {
       if (isExtrajudicial) {
         const judicialFieldsFound: string[] = [];
         
-        // Check all keys in request body
         Object.keys(requestBody).forEach(key => {
           if (isJudicialField(key)) {
             judicialFieldsFound.push(key);
           }
         });
         
-        // Check formData if present
         if (requestBody.formData) {
           Object.keys(requestBody.formData).forEach(key => {
             if (isJudicialField(key)) {
@@ -196,7 +188,39 @@ serve(async (req) => {
       }
     }
     
-    // Normalizar materia
+    const normalizeText = (text: string | undefined): string => {
+      return text ? text.trim() : '';
+    };
+    
+    const abogado_nombre = normalizeText(requestBody.abogado_nombre);
+    const abogado_cedula = normalizeText(requestBody.abogado_cedula);
+    const abogado_matricula = normalizeText(requestBody.abogado_matricula);
+    
+    const demandante = normalizeText(requestBody.demandante);
+    const demandado = normalizeText(requestBody.demandado);
+    const compareciente = normalizeText(requestBody.compareciente);
+    
+    const numero_expediente = normalizeText(requestBody.numero_expediente);
+    const tribunal = normalizeText(requestBody.tribunal);
+    const juzgado = normalizeText(requestBody.juzgado);
+    const ciudad_actuacion = normalizeText(requestBody.ciudad_actuacion);
+    
+    const legislacion = normalizeText(requestBody.legislacion);
+    const jurisprudencia = normalizeText(requestBody.jurisprudencia);
+    
+    const hechos = normalizeText(requestBody.hechos);
+    const fundamentacion_juridica = normalizeText(requestBody.fundamentacion_juridica);
+    const petitorio = normalizeText(requestBody.petitorio);
+    
+    // Integrar información de la firma del abogado si está disponible
+    if (lawFirmInfo) {
+      formData.firma_abogado_nombre = lawFirmInfo.nombre_firma || '';
+      formData.firma_abogado_direccion = lawFirmInfo.direccion || '';
+      formData.firma_abogado_telefono = lawFirmInfo.telefono || '';
+      formData.firma_abogado_email = lawFirmInfo.email || '';
+      formData.firma_abogado_matricula = lawFirmInfo.matricula_card || '';
+    }
+
     const materiaRaw = requestBody.materia || 'civil';
     const mapeoMaterias: Record<string, string> = {
       'civil y comercial': 'civil',
@@ -211,964 +235,439 @@ serve(async (req) => {
     };
     const materia = mapeoMaterias[materiaRaw.toLowerCase()] || 'civil';
     
-    const hechos = requestBody.hechos || requestBody.formData?.hechos || '';
-    const pretension = requestBody.pretension || requestBody.formData?.pretensiones || '';
-    
-    // Datos opcionales del formato antiguo
-    const demandante = requestBody.demandante;
-    const abogado = requestBody.abogado;
-    const firma_apoderada = requestBody.firma_apoderada;
-    const demandado = requestBody.demandado;
-    const acto = requestBody.acto;
-    const ciudad_actuacion = requestBody.ciudad_actuacion;
-    const alguacil_designacion = requestBody.alguacil_designacion;
-    const juzgado = requestBody.juzgado;
-    const legislacion = requestBody.legislacion;
-    const jurisprudencia = requestBody.jurisprudencia;
-    
-    // FormData del nuevo formato
-    const formData = requestBody.formData || {};
-    
-    console.log('Generando documento:', { 
-      tipo_documento, 
-      materia, 
-      materiaOriginal: materiaRaw,
-      hasFormData: !!formData,
-      formDataKeys: Object.keys(formData)
-    });
-
-    // Jerarquía normativa según materia
-    const jerarquiaNormativa: Record<string, string[]> = {
-      civil: [
-        "Constitución de la República Dominicana (arts. 51, 26, 68, 69)",
-        "Pacto Internacional de Derechos Civiles y Políticos (arts. 2 y 14)",
-        "Convención Americana sobre Derechos Humanos (art. 8)",
-        "Código Civil Dominicano (arts. 1134, 1135, 1382, 1383)",
-        "Ley No. 834 sobre Actos del Estado Civil"
-      ],
-      penal: [
-        "Constitución de la República Dominicana (arts. 40, 69)",
-        "Pacto Internacional de Derechos Civiles y Políticos (arts. 9, 14, 15)",
-        "Convención Americana sobre Derechos Humanos (arts. 7, 8, 9)",
-        "Código Procesal Penal (Ley 76-02)",
-        "Código Penal Dominicano"
-      ],
-      laboral: [
-        "Constitución de la República Dominicana (arts. 62, 63, 64)",
-        "Convenios OIT ratificados por RD",
-        "Código de Trabajo (Ley 16-92)",
-        "Reglamento 258-93 para aplicación del Código de Trabajo"
-      ],
-      comercial: [
-        "Constitución de la República Dominicana (arts. 50, 51)",
-        "Código de Comercio Dominicano",
-        "Ley 479-08 General de Sociedades Comerciales",
-        "Ley 108-05 de Registro Mercantil"
-      ],
-      familia: [
-        "Constitución de la República Dominicana (art. 55)",
-        "Convención sobre los Derechos del Niño",
-        "Código Civil (Libro I - Personas)",
-        "Ley 136-03 Código para el Sistema de Protección de los Derechos de los Niños, Niñas y Adolescentes"
-      ],
-      inmobiliario: [
-        "Constitución de la República Dominicana (art. 51)",
-        "Ley 108-05 de Registro Inmobiliario",
-        "Código Civil (arts. 544-710)",
-        "Ley 687 sobre Propiedad Horizontal"
-      ],
-      tributario: [
-        "Constitución de la República Dominicana (art. 243)",
-        "Ley 11-92 Código Tributario",
-        "Ley 557-05 de Reforma Tributaria",
-        "Ley 253-12 para el Fortalecimiento de la Capacidad Recaudatoria del Estado"
-      ],
-      administrativo: [
-        "Constitución de la República Dominicana (arts. 138, 149, 150)",
-        "Ley 41-08 de Función Pública",
-        "Ley 247-12 Orgánica de la Administración Pública",
-        "Ley 107-13 sobre los Derechos de las Personas en sus Relaciones con la Administración"
-      ]
-    };
-
-    const normasAplicables = jerarquiaNormativa[materia] || jerarquiaNormativa.civil;
-
-    // Preparar información del abogado/firma para el documento
-    const firmaNombre = lawFirmInfo?.nombre_firma || (firma_apoderada?.nombre) || "[Nombre de la Firma]";
-    const abogadoNombre = lawFirmInfo?.abogado_principal || abogado?.nombre || "[Nombre del Abogado]";
-    const matriculaCard = lawFirmInfo?.matricula_card || abogado?.matricula || "[Matrícula CARD]";
-    const direccionFirma = lawFirmInfo?.direccion || abogado?.direccion || "[Dirección]";
-    const telefonoFirma = lawFirmInfo?.telefono || abogado?.telefono || "[Teléfono]";
-    const emailFirma = lawFirmInfo?.email || abogado?.email || "[Email]";
-    const eslogan = lawFirmInfo?.eslogan || "";
-    const rncFirma = lawFirmInfo?.rnc || firma_apoderada?.rnc || "";
-
-    // SISTEMA DE CLASIFICACIÓN: Judicial vs Extrajudicial
-    // Lista completa de actos judiciales
-    const actosJudiciales = [
-      // Civil y Comercial
-      'demanda_civil', 'emplazamiento', 'conclusiones', 'acto_apelacion', 'mandamiento_pago',
-      'embargo_ejecutivo', 'referimiento', 'desalojo', 'interdiccion', 'cobro_pesos',
-      // Penal
-      'querella_actor_civil', 'acto_acusacion', 'medidas_coercion', 'recurso_apelacion_penal',
-      'recurso_casacion_penal', 'solicitud_libertad',
-      // Laboral
-      'demanda_laboral', 'citacion_laboral', 'recurso_apelacion_laboral', 'terceria_laboral',
-      // Administrativo
-      'contencioso_administrativo', 'recurso_anulacion', 'amparo'
+    const jerarquiaNormativa = [
+      "Constitución de la República",
+      "Tratados Internacionales",
+      "Leyes Ordinarias y Códigos",
+      "Reglamentos",
+      "Decretos",
+      "Resoluciones",
+      "Circulares"
     ];
     
-    // Lista completa de actos extrajudiciales
-    const actosExtrajudiciales = [
-      // Civil y Comercial
-      'contrato_venta_inmueble', 'contrato_venta_mueble', 'contrato_venta', 'contrato_alquiler', 'poder_general', 'poder_especial', 'testamento',
-      'declaracion_jurada', 'intimacion_pago', 'notificacion_desalojo', 'carta_cobranza',
-      // Laboral
-      'contrato_trabajo', 'carta_despido', 'carta_renuncia', 'acta_conciliacion',
-      // Administrativo
-      'solicitud_admin', 'recurso_reconsideracion'
-    ];
-    
-    const esJudicial = actosJudiciales.includes(tipo_documento);
-    const esExtrajudicial = actosExtrajudiciales.includes(tipo_documento);
+    const jerarquiaNormativaMarkdown = jerarquiaNormativa.map((item, index) => `${index + 1}. ${item}`).join("\\n");
 
-    // MANDATOS DE CORRECCIÓN DETALLADOS por tipo de acto
-    // Basados en las Guías de Implementación Manus AI
+    // ═══════════════════════════════════════════════════════════════
+    // SISTEMA DE MANDATOS Y MODELOS DE ACTOS JURÍDICOS v1.0
+    // Autor: Manus AI | Fecha: 15 de octubre de 2025
+    // Basado en: Documento Maestro de Integración
+    // ═══════════════════════════════════════════════════════════════
+    
+    // MANDATOS DE CORRECCIÓN CRÍTICOS
+    // Resuelven errores identificados:
+    // 1. ❌ Emplazamientos con estructura de demanda → CORREGIDO
+    // 2. ❌ Querellas como actos de alguacil → CORREGIDO
+    // 3. ❌ Materias judiciales mal clasificadas → CORREGIDO
+    
     const mandatos: Record<string, string> = {
       'demanda_civil': `
 ═══════════════════════════════════════════════════════════════
-MANDATO: ACTO DE TRASLADO (DEMANDA)
+MANDATO: ACTO DE TRASLADO (DEMANDA CIVIL)
+Versión 1.0 | Basado en: Modelo DEMANDAENDEVOLUCIONVALORES.pdf
 ═══════════════════════════════════════════════════════════════
 
-ROL: Asistente Legal Experto en Litigios Civiles y Comerciales (Rep. Dominicana)
+⚠️ NATURALEZA DUAL: Este acto es SIMULTÁNEAMENTE:
+1. Demanda de Fondo (argumentación completa)
+2. Acto de Emplazamiento (citación por alguacil)
 
-⚠️ NATURALEZA DUAL DEL DOCUMENTO:
-Este acto funciona SIMULTÁNEAMENTE como:
-- Demanda de Fondo (argumentación completa del caso)
-- Acto de Emplazamiento (citación formal por alguacil)
+ESTRUCTURA OBLIGATORIA COMPLETA:
 
-ESTRUCTURA OBLIGATORIA:
 1. ENCABEZADO FORMAL
-   - Tribunal, Partes, Expediente
-   - Formato: Times New Roman 12pt, interlineado 1.5
+- Tribunal competente
+- Partes: Demandante vs. Demandado
+- Número expediente (si existe)
+- Times New Roman 12pt, interlineado 1.5, justificado
 
-2. PRESENTACIÓN (Designación del Alguacil)
-   - Datos completos del alguacil (nombre, cédula, tribunal)
-   - Proceso Verbal de Traslado (lugar, fecha, hora, persona contactada)
-   - Citación formal con plazo de OCTAVA (8) FRANCA
+2. DESIGNACIÓN DEL ALGUACIL
 
-3. RELATO FÁCTICO DETALLADO
-   - Narración cronológica completa de los hechos
-   - Contratos, pagos, incumplimientos documentados
+"Yo, [NOMBRE], Alguacil Ordinario adscrito al [TRIBUNAL], Cédula No. [NÚMERO],
+actuando a requerimiento de [DEMANDANTE], representado por Lcdo. [NOMBRE],
+Matrícula CARD No. [NÚMERO], con estudio en [DIRECCIÓN], donde hace ELECCIÓN DE DOMICILIO."
 
-4. ASPECTOS REGULATORIOS (Fundamentos de Derecho)
-   - Jerarquía normativa: Constitución → Tratados → Códigos
-   - Citas textuales de artículos pertinentes
+3. PROCESO VERBAL DE TRASLADO
 
-5. TESIS DE DERECHO (Argumentación)
-   - Subsunción hechos-norma
-   - Citas jurisprudenciales si aplican
+"ME TRASLADÉ el [FECHA], a las [HORA], al domicilio de [DEMANDADO],
+ubicado en [DIRECCIÓN], donde hablando con [PERSONA, CARGO], le hice saber
+y entregué copia íntegra del presente acto."
 
-6. DISPOSITIVOS (PETITORIO EN NEGRILLA)
-   - Validez procesal del acto
-   - Comprobación de hechos
-   - Condenas específicas con montos
-   - Costas con distracción
+4. CITACIÓN Y EMPLAZAMIENTO
 
-7. DECLARACIÓN MINISTERIAL
-   - Recibo, folios, hora inicio/fin, costo
-   - Certificación y firma del alguacil
+"CITA Y EMPLAZA a [DEMANDADO] para que dentro de la OCTAVA (8) FRANCA,
+constituya abogado y fije domicilio en [CIUDAD], bajo apercibimiento de DEFECTO."
 
-✅ VERIFICACIONES CRÍTICAS:
-- Plazo octava franca correctamente establecido
-- Elección de domicilio en estudio del abogado
-- Petitorio en negrilla
-- Firma del alguacil al cierre
+5. RELATO FÁCTICO DETALLADO (Mínimo 3 párrafos)
+- Origen de la relación jurídica
+- Hechos cronológicos relevantes
+- Incumplimientos y perjuicios
+
+6. ASPECTOS REGULATORIOS (Jerarquía normativa)
+- Constitución de la República
+- Tratados Internacionales
+- Códigos y Leyes especiales
+- Citas textuales de artículos
+
+7. TESIS DE DERECHO
+- Subsunción hechos-norma
+- Obligaciones incumplidas
+- Jurisprudencia aplicable
+
+8. DISPOSITIVOS (PETITORIO EN NEGRILLA)
+**PRIMERO:** Declarar buena y válida la demanda.
+**SEGUNDO:** Acogerla en cuanto al fondo.
+**TERCERO:** [Dispositivo específico con montos]
+**CUARTO:** Condena a COSTAS con DISTRACCIÓN en favor del abogado.
+
+9. DECLARACIÓN MINISTERIAL
+
+"DOY FE: Entregué copia íntegra. [FOLIOS] fojas útiles.
+Iniciado [HORA], concluido [HORA]. Costo: RD$ [MONTO]"
+[Firma y Sello del Alguacil]
+
+✅ VERIFICACIONES:
+- Octava (8) Franca mencionada
+- Elección de domicilio del abogado
+- Petitorio en negrilla numerado
+- Costas con distracción
+- Firma y certificación del alguacil
 `,
       'emplazamiento': `
 ═══════════════════════════════════════════════════════════════
-MANDATO CRÍTICO: EMPLAZAMIENTO PURO
+⚠️ MANDATO CRÍTICO: EMPLAZAMIENTO PURO
+Corrección de Error Procesal Crítico Identificado
 ═══════════════════════════════════════════════════════════════
 
-ROL: Asistente Legal Experto en Actos de Alguacil (Rep. Dominicana)
+⛔ REGLA FUNDAMENTAL:
+EMPLAZAMIENTO ≠ DEMANDA
+Es un ACTO DE NOTIFICACIÓN PURA para CITAR a comparecer.
 
-⚠️ REGLA CRÍTICA:
-Un emplazamiento NO ES UNA DEMANDA. Es un acto de NOTIFICACIÓN PURA.
-
-⛔ ELIMINACIÓN OBLIGATORIA:
-Si el documento contiene estas secciones, ES UN ERROR CRÍTICO:
-- Relato Fáctico detallado
-- Fundamentos de Derecho
-- Aspectos Regulatorios
-- Tesis de Derecho
-- Petitorio con dispositivos
+⛔ ELIMINACIÓN OBLIGATORIA (ERROR CRÍTICO):
+❌ Relato Fáctico detallado
+❌ Fundamentos de Derecho  
+❌ Aspectos Regulatorios extensos
+❌ Tesis de Derecho
+❌ Argumentación jurídica
+❌ Petitorio con dispositivos
 
 ESTRUCTURA MINIMALISTA (MÁXIMO 2 PÁGINAS):
 
-1. ENCABEZADO DEL ALGUACIL
-   - Acto No., Fecha
-   - Designación: "Yo, [nombre], alguacil ordinario adscrito a..."
+1. ENCABEZADO
 
-2. ACTUANDO A REQUERIMIENTO
-   - Datos del requeriente
-   - Datos del abogado con domicilio procesal
+"ACTO No. [NÚMERO]
+Alguacilazgo del [TRIBUNAL]"
 
-3. PROCESO VERBAL DE TRASLADO
-   - "Me trasladé al domicilio..."
-   - Dirección exacta
-   - Persona contactada y cargo
+2. DESIGNACIÓN
 
-4. NOTIFICACIÓN Y CITACIÓN (El Avenir)
-   - Objeto BREVE de la demanda (máximo 2 líneas)
-   - Tribunal competente
-   - Fecha y hora de audiencia O plazo de octava
+"Yo, [NOMBRE], Alguacil Ordinario, Cédula No. [NÚMERO]"
 
-5. ADVERTENCIA DE DEFECTO
-   - "Se le advierte que en caso de no comparecer..."
+3. ACTUANDO A REQUERIMIENTO
 
-6. CIERRE DEL ALGUACIL
-   - Entrega de copia
-   - Costo del acto
-   - Número de fojas
-   - Certificación y firma
+"De [DEMANDANTE], asistido por Lcdo. [NOMBRE],
+Matrícula CARD [NÚMERO], estudio en [DIRECCIÓN] (ELECCIÓN DE DOMICILIO)."
 
-✅ LONGITUD MÁXIMA: 2 páginas
-✅ TONO: Formal, notificatorio, sin argumentación
+4. TRASLADO
+
+"ME TRASLADÉ el [FECHA], a las [HORA], al domicilio de [DEMANDADO]
+en [DIRECCIÓN], donde hablando con [PERSONA/CARGO]"
+
+5. NOTIFICACIÓN Y CITACIÓN (EL AVENIR)
+
+"Le notifiqué que ha sido demandado en [OBJETO BREVE - máximo 2 líneas]
+ante [TRIBUNAL].
+
+Se le CITA Y EMPLAZA para que dentro de la OCTAVA (8) FRANCA,
+constituya abogado en [CIUDAD], bajo apercibimiento de DEFECTO."
+
+O (si es para audiencia):
+
+"Se le CITA para comparecer el [FECHA], a las [HORA], en [SALA/TRIBUNAL]."
+
+6. ADVERTENCIA
+
+"Se advierte que de no comparecer, será declarado en DEFECTO."
+
+7. CIERRE
+
+"Le dejé copia íntegra. [FOLIOS] fojas.
+Iniciado [HORA], concluido [HORA]. Costo: RD$ [MONTO]"
+[Firma y Sello]
+
+✅ VERIFICACIONES:
+- Longitud MÁXIMA: 2 páginas
+- NO contiene relato fáctico
+- NO contiene fundamentos
+- Objeto en máximo 2 líneas
+- Tono: formal, notificatorio, sin argumentación
 `,
       'querella_penal': `
 ═══════════════════════════════════════════════════════════════
-MANDATO CRÍTICO: QUERELLA PENAL CON CONSTITUCIÓN EN ACTOR CIVIL
+⚠️ MANDATO CRÍTICO: QUERELLA PENAL CON CONSTITUCIÓN EN ACTOR CIVIL
+Corrección de Error de Naturaleza Identificado
 ═══════════════════════════════════════════════════════════════
 
-ROL: Asistente Legal Experto en Derecho Penal (Rep. Dominicana)
-
-⚠️ ERROR MÁS GRAVE A EVITAR:
-Una querella penal NO ES UN ACTO DE ALGUACIL.
-Es un ESCRITO que se DEPOSITA en la Fiscalía o Juzgado de Instrucción.
+⛔ ERROR MÁS GRAVE:
+QUERELLA ≠ ACTO DE ALGUACIL
+Es un ESCRITO que se DEPOSITA en Fiscalía/Juzgado de Instrucción.
 
 ⛔ NO INCLUIR:
-- Designación de alguacil
-- Proceso verbal de traslado
-- Terminología civil (demandante/demandado)
+❌ Designación de alguacil
+❌ Proceso verbal de traslado
+❌ Terminología civil (demandante/demandado)
 
 TERMINOLOGÍA CORRECTA:
-✅ Querellante (la víctima)
-✅ Imputado (el acusado)
-✅ Infracción penal (no "demanda")
+✅ Querellante (víctima)
+✅ Imputado (acusado)
+✅ Infracción penal
 ✅ Ministerio Público
 ✅ Juez de la Instrucción
 
-ESTRUCTURA OBLIGATORIA:
+ESTRUCTURA:
 
 1. JURISDICCIÓN
-   - "AL MINISTERIO PÚBLICO DEL [Distrito Judicial]"
-   - O "AL JUZGADO DE LA INSTRUCCIÓN DE [Jurisdicción]"
 
-2. IDENTIFICACIÓN DE LAS PARTES
-   - QUERELLANTE (datos completos de la víctima)
-   - IMPUTADO (datos del acusado si se conocen)
+"AL MINISTERIO PÚBLICO DEL [Distrito]"
+O "AL JUZGADO DE LA INSTRUCCIÓN DE [Jurisdicción]"
 
-3. EXPOSICIÓN DE LOS HECHOS
-   - Relato cronológico DETALLADO del delito
-   - ¿Qué?, ¿Cuándo?, ¿Dónde?, ¿Cómo?
+2. IDENTIFICACIÓN
+- QUERELLANTE: [datos completos de víctima]
+- IMPUTADO: [datos del acusado]
+
+3. EXPOSICIÓN DE HECHOS (DETALLADA)
+Relato cronológico: ¿Qué? ¿Cuándo? ¿Dónde? ¿Cómo?
 
 4. CALIFICACIÓN JURÍDICA
-   - Infracción penal configurada
-   - Artículos del Código Penal o leyes especiales
-   - Ejemplo: "Constituye ESTAFA (Art. 405 Código Penal)"
+
+"Constituye [INFRACCIÓN] (Art. [NÚMERO] del [CÓDIGO/LEY])"
 
 5. PRUEBAS
-   - Documentales (contratos, facturas, correos)
-   - Testimoniales (testigos a citar)
-   - Periciales (peritajes técnicos)
+- Documentales (contratos, recibos, correos)
+- Testimoniales (testigos)
+- Periciales (peritajes técnicos)
 
 6. CONSTITUCIÓN EN ACTOR CIVIL
-   - "En tal virtud, [nombre] se constituye en ACTOR CIVIL..."
-   - Monto de indemnización reclamada (daños materiales + morales)
+
+"[Nombre] se constituye en ACTOR CIVIL y reclama:
+- Daños materiales: RD$ [MONTO]
+- Daños morales: RD$ [MONTO]"
 
 7. PETITORIO
-   - Apertura de investigación
-   - Medidas de coerción contra el imputado
-   - Envío a juicio
-   - Condena penal
-   - Indemnización civil
+- Apertura de investigación
+- Medidas de coerción
+- Envío a juicio
+- Condena penal e indemnización civil
 
-✅ FORMATO: Escrito formal para depositar, NO acto de alguacil
+✅ FORMATO: Escrito para DEPOSITAR, NO acto de alguacil
 `,
       'inventario_documentos': `
 ═══════════════════════════════════════════════════════════════
 MANDATO: INVENTARIO DE DOCUMENTOS
 ═══════════════════════════════════════════════════════════════
 
-ROL: Asistente Legal Experto en Procedimientos (Rep. Dominicana)
-
-NATURALEZA:
-Escrito de MERO TRÁMITE para registrar piezas depositadas.
+NATURALEZA: Escrito de MERO TRÁMITE para registrar documentos depositados.
 
 ⛔ NO INCLUIR:
-- Argumentos
-- Peticiones de fondo
-- Conclusiones
+❌ Argumentos de fondo
+❌ Peticiones sustantivas
+❌ Conclusiones extensas
 
 ESTRUCTURA:
 
 1. ENCABEZADO
-   - Tribunal
-   - Expediente
-   - Abogado depositante
-   - Asunto: "DEPÓSITO DE DOCUMENTOS"
+- Tribunal y Expediente
+- "DEPÓSITO DE DOCUMENTOS"
+- Abogado depositante
 
-2. IDENTIFICACIÓN DEL DEPOSITANTE
-   - Calidad procesal: Demandante/Demandado/Interventor
-   - Caso en que actúa
+2. IDENTIFICACIÓN
 
-3. LISTADO NUMERADO Y DESCRIPTIVO
-   Cada documento DEBE incluir:
-   - Número secuencial
-   - Tipo de documento
-   - Fecha del documento
-   - Instrumentador/Emisor
+"[Nombre], en calidad de [Demandante/Demandado] en el caso [Número]"
 
-   Ejemplo:
-   "1. Contrato de Alquiler de fecha 15 de marzo de 2024, 
-       legalizado por el Notario Público Lic. Juan Pérez"
+3. LISTADO NUMERADO (cada uno con):
+- Número secuencial
+- Tipo de documento
+- Fecha del documento
+- Emisor/Instrumentador
 
-4. SOLICITUD FINAL
-   - "Solicitamos respetuosamente a la Secretaría del Tribunal
-      tenga por depositados los documentos anteriormente 
-      inventariados y los anexe al expediente"
+Ejemplo:
 
-5. LUGAR, FECHA Y FIRMA
-   - Ciudad y fecha
-   - Firma del abogado
+"1. Contrato de Alquiler de fecha 15/03/2024,
+    legalizado por el Notario Lic. Juan Pérez.
+ 2. Recibo de pago No. 12345 de fecha 20/03/2024,
+    emitido por ABC Inmobiliaria."
 
-✅ CLARIDAD: Cada documento debe ser identificable sin ambigüedad
-✅ FORMATO: Lista numerada, sin texto argumentativo
+4. SOLICITUD
+
+"Solicitamos a la Secretaría tenga por depositados los documentos
+inventariados y los anexe al expediente."
+
+5. CIERRE
+Lugar, fecha y firma del abogado.
+
+✅ CLARIDAD: Cada documento identificable sin ambigüedad
 `,
       'conclusiones': `
 ═══════════════════════════════════════════════════════════════
 MANDATO: ESCRITO DE CONCLUSIONES
 ═══════════════════════════════════════════════════════════════
 
-ROL: Asistente Legal Experto en Práctica Forense (Rep. Dominicana)
-
-NATURALEZA:
-Escrito de postura final en un proceso (NO es acto de alguacil).
+NATURALEZA: Argumentación FINAL antes del cierre de debates.
 
 ESTRUCTURA:
 
-1. ENCABEZADO COMPLETO
-   - Tribunal
-   - Juez/Jueza (nombre)
-   - Partes (demandante vs demandado)
-   - Expediente judicial
-   - Expediente interno/Gedex
+1. ENCABEZADO
+Tribunal, Expediente, Parte que concluye
 
-2. SECCIÓN I: RELATO FÁCTICO
-   - Presentación de hechos favorable a la parte que concluye
-   - Narración persuasiva pero técnica
+2. CALIDAD PROCESAL
 
-3. SECCIÓN II: FUNDAMENTOS DE DERECHO
-   - Citas de artículos pertinentes
-   - Jurisprudencia aplicable
-   - Conexión hechos-norma
+"[Nombre], [Demandante/Demandado] en el presente proceso"
 
-4. SECCIÓN III: PETITORIO/DISPOSITIVO
-   - Conclusiones específicas y concretas
-   - Ejemplo:
-     "PRIMERO: Acoger la demanda en todas sus partes
-      SEGUNDO: Condenar al demandado al pago de RD$[monto]
-      TERCERO: Costas con distracción"
+3. RESUMEN DE POSICIÓN
+Síntesis de argumentos principales (2-3 párrafos)
 
-5. FÓRMULA SACRAMENTAL
-   - "ES JUSTICIA QUE SE OS PIDE Y ESPERA MERECER"
+4. FUNDAMENTOS DE DERECHO
+Normas que sustentan la posición
 
-6. LUGAR, FECHA Y FIRMA
-   - Ciudad, fecha completa
-   - Firma del abogado
+5. CONCLUSIONES FORMALES (NUMERADAS)
+**PRIMERA:** [Posición sobre validez procesal]
+**SEGUNDA:** [Posición sobre fondo del asunto]
+**TERCERA:** [Petición específica]
+**CUARTA:** [Reserva de derechos]
 
-✅ TONO: Formal, persuasivo, dirigido al magistrado
-✅ COHERENCIA: Hechos → Derecho → Petitorio (lógica argumentativa)
+6. PETITORIO FINAL
+
+"Por tales motivos, solicitamos al Tribunal dictar sentencia
+conforme a derecho acogiendo estas conclusiones."
+
+Lugar, fecha y firma.
+
+✅ CLARIDAD: Conclusiones numeradas y específicas
 `,
       'contrato_compraventa': `
 ═══════════════════════════════════════════════════════════════
 MANDATO: CONTRATO DE COMPRAVENTA INMOBILIARIA
+Corrección de Clasificación: ACTO EXTRAJUDICIAL
 ═══════════════════════════════════════════════════════════════
 
-ROL: Asistente Legal Experto en Derecho Inmobiliario (Rep. Dominicana)
+⚠️ NATURALEZA: Acto PRIVADO entre partes (NO procesal)
 
-NATURALEZA: ACTO EXTRAJUDICIAL - Contrato privado
+⛔ NO INCLUIR:
+❌ Terminología procesal (demandante, petitorio)
+❌ Referencias a tribunales
+❌ Actuaciones de alguacil
 
-⛔ TERMINOLOGÍA PROHIBIDA:
-- Tribunal
-- Demandante/Demandado
-- Emplazamiento
-- Alguacil
-
-✅ TERMINOLOGÍA CONTRACTUAL:
-- VENDEDORA/VENDEDOR
-- COMPRADOR/COMPRADORA
-- Partes Contratantes
-- Cláusulas
+TERMINOLOGÍA CORRECTA:
+✅ VENDEDOR / COMPRADOR
+✅ PARTES CONTRATANTES
+✅ CLÁUSULAS (no dispositivos)
+✅ CONSENTIMIENTO
+✅ PRECIO y FORMA DE PAGO
 
 ESTRUCTURA:
 
 1. TÍTULO
-   - "CONTRATO DE COMPRAVENTA INMOBILIARIA"
 
-2. IDENTIFICACIÓN DE LAS PARTES
-   - VENDEDORA (empresa o persona, datos completos)
-   - COMPRADOR (datos personales completos)
+"CONTRATO DE COMPRAVENTA INMOBILIARIA"
 
-3. PREÁMBULO (POR CUANTO)
-   - Antecedentes que motivan el contrato
+2. COMPARECIENTES
 
-4. ARTICULADO (Cláusulas numeradas)
-   
-   ARTÍCULO PRIMERO (Objeto):
-   - Descripción EXACTA del inmueble
-   - Según Certificado de Título (matrícula, designación catastral)
-   
-   ARTÍCULO SEGUNDO (Precio y Forma de Pago):
-   - Precio total (en letras y números)
-   - Desglose: inicial + cuotas + pago final
-   
-   ARTÍCULO TERCERO (Garantías):
-   - Libre de cargas y gravámenes
-   - Garantía contra evicción y vicios ocultos
-   
-   [Más artículos según necesidad]
+"VENDEDOR: [Nombre], cédula [Número], domiciliado en [Dirección]
+ COMPRADOR: [Nombre], cédula [Número], domiciliado en [Dirección]"
 
-5. JURISDICCIÓN Y LEY APLICABLE
-   - Tribunales de [jurisdicción]
-   - Derecho común para lo no previsto
+3. ANTECEDENTES
+Propiedad del vendedor (matrícula, certificado de título)
 
-6. CERTIFICACIÓN NOTARIAL
-   - "Yo, [Notario], doy fe que las firmas fueron 
-      puestas en mi presencia..."
-   - Datos del notario (nombre, matrícula, jurisdicción)
+4. OBJETO DEL CONTRATO
+Descripción detallada del inmueble:
+- Ubicación exacta
+- Linderos (Norte, Sur, Este, Oeste)
+- Área en metros cuadrados
+- Matrícula del Registro de Títulos
 
-✅ LENGUAJE: Contractual, no procesal
-✅ CONSENTIMIENTO: "De común acuerdo", "buena fe"
+5. PRECIO Y FORMA DE PAGO
+- Precio total pactado
+- Forma de pago (contado, financiado)
+- Fechas de pagos parciales
+
+6. CLÁUSULAS PRINCIPALES
+- Tradición del inmueble
+- Saneamiento
+- Gastos de transferencia
+- Penalidades por incumplimiento
+- Obligaciones del vendedor
+- Obligaciones del comprador
+
+7. TESTIGOS (opcional)
+Datos de 2 testigos
+
+8. LUGAR, FECHA Y FIRMAS
+- Vendedor
+- Comprador
+- Testigos
+
+✅ LENGUAJE: Contractual, privado, NO procesal
 `
     };
 
-    let systemPrompt = '';
-
-    // Aplicar mandato específico si existe
     const mandatoEspecifico = mandatos[tipo_documento] || '';
 
-    if (esJudicial) {
-      systemPrompt = `Eres un asistente jurídico experto especializado en República Dominicana.
+    const systemPrompt = `Eres un asistente legal experto especializado en la redacción de actos jurídicos para la República Dominicana.
 
-${mandatoEspecifico ? `${mandatoEspecifico}\n\n` : ''}
+${mandatoEspecifico}
 
-CARÁTULA DE LA FIRMA:
-${firmaNombre}${rncFirma ? ` - RNC: ${rncFirma}` : ''}
-${abogadoNombre} - Matrícula CARD: ${matriculaCard}
-${direccionFirma}
-${telefonoFirma} | ${emailFirma}
-${eslogan ? `"${eslogan}"` : ''}
-
-JERARQUÍA NORMATIVA PARA ${materia.toUpperCase()}:
-${normasAplicables.map((n, i) => `${i + 1}. ${n}`).join('\n')}
-
-ESPECIFICACIONES DE DISEÑO Y FORMATO PROFESIONAL:
+DIRECTRICES DE DISEÑO Y FORMATO PROFESIONAL:
 
 TIPOGRAFÍA:
-- Fuente: Times New Roman o Georgia
-- Tamaño título: 14pt, Negrita, Mayúsculas, Centrado
-- Tamaño subtítulos: 12pt, Negrita, Mayúsculas
-- Tamaño texto: 12pt, Regular
-- Interlineado: 1.5 líneas (estándar jurídico dominicano)
-- Alineación: Justificada (texto), Centrada (títulos)
+- Fuente: Times New Roman o Georgia (fuentes serif profesionales)
+- Tamaño: 12pt para cuerpo, 14pt para títulos
+- Interlineado: 1.5 (doble espacio entre párrafos)
+- Alineación: Justificada
 
-ESTRUCTURA VISUAL:
-- Encabezado con líneas decorativas (═══)
-- Secciones numeradas (I, II, III o 1, 2, 3)
-- Separadores de sección (───)
-- Sangría primera línea: 0.5 pulgadas
-- Espacio entre secciones: 1 línea
+ESPACIADO Y MÁRGENES:
+- Márgenes: 2.5cm todos los lados
+- Sangría primera línea: 1.27cm
+- Espacio entre secciones: 2 líneas en blanco
+
+JERARQUÍA VISUAL:
+- TÍTULOS DE SECCIÓN: MAYÚSCULAS, NEGRILLA, CENTRADO
+- Subtítulos: Primera Letra Mayúscula, Negrilla, Alineado izquierda
+- Numeración: Romana para secciones principales (I, II, III)
+- Listas: Números arábigos o viñetas según corresponda
 
 ELEMENTOS DESTACADOS:
-- PETITORIO/DISPOSITIVO: En negrilla y mayúsculas
-- Números y montos: En letras y números
-- Fórmulas sacramentales: Mayúsculas y centradas
+- Petitorio: **NEGRILLA** y NUMERADO
+- Nombres de partes: MAYÚSCULAS en primera mención
+- Montos: Números y letras (Ej: "RD$100,000.00 (CIEN MIL PESOS 00/100)")
+- Fechas: Formato completo (15 de octubre de 2025)
+- Plazos: En MAYÚSCULAS (OCTAVA FRANCA)
 
-PRINCIPIOS:
-1. PROFESIONALISMO: Seriedad y credibilidad jurídica
-2. MINIMALISMO: Sin decoración innecesaria
-3. LEGIBILIDAD: Estructura clara y fácil lectura
-    
-    ESTRUCTURA OBLIGATORIA DE DEMANDA CIVIL (TEXTO PLANO, SIN MARKDOWN):
-    
-    ENCABEZADO (Primera página - centrado, espaciado de 2 líneas):
-    [TÍTULO DEL DOCUMENTO]
-    
-    DEMANDANTE: [Nombre completo del demandante]
-    DEMANDADO: [Nombre completo del demandado]
-    TRIBUNAL: [Nombre del tribunal/juzgado]
-    EXPEDIENTE No.: [Número de expediente]
-    
-    
-    1. PRESENTACIÓN
-    1.1. Designación Protocolar del Alguacil
-    1.2. No. [número], Folios [folios] y [folios] año [año]
-    1.3. En la Ciudad de [ciudad donde se hace el acto] de la provincia [provincia] de la República Dominicana, a los [día] días del mes [mes] del año [año de la instrumentación del acto];
-    1.4. Requerente
-    1.6. [Nombre completo del demandante], [nacionalidad], mayor de edad, [estado civil], portador de la cédula No. [cédula] o RNC [RNC si aplica], [domicilio completo]
-    1.7. Firma Apoderada
-    1.8. [Nombre de la firma], entidad jurídica organizada conforme a las leyes de RD, RNC [número], representada por [representante], quien otorga poder al [abogado], [datos completos del abogado], matrícula No. [matrícula], con estudio profesional en [dirección], teléfonos [teléfonos], email: [email]
-    1.9. Elección de Domicilio
-    1.10. Elección de domicilio en la dirección del estudio del abogado apoderado
-    2. Declaración de mandato y Proceso Verbal Traslados
-    2.1. Yo [nombre del alguacil], debidamente nombrado, recibido y juramentado...
-    3. Proceso verbal de Traslado
-    3.1. PRIMERO: [descripción del traslado al domicilio del demandado]
-    4. Mención de la Notificación
-    1.10. Por medio del presente acto LE NOTIFICO Y DENUNCIO...
-    
-    2. RELATO FÁCTICO
-    (centrado, narración cronológica)
-    
-    3. ASPECTOS REGULATORIOS
-    (centrado, EN ORDEN JERÁRQUICO ESTRICTO)
-    ${normasAplicables.map((n, i) => `3.${i + 1}. ${n} - citar artículos específicos CON TEXTO ÍNTEGRO cuando sea clave`).join('\n')}
-    
-    4. TESIS DE DERECHO
-    (centrado)
-    4.1. IDENTIFICACIÓN DE ELEMENTOS CONSTITUTIVOS
-        - Identificar claramente los elementos constitutivos de la acción/infracción según la norma aplicable
-        - Enumerar cada elemento requerido por la legislación
-    4.2. SUBSUNCIÓN DE LOS HECHOS AL DERECHO
-        - Para CADA elemento constitutivo identificado, demostrar cómo los hechos del caso satisfacen ese elemento
-        - Hacer el análisis de encaje entre los hechos narrados y cada requisito legal
-    4.3. INTERPRETACIÓN DOCTRINAL
-        - Citar autores y doctrinarios reconocidos que sustenten la interpretación de las normas
-        - Incluir referencias a tratadistas dominicanos y extranjeros aplicables
-    4.4. INTERPRETACIÓN JURISPRUDENCIAL
-        - Citar sentencias relevantes (SCJ, TC) que hayan interpretado las normas aplicables
-        - Mostrar cómo la jurisprudencia respalda la pretensión
-        - Incluir número de sentencia, fecha, sala y extracto del razonamiento
-    4.5. CONCLUSIÓN DE LA SUBSUNCIÓN
-        - Demostrar que los hechos probados configuran plenamente la hipótesis normativa
-        - Justificar por qué procede la demanda según el derecho aplicable
-    
-    5. DISPOSITIVOS
-    (centrado)
-    5.1. Motivación
-    5.2. Declaratoria de validez procesal
-    5.3. Peticiones de fondo (COMPROBAR/DECLARAR/ORDENAR/CONDENAR con montos específicos)
-    5.4. Costas y gastos
-    5.5. Certificaciones del alguacil
-    
-    REGLAS CRÍTICAS:
-    1) FORMATO: A4, texto justificado, títulos centrados, párrafos unidos y completos
-    2) NUNCA usar líneas de subrayado o espacios en blanco (____). Usa SOLO los datos provistos por el usuario.
-    3) NO LLENAR información que no fue proporcionada (excepto datos del cliente y abogado si están en el sistema)
-    4) Estructura numerada estricta (1.1., 1.2., etc.)
-    5) Lenguaje formal jurídico dominicano
-    6) Normas en ORDEN JERÁRQUICO según la materia
-    7) Citas con texto íntegro del artículo cuando sea fundamental
-    8) Formato para Word: texto plano, sin Markdown, justificado
-    9) NO incluir "ACTO NÚMERO [número]" como título independiente - el número va SOLO en la sección 1.2
-    10) Los títulos "1. PRESENTACIÓN", "2. RELATO FÁCTICO", "3. ASPECTOS REGULATORIOS", "4. TESIS DE DERECHO", "5. DISPOSITIVOS" deben estar CENTRADOS
-    11) El encabezado con la firma debe estar CENTRADO con espaciado de 2 líneas entre cada línea de texto
-    12) En la sección 4 (TESIS DE DERECHO): hacer subsunción rigurosa identificando elementos constitutivos, demostrando cómo cada hecho cumple cada elemento, citando doctrina y jurisprudencia específica
-    13) Cambiar "Santo Domingo, Distrito Nacional" por: "En la Ciudad de [ciudad] de la provincia [provincia] de la República Dominicana, a los [día] días del mes [mes] del año [año]"
+PROFESIONALISMO:
+- Lenguaje formal y técnico
+- Sin errores ortográficos
+- Terminología jurídica precisa
+- Coherencia en numeración
+- Citas legales completas
 
-    Genera documentos COMPLETOS y PROFESIONALES con subsunción rigurosa.`;
-    } else if (esExtrajudicial) {
-      // PLANTILLA PARA ACTOS EXTRAJUDICIALES
-      systemPrompt = `Eres un asistente jurídico experto en documentos extrajudiciales de República Dominicana.
-    
-    ⚠️ CRÍTICO: Este es un documento EXTRAJUDICIAL - NO PROCESAL.
-    
-    FORMATO DOCUMENTO: Formato A4, texto justificado, títulos centrados, párrafos completos y unidos.
-    
-    ════════════════════════════════════════════════════════════════════
-    ENCABEZADO FORMAL (Centrado, tipografía Times New Roman)
-    ════════════════════════════════════════════════════════════════════
-    
-    ${firmaNombre}${rncFirma ? '\nRNC: ' + rncFirma : ''}
-    
-    ${abogadoNombre}
-    Abogado${matriculaCard ? ' - Matrícula CARD: ' + matriculaCard : ''}
-    
-    ${direccionFirma}
-    Tel: ${telefonoFirma} | Email: ${emailFirma}
-    
-    ════════════════════════════════════════════════════════════════════
-    
-    
-    ESTRUCTURA PARA DOCUMENTOS EXTRAJUDICIALES ELEGANTES:
-    
-    ════════════════════════════════════════════════════════════════════
-    1. ENCABEZADO DEL DOCUMENTO
-    ════════════════════════════════════════════════════════════════════
-    
-    [TÍTULO DEL DOCUMENTO EN MAYÚSCULAS, CENTRADO]
-    
-    En la Ciudad de [ciudad], provincia de [provincia],
-    República Dominicana, a los [día] días del mes de [mes] del año [año].
-    
-    
-    ════════════════════════════════════════════════════════════════════
-    2. IDENTIFICACIÓN DE LAS PARTES
-    ════════════════════════════════════════════════════════════════════
-    
-    ⚠️ TERMINOLOGÍA CORRECTA (según tipo de documento):
-    
-    CONTRATOS:
-    • Vendedor/Comprador (compraventa)
-    • Arrendador/Arrendatario (alquiler)
-    • Poderdante/Apoderado (poder)
-    • Empleador/Empleado (trabajo)
-    
-    COMUNICACIONES:
-    • Remitente/Destinatario (cartas)
-    • Intimante/Intimado (intimaciones)
-    • Notificante/Notificado (notificaciones)
-    
-    ⛔ PROHIBIDO USAR: Demandante, Demandado, Accionante, Accionado
-    
-    PRIMERA PARTE: [Rol según documento]
-    [Nombre completo], de nacionalidad [nacionalidad], mayor de edad,
-    [estado civil], [profesión], portador(a) de la cédula de identidad
-    núm. [cédula], domiciliado(a) en [domicilio completo].
-    
-    SEGUNDA PARTE: [Rol según documento]
-    [Nombre completo], de nacionalidad [nacionalidad], mayor de edad,
-    [estado civil], [profesión], portador(a) de la cédula de identidad
-    núm. [cédula], domiciliado(a) en [domicilio completo].
-    
-    
-    ════════════════════════════════════════════════════════════════════
-    3. OBJETO DEL DOCUMENTO
-    ════════════════════════════════════════════════════════════════════
-    
-    [Descripción clara y específica del objeto/propósito del documento]
-    
-    
-    ════════════════════════════════════════════════════════════════════
-    4. CONTENIDO PRINCIPAL
-    ════════════════════════════════════════════════════════════════════
-    
-    [Para CONTRATOS - Cláusulas numeradas:]
-    
-    CLÁUSULA PRIMERA: [Título de la cláusula]
-    [Contenido detallado]
-    
-    CLÁUSULA SEGUNDA: [Título de la cláusula]
-    [Contenido detallado]
-    
-    [Para CARTAS/COMUNICACIONES:]
-    
-    ANTECEDENTES:
-    [Exposición de la situación que motiva la comunicación]
-    
-    SOLICITUD/INTIMACIÓN:
-    [Petición o requerimiento específico]
-    
-    PLAZO:
-    [Si aplica, plazo otorgado para cumplimiento]
-    
-    
-    ════════════════════════════════════════════════════════════════════
-    5. DISPOSICIONES FINALES
-    ════════════════════════════════════════════════════════════════════
-    
-    JURISDICCIÓN Y LEY APLICABLE:
-    [Si aplica: fuero competente y normativa aplicable]
-    
-    NOTIFICACIONES:
-    [Domicilios para futuras comunicaciones]
-    
-    
-    ────────────────────────────────────────────────────────────────────
-                            FIRMAS
-    ────────────────────────────────────────────────────────────────────
-    
-    
-    _____________________________              _____________________________
-    [Nombre Primera Parte]                    [Nombre Segunda Parte]
-    [Rol]                                     [Rol]
-    Cédula: [número]                          Cédula: [número]
-    
-    
-    ${matriculaCard ? `
-    _____________________________
-    ${abogadoNombre}
-    Abogado Redactor
-    Matrícula CARD: ${matriculaCard}
-    ` : ''}
-    
-    
-    ════════════════════════════════════════════════════════════════════
-    REGLAS CRÍTICAS PARA DOCUMENTOS EXTRAJUDICIALES:
-    ════════════════════════════════════════════════════════════════════
-    
-    ⛔ PROHIBICIONES ABSOLUTAS:
-    1. NO usar "número de acto" ni "acto núm."
-    2. NO mencionar "alguacil", "traslados", "emplazamiento"
-    3. NO usar "demandante/demandado" ni "tribunal/juzgado"
-    4. NO incluir "expediente judicial" ni "número de expediente"
-    5. NO usar "pretensiones" ni "dispositivo/petitorio"
-    6. NO mencionar "costas procesales"
-    
-    ✅ REQUISITOS OBLIGATORIOS:
-    1. FORMATO: ${tipo_documento === 'contrato_venta_inmueble' ? 'OFICIO (8.5" x 13")' : 'A4'}, texto JUSTIFICADO, títulos CENTRADOS EN MAYÚSCULAS, párrafos unidos y completos
-    2. NO LLENAR información que no fue proporcionada (excepto datos del cliente/abogado si están en sistema)
-    3. Si falta información requerida, DEJAR EN BLANCO o usar [Campo a completar] con advertencia
-    4. Terminología EXCLUSIVAMENTE civil/contractual
-    5. Identificación de partes según naturaleza del documento
-    6. Lenguaje claro, directo y profesional
-    7. Enfoque contractual o comunicativo
-    8. Formato elegante con tipografía Times New Roman
-    9. Espaciado generoso y estructura limpia
-    
-    ${tipo_documento === 'contrato_venta_inmueble' ? `
-    ════════════════════════════════════════════════════════════════════
-    🏠 ESTRUCTURA OBLIGATORIA PARA CONTRATO DE COMPRAVENTA INMOBILIARIA
-    ════════════════════════════════════════════════════════════════════
-    
-    SIGUE ESTE MODELO EXACTO (adaptando los datos específicos del formulario):
-    
-    CONTRATO DE COMPRAVENTA CONDICIONAL INMOBILIARIA
-    
-    ENTRE:
-    
-    De una parte [PRIMERA PARTE - vendedor con todos sus datos de identificación completos: nombre, nacionalidad, estado civil, cédula/pasaporte, domicilio], quien en lo que sigue del presente contrato se denominará LA VENDEDORA. Y de la otra parte [SEGUNDA PARTE - comprador con todos sus datos de identificación completos: nombre, nacionalidad, estado civil, cédula, domicilio], quien en lo que sigue del presente contrato se denominará EL COMPRADOR.
-    
-    POR CUANTO: LA VENDEDORA es propietaria del inmueble que se describe en el Artículo Primero del presente acto.
-    
-    POR CUANTO: EL COMPRADOR está interesado en adquirir la propiedad de dicho inmueble, bajo las condiciones, plazos y términos que se indicarán más adelante; declarando LA VENDEDORA formalmente, en forma retroactiva, concluyente, objetiva y definitiva que asumen todos y cada uno de las cargas y gravámenes anteriores a la firma del presente contrato; así mismo asumen libres y voluntariamente el reclamo de cualquier tipo de garantía de derecho, abonos financieros en cualquier naturaleza o especie por concepto de evicción y vicios ocultos que pudieren registrarse anterior o posterior a la firma del presente acto.
-    
-    POR CUANTO: Ambas partes han convenido a formalizar mediante el presente contrato las condiciones que regirán para dicha operación de compra y venta.
-    
-    POR TANTO: y en el entendido de que las disposiciones contenidas en el preámbulo que antecede forma parte de este contrato, las partes contratantes, de común acuerdo.
-    
-    HAN CONVENIDO Y PACTADO LO SIGUIENTE
-    
-    ARTÍCULO PRIMERO: OBJETO DEL CONTRATO:
-    
-    LA VENDEDORA, por medio del presente contrato se compromete a vender ceder y traspasar desde ahora y para siempre, con todas las garantías de derecho, a EL COMPRADOR quien acepta el inmueble que se describe a continuación: [DESCRIPCIÓN COMPLETA DEL INMUEBLE con matrícula, ubicación, área, porcentaje de participación, etc.]
-    
-    PARRAFO: La adquisición del inmueble antes descrito conlleva al derecho de uso de su totalidad así como de todas sus mejoras y anexidades, y equipos que se describen en este contrato de especificaciones generales será sido firmado por ambas partes y forma parte íntegra del mismo.
-    
-    ARTICULO SEGUNDO: PRECIO DE LA VENTA
-    
-    El precio convenido pactado entre las partes para la venta de este inmueble es por la suma de [MONTO EN TEXTO] ([MONTO EN NÚMEROS]), moneda de curso legal, monto que será pagado por EL COMPRADOR, de la siguiente manera:
-    
-    a) [Primera forma de pago con monto y condiciones]
-    b) [Segunda forma de pago si aplica]
-    
-    ARTICULO TERCERO: ENTREGA DEL INMUEBLE
-    
-    LA VENDEDORA se compromete a entregar el inmueble descrito procedentemente a la firma del contrato definitivo de compraventa y entregar la documentación relativa a los servicios de agua, luz, teléfono, cable y del impuesto de la vivienda suntuaria y solares Urbanos no Edificados (IVSS), así como los certificados de título duplicado del dueño Matrícula No. [número], completamente con los pagos al día y sin ninguna deuda.
-    
-    ARTÍCULO CUARTO: DERECHO DE PROPIEDAD
-    
-    LA VENDEDORA justifica su derecho de propiedad sobre el inmueble que en virtud del presente acto se traspasa a favor de EL COMPRADOR, mediante el certificado de título Matrícula No. [número], de fecha [fecha], expedido por el Registrador de Título de [jurisdicción].
-    
-    ARTÍCULO QUINTO: AUTORIZACION Y DECLARACION JURADA
-    
-    LA VENDEDORA por medio de este mismo acto autorizan al Registrador de Títulos de [jurisdicción], al momento de realizar el pago final, a realizar el traspaso del inmueble objeto de la presente venta a favor de EL COMPRADOR, en el momento en que se haya pagado el total del precio de venta acordado.
-    
-    ARTICULO SEXTO: DECLARACION JURADA
-    
-    LA VENDEDORA declara que el inmueble anteriormente descrito está libre de litis sobre terreno registrado y de cualquier controversia que afecte la posesión pacífica de dicho inmueble; otorgando las debidas garantías a favor de EL COMPRADOR, asumiendo LA VENDEDORA cualesquiera cargas y gravámenes anteriores a la firma del presente contrato; así como la responsabilidad propia de la evicción y vicios ocultos que pudieren registrarse anterior o posteriormente a la firma del presente acto.
-    
-    ARTICULO SEPTIMO: PAGO DE INMUEBLES:
-    
-    Queda entendido entre las partes que EL COMPRADOR está obligado al pago de los impuestos, sellos y arbitrios que se originen por el traspaso del inmueble objeto del presente contrato, a partir de la firma de este documento; mientras que cualesquiera cargas y gravámenes anteriores a la del presente contrato están a cargo de LA VENDEDORA.
-    
-    ARTÍCULO OCTAVO: DERECHO COMUN:
-    
-    LAS PARTES que intervienen en el presente contrato afirman conocer y aprobar todos y cada una de las cláusulas y para todo aquello no provisto en este contrato LAS PARTES se remiten al derecho común.
-    
-    Hecho, leído, aprobado y firmado de buena fe en tres (03) originales de un mismo tenor y efectos, uno para cada una de LAS PARTES, el tercero para ser depositado en el protocolo del notario actuante. En [Ciudad], República Dominicana, a los [día] días del mes de [mes] del año [año].
-    
-    Firmado:
-    
-    
-                                   LA VENDEDORA:
-    
-                              _________________________
-                              [Nombre Primera Parte]
-    
-    
-                                   EL COMPRADOR:
-    
-                              _______________________________
-                              [Nombre Segunda Parte]
-    ` : ''}
-    
-    📐 DISEÑO Y FORMATO:
-    1. Tipografía: Times New Roman 12pt
-    2. Interlineado: 1.5 espacios
-    3. Alineación: Justificado
-    4. Márgenes: 2.5 cm
-    5. Títulos: CENTRADOS Y MAYÚSCULAS
-    6. Separadores visuales con líneas (═)
-    7. Minimalismo y elegancia
-    
-    ════════════════════════════════════════════════════════════════════
-    ⚠️ COLETILLA NOTARIAL (DESPUÉS DE LAS FIRMAS DE LAS PARTES)
-    ════════════════════════════════════════════════════════════════════
-    
-    ${formData.notario_nombre ? `
-    
-    
-    
-    ════════════════════════════════════════════════════════════════════
-    
-    Yo, ${formData.notario_nombre}, Notario Público ${formData.notario_jurisdiccion || 'de los Números para el Distrito Nacional'}, Miembro activo del Colegio Dominicano de Notarios de la República Dominicana con matrícula al día y No. ${formData.notario_matricula || '[matrícula]'}, portador de la Cédula de identidad y electoral No. ${formData.notario_cedula || '[cédula]'}, con Oficina Profesional abierta de manera permanente en ${formData.notario_oficina || '[dirección oficina]'}, CERTIFICO que las firmas que aparecen en el presente documento, han sido puestas en mi presencia, libre y voluntariamente por los señores ${formData.primera_parte_nombre || '[Primera Parte]'} Y ${formData.segunda_parte_nombre || '[Segunda Parte]'}, de generales y cualidades que constan en el presente acto; quienes me han declarado que esas son las firmas que acostumbran utilizar para todos los actos de sus vidas, por lo que merecen entera fe y crédito. En ${formData.lugar_ciudad || 'el Distrito Nacional'}, República Dominicana, a los ${formData.fecha_texto || '[fecha en texto: XX (##) días del mes de XXXX del año XXXX]'}.
-    
-    DOY FE:
-    
-    
-    _____________________________
-    ${formData.notario_nombre}
-    NOTARIO PÚBLICO
-    ` : ''}
-    
-    
-    ════════════════════════════════════════════════════════════════════
-    ⚠️ FIRMA DEL ABOGADO REDACTOR (AL FINAL - FUERA DEL ACTO)
-    ════════════════════════════════════════════════════════════════════
-    
-    IMPORTANTE: Después de la coletilla notarial (o después de las firmas de las partes si no hay notario),
-    agregar LÍNEAS EN BLANCO y luego incluir la firma del abogado redactor SEPARADA:
-    
-    
-    
-    ════════════════════════════════════════════════════════════════════
-    
-    _____________________________
-    ${formData.abogado_nombre || abogadoNombre}
-    Abogado Redactor
-    Matrícula CARD: ${formData.abogado_matricula || matriculaCard}
-    
-    Genera documentos COMPLETOS, ELEGANTES y EXTRAJUDICIALES PUROS.`;
-    } else {
-      // Si no está clasificado, usar plantilla genérica
-      console.warn(`Documento ${tipo_documento} no clasificado. Usando plantilla genérica.`);
-      systemPrompt = `Eres un asistente jurídico experto especializado en República Dominicana.
+Debes generar documentos legales impecables que cumplan con todos los requisitos procesales
+y formales de la República Dominicana, siguiendo estrictamente los mandatos establecidos.`;
 
-CARÁTULA DE LA FIRMA:
-${firmaNombre}${rncFirma ? ` - RNC: ${rncFirma}` : ''}
-${abogadoNombre} - Matrícula CARD: ${matriculaCard}
-${direccionFirma}
-${telefonoFirma} | ${emailFirma}
+    const specificInstructions = mandatoEspecifico 
+      ? `
 
-Genera un documento jurídico profesional de tipo ${tipo_documento} en materia ${materia}.
-Usa lenguaje formal jurídico dominicano.
-Estructura clara con introducción, desarrollo y conclusión.`;
-    }
+🔍 MANDATO ESPECÍFICO PARA ESTE TIPO DE ACTO:
+${mandatoEspecifico}
 
-    const userPrompt = `Genera ${esJudicial ? 'una demanda judicial' : esExtrajudicial ? 'un documento extrajudicial' : 'un documento jurídico'} COMPLETO.
+Sigue ESTRICTAMENTE este mandato.`
+      : '';
 
-DATOS DEL DOCUMENTO:
-- Tipo: ${tipo_documento}
-- Materia: ${materia}
-- Fecha: ${formData.fecha || acto?.fecha || new Date().toLocaleDateString('es-DO')}
+    const userPrompt = `Genera un documento legal tipo "${tipo_documento}" con los siguientes datos:
 
-${esJudicial ? `
-DATOS PROCESALES:
-- Número de Acto: ${formData.numero_acto || acto?.numero || '[Número del acto]'}
-- Ciudad: ${formData.ciudad_actuacion || ciudad_actuacion || 'Santo Domingo'}
-- Tribunal: ${formData.tribunal || juzgado || '[Tribunal competente]'}
-` : ''}
+${JSON.stringify(formData, null, 2)}
 
-PARTES:
-${formData.demandante_nombre || formData.primera_parte_nombre || demandante?.nombre ? `
-- ${esJudicial ? 'Demandante' : 'Primera Parte'}: ${formData.demandante_nombre || formData.primera_parte_nombre || demandante?.nombre}
-  Nacionalidad: ${formData.demandante_nacionalidad || formData.primera_parte_nacionalidad || demandante?.nacionalidad || ''}
-  Estado Civil: ${formData.demandante_estado_civil || formData.primera_parte_estado_civil || demandante?.estado_civil || ''}
-  Cédula/RNC: ${formData.demandante_cedula || formData.primera_parte_cedula || demandante?.cedula || ''}
-  Domicilio: ${formData.demandante_domicilio || formData.primera_parte_domicilio || demandante?.domicilio || ''}
-` : ''}
+${specificInstructions}
 
-${formData.demandado_nombre || formData.segunda_parte_nombre || demandado?.nombre ? `
-- ${esJudicial ? 'Demandado' : 'Segunda Parte'}: ${formData.demandado_nombre || formData.segunda_parte_nombre || demandado?.nombre}
-  Nacionalidad: ${formData.demandado_nacionalidad || formData.segunda_parte_nacionalidad || ''}
-  Estado Civil: ${formData.demandado_estado_civil || formData.segunda_parte_estado_civil || ''}
-  Cédula/RNC: ${formData.demandado_cedula || formData.segunda_parte_cedula || demandado?.cedula || ''}
-  Domicilio: ${formData.demandado_domicilio || formData.segunda_parte_domicilio || demandado?.domicilio || ''}
-` : ''}
+El documento debe ser procesalmente impecable y cumplir con todos los requisitos formales.`;
 
-ABOGADO${esJudicial ? ' APODERADO' : ' REDACTOR'}:
-- Nombre: ${formData.abogado_nombre || abogado?.nombre || abogadoNombre}
-- Cédula: ${formData.abogado_cedula || abogado?.cedula || ''}
-- Matrícula: ${formData.abogado_matricula || abogado?.matricula || matriculaCard}
-- Dirección: ${formData.abogado_despacho || abogado?.direccion || direccionFirma}
-- Contacto: ${formData.abogado_telefono || abogado?.telefono || telefonoFirma}
-- Email: ${formData.abogado_email || abogado?.email || emailFirma}
-
-${esJudicial && alguacil_designacion ? `
-ALGUACIL:
-${alguacil_designacion}
-` : ''}
-
-HECHOS DEL CASO:
-${formData.hechos || formData.descripcion_detallada || hechos || ''}
-
-${esJudicial ? 'PRETENSIONES (DISPOSITIVO):' : 'OBJETO/SOLICITUD:'}
-${formData.pretensiones || formData.objeto_acto || pretension || ''}
-
-${formData.fundamentos || legislacion ? `
-FUNDAMENTOS LEGALES:
-${formData.fundamentos || legislacion}
-` : ''}
-
-${jurisprudencia ? `
-JURISPRUDENCIA:
-${jurisprudencia}
-` : ''}
-
-INSTRUCCIONES CRÍTICAS:
-${esJudicial ? `
-[DOCUMENTO JUDICIAL - Seguir estructura procesal completa]
-FORMATO: A4, texto justificado, títulos centrados, párrafos unidos y completos
-1. ENCABEZADO centrado: TÍTULO, DEMANDANTE, DEMANDADO, TRIBUNAL, EXPEDIENTE
-2. NO usar "ACTO NÚMERO" como título separado
-3. PRESENTACIÓN (1.1-1.10): Datos del acto, partes, abogado, domicilio procesal
-4. RELATO FÁCTICO (2.x): Narración cronológica de hechos
-5. ASPECTOS REGULATORIOS (3.x): Jerarquía normativa con artículos COMPLETOS
-6. TESIS DE DERECHO (4.x): Subsunción RIGUROSA con elementos constitutivos, doctrina y jurisprudencia
-7. DISPOSITIVO (5.x): Peticiones numeradas, costas
-8. Firma: ${abogadoNombre}, Matrícula ${matriculaCard}
-⚠️ NO LLENAR información que no fue proporcionada - usar solo los datos dados arriba
-` : esExtrajudicial ? `
-[DOCUMENTO EXTRAJUDICIAL - NO procesal]
-FORMATO: A4, texto justificado, títulos centrados, párrafos unidos y completos
-1. Encabezado: Título del documento, fecha, lugar
-2. PARTES: Identificación SIN términos procesales (demandante/demandado)
-   - Si es contrato de inmueble: usar "Vendedor/Comprador" y especificar datos del inmueble
-   - Si es contrato de mueble: usar "Vendedor/Comprador" y especificar el bien mueble
-3. OBJETO: Descripción clara del propósito
-4. CLÁUSULAS/CONTENIDO: Desarrollo según tipo de documento
-5. CIERRE: Firmas y datos de contacto
-6. NO usar: número de acto, traslados, emplazamiento, tribunal
-⚠️ NO LLENAR información que no fue proporcionada - usar solo los datos dados arriba
-⚠️ Si falta información crítica, ADVERTIR al final del documento
-` : `
-[DOCUMENTO GENERAL]
-FORMATO: A4, texto justificado, títulos centrados, párrafos unidos y completos
-1. Estructura clara con título, introducción, desarrollo, conclusión
-2. Lenguaje formal jurídico dominicano
-3. Datos completos de partes y abogado
-⚠️ NO LLENAR información que no fue proporcionada
-`}
-
-Genera AHORA el documento COMPLETO y PROFESIONAL:`;
-
-    console.log('🤖 Generando documento jurídico con IA...');
-    console.log('📊 Prompt system length:', systemPrompt.length);
-    console.log('📊 Prompt user length:', userPrompt.length);
-
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    console.log('🤖 Calling Lovable AI...');
+    
+    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${LOVABLE_API_KEY}`,
@@ -1181,103 +680,48 @@ Genera AHORA el documento COMPLETO y PROFESIONAL:`;
           { role: 'user', content: userPrompt }
         ],
         temperature: 0.3,
-        max_tokens: 4000,
       }),
     });
 
-    console.log('📡 Response status:', response.status);
-
-    if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(JSON.stringify({ 
-          error: 'Límite de solicitudes excedido. Intenta nuevamente en unos momentos.' 
-        }), {
-          status: 429,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
+    if (!aiResponse.ok) {
+      const errorText = await aiResponse.text();
+      console.error('❌ AI API Error:', aiResponse.status, errorText);
+      
+      if (aiResponse.status === 429) {
+        return new Response(
+          JSON.stringify({ error: 'Límite de tasa excedido. Por favor intenta más tarde.' }),
+          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ 
-          error: 'Créditos de IA agotados. Por favor, recarga en Configuración.' 
-        }), {
-          status: 402,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
+      
+      if (aiResponse.status === 402) {
+        return new Response(
+          JSON.stringify({ error: 'Se requiere pago. Agrega fondos a tu espacio de trabajo de Lovable AI.' }),
+          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
-      const errorText = await response.text();
-      console.error('❌ Error de AI Gateway:', response.status, errorText);
-      throw new Error(`Error en AI Gateway (${response.status}): ${errorText}`);
+      
+      throw new Error(`AI API error: ${aiResponse.status}`);
     }
 
-    const data = await response.json();
-    console.log('✅ Respuesta de IA recibida');
-    const generatedText = data.choices[0]?.message?.content;
+    const aiData = await aiResponse.json();
+    const generatedContent = aiData.choices[0]?.message?.content || '';
 
-    if (!generatedText) {
-      console.error('❌ No se generó contenido. Response data:', JSON.stringify(data));
-      throw new Error('No se generó contenido del documento');
-    }
-    
-    console.log('📄 Documento generado, longitud:', generatedText.length);
-
-    // Generar citas verificables basadas en la materia
-    const citations = [
-      {
-        tipo: 'jurisprudencia',
-        organo: 'Suprema Corte de Justicia',
-        sala: materia === 'civil' ? 'Primera Sala - Civil' : materia === 'penal' ? 'Segunda Sala - Penal' : 'Tercera Sala - Laboral',
-        num: `SCJ-${materia.toUpperCase()}-${Math.floor(Math.random() * 1000)}-${new Date().getFullYear()}`,
-        fecha: new Date(2020 + Math.floor(Math.random() * 5), Math.floor(Math.random() * 12), 1 + Math.floor(Math.random() * 28)).toISOString().split('T')[0],
-        url: 'https://poderjudicial.gob.do/jurisprudencia/'
-      },
-      {
-        tipo: 'legislacion',
-        organo: 'Congreso Nacional',
-        sala: 'N/A',
-        num: normasAplicables[0] || 'Constitución',
-        fecha: '2015-01-26',
-        url: 'https://www.poderjudicial.gob.do/normativas/'
-      }
-    ];
-
-    console.log('Documento generado exitosamente con', citations.length, 'citas');
+    console.log('✅ Document generated successfully');
 
     return new Response(
-      JSON.stringify({ 
-        titulo: `${tipo_documento} en materia ${materia}`,
-        cuerpo: generatedText,
-        document: generatedText,
-        content: generatedText,
-        documento: generatedText,
-        citations,
-        metadata: {
-          tipo_documento,
-          materia,
-          fecha_generacion: new Date().toISOString(),
-          modelo: 'google/gemini-2.5-flash'
-        }
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
+      JSON.stringify({ contenido: generatedContent }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
-    console.error('❌ Error en generate-legal-doc:', error);
-    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
-    
-    const errorMessage = error instanceof Error ? error.message : 'Error desconocido al generar el documento';
-    
+    console.error('❌ Error in generate-legal-doc:', error);
     return new Response(
       JSON.stringify({ 
-        error: errorMessage,
-        details: error instanceof Error ? error.stack : String(error),
-        timestamp: new Date().toISOString()
+        error: error instanceof Error ? error.message : 'Error desconocido',
+        code: 'INTERNAL_ERROR'
       }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
