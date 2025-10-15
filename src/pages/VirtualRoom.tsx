@@ -136,6 +136,28 @@ export default function VirtualRoom() {
     }
 
     try {
+      // Verificar si ya existe una sesión programada para el mismo caso, cliente y fecha
+      const { data: existingSessions, error: checkError } = await supabase
+        .from('video_sessions')
+        .select('*')
+        .eq('user_id', user!.id)
+        .eq('case_id', newSession.case_id)
+        .eq('client_id', newSession.client_id)
+        .eq('scheduled_at', newSession.scheduled_at)
+        .eq('status', 'scheduled')
+        .maybeSingle() as { data: any, error: any };
+
+      if (checkError && checkError.code !== 'PGRST116') {
+        throw checkError;
+      }
+
+      if (existingSessions) {
+        toast.error('Ya existe una sesión programada para este caso, cliente y fecha', {
+          description: 'Por favor, seleccione otra fecha y hora'
+        });
+        return;
+      }
+
       const meetingLink = generateMeetingLink();
 
       const { data, error } = await supabase
@@ -153,7 +175,14 @@ export default function VirtualRoom() {
         .select()
         .single() as { data: any, error: any };
 
-      if (error) throw error;
+      if (error) {
+        // Manejar errores específicos de base de datos
+        if (error.code === '23505') {
+          toast.error('Esta sesión ya existe en el sistema');
+          return;
+        }
+        throw error;
+      }
 
       setSessions([data, ...sessions] as VideoSession[]);
       
