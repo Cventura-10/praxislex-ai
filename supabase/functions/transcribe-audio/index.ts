@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': Deno.env.get('ALLOWED_ORIGIN') || '*',
@@ -112,8 +113,27 @@ serve(async (req) => {
     const result = await response.json();
     console.log('Transcripción exitosa');
 
+    // Validate transcription output before returning to client
+    const TranscriptionSchema = z.string()
+      .max(10000, "Transcripción demasiado larga")
+      .regex(/^[\w\s.,;:()\u00a1\u00bf!?"\-áéíóúñÑÁÉÍÓÚüÜ/\\@#$%&*+=\[\]{}|<>'\n\r\t]*$/u, "Transcripción contiene caracteres no válidos");
+    
+    let sanitizedText: string;
+    try {
+      sanitizedText = TranscriptionSchema.parse(result.text);
+    } catch (validationError) {
+      console.error('[transcribe-audio] Output validation failed:', validationError);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Transcripción contiene contenido no válido',
+          code: 'INVALID_TRANSCRIPTION_OUTPUT'
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     return new Response(
-      JSON.stringify({ text: result.text }),
+      JSON.stringify({ text: sanitizedText }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }

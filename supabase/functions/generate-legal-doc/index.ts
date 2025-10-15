@@ -67,6 +67,16 @@ serve(async (req) => {
     const requestBody = await req.json();
     
     // Input validation schema - comprehensive and strict
+    // Validate formData values with Spanish legal character set
+    const SpanishLegalTextSchema = z.string()
+      .max(5000, "Campo excede el límite de 5000 caracteres")
+      .regex(/^[\w\s.,;:()\u00a1\u00bf!?"\-áéíóúñÑÁÉÍÓÚüÜ/\\@#$%&*+=\[\]{}|<>'\n\r\t]*$/u, "Contiene caracteres no permitidos");
+    
+    const FormDataSchema = z.record(
+      z.string().max(100, "Nombre de campo demasiado largo"),
+      SpanishLegalTextSchema
+    );
+    
     const RequestSchema = z.object({
       tipo_documento: z.string().min(1).max(100).optional(),
       actType: z.string().min(1).max(100).optional(),
@@ -74,7 +84,7 @@ serve(async (req) => {
       category: z.string().max(100).optional(),
       categoryType: z.string().max(100).optional(),
       materia: z.string().max(100).optional(),
-      formData: z.record(z.string(), z.unknown()).optional(),
+      formData: FormDataSchema.optional(),
       hechos: z.string().max(10000).optional(),
       fundamentacion_juridica: z.string().max(10000).optional(),
       petitorio: z.string().max(5000).optional(),
