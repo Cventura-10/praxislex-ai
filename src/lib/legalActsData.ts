@@ -48,12 +48,12 @@ const civilJudicialActs: LegalAct[] = [
   { id: 'saneamiento_titulo', name: 'Demanda en Saneamiento de Título', type: 'judicial', hasIntake: true, hasManual: true },
   
   // ESCRITOS Y DILIGENCIAS
-  { id: 'conclusiones', name: 'Conclusiones', type: 'judicial', hasIntake: false, hasManual: true },
+  { id: 'conclusiones', name: 'Conclusiones', type: 'judicial', hasIntake: true, hasManual: true },
   { id: 'acto_apelacion', name: 'Acto de Apelación', type: 'judicial', hasIntake: true, hasManual: true },
   { id: 'mandamiento_pago', name: 'Mandamiento de Pago', type: 'judicial', hasIntake: true, hasManual: true },
   { id: 'embargo_ejecutivo', name: 'Solicitud de Embargo Ejecutivo', type: 'judicial', hasIntake: true, hasManual: true },
   { id: 'referimiento', name: 'Instancia de Referimiento', type: 'judicial', hasIntake: true, hasManual: true },
-  { id: 'inventario_documentos', name: 'Inventario de Documentos', type: 'judicial', hasIntake: false, hasManual: true },
+  { id: 'inventario_documentos', name: 'Inventario de Documentos', type: 'judicial', hasIntake: true, hasManual: true },
   { id: 'fijacion_audiencia', name: 'Solicitud de Fijación de Audiencia', type: 'judicial', hasIntake: false, hasManual: true },
 ];
 
