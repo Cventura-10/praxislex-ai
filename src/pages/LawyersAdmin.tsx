@@ -394,6 +394,7 @@ const LawyersAdmin = () => {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="socio">Socio</SelectItem>
+                          <SelectItem value="abogado senior">Abogado Senior</SelectItem>
                           <SelectItem value="abogado">Abogado</SelectItem>
                           <SelectItem value="asociado">Asociado</SelectItem>
                           <SelectItem value="pasante">Pasante</SelectItem>
@@ -768,6 +769,7 @@ const LawyersAdmin = () => {
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="socio">Socio</SelectItem>
+                        <SelectItem value="abogado senior">Abogado Senior</SelectItem>
                         <SelectItem value="abogado">Abogado</SelectItem>
                         <SelectItem value="asociado">Asociado</SelectItem>
                         <SelectItem value="pasante">Pasante</SelectItem>
