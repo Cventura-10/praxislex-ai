@@ -31,13 +31,28 @@ export function BundleIntakeForm({ actBundle }: BundleIntakeFormProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedDocument, setGeneratedDocument] = useState<string>("");
+  const [partesEditMode, setPartesEditMode] = useState<Record<number, boolean>>({});
 
-  const { clients } = useClients();
+  const { clients, getClientById } = useClients();
   const { lawyers } = useLawyers();
   const { notarios } = useNotarios();
   const { alguaciles } = useAlguaciles();
   const { peritos } = usePeritos();
   const { tasadores } = useTasadores();
+
+  // Función para normalizar estado civil
+  const normalizeEstadoCivil = (estadoCivil: string | undefined): string => {
+    if (!estadoCivil) return "";
+    const lower = estadoCivil.toLowerCase().trim();
+    
+    if (lower.includes("solter")) return "Soltero/a";
+    if (lower.includes("casad")) return "Casado/a";
+    if (lower.includes("union") || lower.includes("libre")) return "Unión libre";
+    if (lower.includes("divorciad")) return "Divorciado/a";
+    if (lower.includes("viud")) return "Viudo/a";
+    
+    return estadoCivil; // Retornar original si no coincide
+  };
 
   // Initialize form with defaults
   useEffect(() => {
@@ -82,9 +97,52 @@ export function BundleIntakeForm({ actBundle }: BundleIntakeFormProps) {
     setFormData(prev => ({ ...prev, [fieldName]: [...currentList, defaultObj] }));
   };
 
-  const handleObjectListChange = (fieldName: string, index: number, subfield: string, value: any) => {
+  const handleObjectListChange = async (fieldName: string, index: number, subfield: string, value: any) => {
     const currentList = [...(formData[fieldName] || [])];
     currentList[index] = { ...currentList[index], [subfield]: value };
+    
+    // Si es persona_id, realizar autofill
+    if (subfield === 'persona_id' && value) {
+      try {
+        const clientData = await getClientById(value);
+        if (clientData) {
+          currentList[index] = {
+            ...currentList[index],
+            nacionalidad: clientData.nacionalidad || "",
+            estado_civil: normalizeEstadoCivil(clientData.estado_civil),
+            profesion: clientData.profesion || clientData.ocupacion || "",
+            autofill_fuente: "personas",
+            autofill_ok: true,
+            override: false
+          };
+          
+          // Resetear modo edición para esta parte
+          setPartesEditMode(prev => ({ ...prev, [index]: false }));
+          
+          toast.success(`Datos civiles autocompletados para la parte #${index + 1}`);
+        } else {
+          currentList[index] = {
+            ...currentList[index],
+            autofill_ok: false
+          };
+        }
+      } catch (error) {
+        console.error("Error al autocompletar datos civiles:", error);
+        currentList[index] = {
+          ...currentList[index],
+          autofill_ok: false
+        };
+      }
+    }
+    
+    // Si estamos en modo override, marcarlo
+    if (partesEditMode[index] && ['nacionalidad', 'estado_civil', 'profesion'].includes(subfield)) {
+      currentList[index] = {
+        ...currentList[index],
+        override: true
+      };
+    }
+    
     setFormData(prev => ({ ...prev, [fieldName]: currentList }));
   };
 
@@ -326,9 +384,31 @@ export function BundleIntakeForm({ actBundle }: BundleIntakeFormProps) {
             <div className="space-y-4">
               {partesList.map((parte: any, idx: number) => (
                 <Card key={idx} className="border-2">
-                  <CardHeader className="pb-3">
+                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-sm">Parte #{idx + 1}</CardTitle>
+                      <div className="flex items-center gap-2">
+                        <CardTitle className="text-sm">Parte #{idx + 1}</CardTitle>
+                        {parte.autofill_ok && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                              ✓ Autocompletado
+                            </span>
+                            <Switch
+                              checked={partesEditMode[idx] || false}
+                              onCheckedChange={(checked) => {
+                                setPartesEditMode(prev => ({ ...prev, [idx]: checked }));
+                                if (!checked) {
+                                  // Resetear override flag si se desactiva edición
+                                  const currentList = [...(formData[field.name] || [])];
+                                  currentList[idx] = { ...currentList[idx], override: false };
+                                  setFormData(prev => ({ ...prev, [field.name]: currentList }));
+                                }
+                              }}
+                            />
+                            <Label className="text-xs cursor-pointer">Editar</Label>
+                          </div>
+                        )}
+                      </div>
                       <Button 
                         variant="ghost" 
                         size="sm" 
@@ -346,13 +426,23 @@ export function BundleIntakeForm({ actBundle }: BundleIntakeFormProps) {
                         if (!shouldShow) return null;
                       }
 
+                      // Determinar si el campo debe estar readonly
+                      const isAutofilledField = ['nacionalidad', 'estado_civil', 'profesion'].includes(subfield.name);
+                      const isReadonly = parte.autofill_ok && isAutofilledField && !partesEditMode[idx];
+                      
                       return (
                         <div key={subfield.name} className="space-y-2">
                           <Label>
                             {subfield.label}
                             {subfield.required && <span className="text-destructive ml-1">*</span>}
+                            {isReadonly && <span className="text-xs text-muted-foreground ml-2">(autocompletado)</span>}
                           </Label>
-                          {renderSubfield(subfield, field.name, idx, parte[subfield.name])}
+                          {renderSubfield(subfield, field.name, idx, parte[subfield.name], isReadonly)}
+                          {!parte.autofill_ok && isAutofilledField && (
+                            <p className="text-xs text-muted-foreground">
+                              💡 Ingrese manualmente o seleccione una persona registrada para autocompletar
+                            </p>
+                          )}
                         </div>
                       );
                     })}
@@ -437,7 +527,7 @@ export function BundleIntakeForm({ actBundle }: BundleIntakeFormProps) {
     }
   };
 
-  const renderSubfield = (subfield: any, parentFieldName: string, parentIndex: number, value: any) => {
+  const renderSubfield = (subfield: any, parentFieldName: string, parentIndex: number, value: any, isReadonly: boolean = false) => {
     switch (subfield.type) {
       case 'party':
         return (
@@ -512,6 +602,8 @@ export function BundleIntakeForm({ actBundle }: BundleIntakeFormProps) {
             value={value || ''}
             onChange={(e) => handleObjectListChange(parentFieldName, parentIndex, subfield.name, e.target.value)}
             placeholder={subfield.label}
+            disabled={isReadonly}
+            className={isReadonly ? "bg-muted cursor-not-allowed" : ""}
           />
         );
     }
