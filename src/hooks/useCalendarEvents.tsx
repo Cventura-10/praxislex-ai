@@ -40,7 +40,7 @@ export function useCalendarEvents() {
         .order("inicio", { ascending: true });
 
       if (error) throw error;
-      return data as CalendarEvent[];
+      return data || [];
     },
   });
 
@@ -52,6 +52,7 @@ export function useCalendarEvents() {
         .from("calendar_events")
         .insert({
           ...event,
+          user_id: user?.id,
           created_by: user?.id,
           zona_horaria: "America/Santo_Domingo",
         })

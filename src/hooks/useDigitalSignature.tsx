@@ -83,7 +83,7 @@ export function useDigitalSignature() {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data as SignatureEnvelope[];
+      return data || [];
     },
   });
 
@@ -91,21 +91,28 @@ export function useDigitalSignature() {
     mutationFn: async (envelope: SignatureEnvelope) => {
       const { data: { user } } = await supabase.auth.getUser();
       
+      const insertData: any = {
+        acto_slug: envelope.acto_slug,
+        documento_origen: envelope.documento_origen,
+        documento_url: envelope.documento_url,
+        firmantes: envelope.firmantes,
+        placeholders_firmas: envelope.placeholders_firmas,
+        politicas: envelope.politicas,
+        created_by: user?.id,
+        estado: "borrador",
+        audit_trail: [
+          {
+            evento: "envelope_created",
+            timestamp: new Date().toISOString(),
+            user_id: user?.id,
+            detalles: "Sobre de firma creado",
+          },
+        ],
+      };
+
       const { data, error } = await supabase
         .from("signature_envelopes")
-        .insert({
-          ...envelope,
-          created_by: user?.id,
-          estado: "borrador",
-          audit_trail: [
-            {
-              evento: "envelope_created",
-              timestamp: new Date().toISOString(),
-              user_id: user?.id,
-              detalles: "Sobre de firma creado",
-            },
-          ],
-        })
+        .insert(insertData)
         .select()
         .single();
 
@@ -134,8 +141,12 @@ export function useDigitalSignature() {
 
       if (!envelope) throw new Error("Envelope not found");
 
+      const currentAuditTrail = Array.isArray(envelope.audit_trail) 
+        ? envelope.audit_trail 
+        : [];
+
       const updatedAuditTrail = [
-        ...(envelope.audit_trail || []),
+        ...currentAuditTrail,
         {
           evento: "envelope_sent",
           timestamp: new Date().toISOString(),
@@ -144,12 +155,14 @@ export function useDigitalSignature() {
         },
       ];
 
+      const updateData: any = {
+        estado: "enviado",
+        audit_trail: updatedAuditTrail,
+      };
+
       const { data, error } = await supabase
         .from("signature_envelopes")
-        .update({
-          estado: "enviado",
-          audit_trail: updatedAuditTrail,
-        })
+        .update(updateData)
         .eq("id", envelopeId)
         .select()
         .single();
@@ -186,8 +199,12 @@ export function useDigitalSignature() {
 
       if (!envelope) throw new Error("Envelope not found");
 
+      const currentAuditTrail = Array.isArray(envelope.audit_trail) 
+        ? envelope.audit_trail 
+        : [];
+
       const updatedAuditTrail = [
-        ...(envelope.audit_trail || []),
+        ...currentAuditTrail,
         {
           evento: auditEvent,
           timestamp: new Date().toISOString(),
@@ -196,12 +213,14 @@ export function useDigitalSignature() {
         },
       ];
 
+      const updateData: any = {
+        estado: status,
+        audit_trail: updatedAuditTrail,
+      };
+
       const { data, error } = await supabase
         .from("signature_envelopes")
-        .update({
-          estado: status,
-          audit_trail: updatedAuditTrail,
-        })
+        .update(updateData)
         .eq("id", id)
         .select()
         .single();
