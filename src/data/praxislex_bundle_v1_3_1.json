@@ -1,0 +1,3366 @@
+{
+  "version": "1.3.1",
+  "generated_at": "2025-10-31T17:28:54.559779",
+  "actos": [
+    {
+      "materia": "Civil y Comercial",
+      "naturaleza": "Judicial",
+      "ejecutor": "Abogado",
+      "slug": "demanda-cobro-de-pesos",
+      "input_schema_json": {
+        "fields": [
+          {
+            "name": "partes",
+            "label": "Partes (múltiples)",
+            "type": "list",
+            "item_type": "object",
+            "schema": {
+              "fields": [
+                {
+                  "name": "rol",
+                  "label": "Rol",
+                  "type": "select",
+                  "options": [
+                    "demandante",
+                    "demandado",
+                    "requirente",
+                    "requerido",
+                    "impetrante",
+                    "impetrado",
+                    "contratante",
+                    "contratado",
+                    "poderdante",
+                    "poderhabiente",
+                    "vendedor",
+                    "comprador",
+                    "arrendador",
+                    "arrendatario",
+                    "fiador",
+                    "querellante",
+                    "querellado",
+                    "actor_civil",
+                    "tercero_interviniente"
+                  ],
+                  "required": true
+                },
+                {
+                  "name": "persona_id",
+                  "label": "Persona (Cédula/RNC)",
+                  "type": "party",
+                  "required": true,
+                  "autofill": "cedula|rnc"
+                },
+                {
+                  "name": "representante_profesional_id",
+                  "label": "Abogado representante",
+                  "type": "professional",
+                  "subtype": "abogado",
+                  "source": "profesionales",
+                  "required": false
+                },
+                {
+                  "name": "calidad",
+                  "label": "Calidad/Observaciones",
+                  "type": "text",
+                  "required": false
+                }
+              ]
+            },
+            "required": false
+          },
+          {
+            "name": "demandante_id",
+            "label": "Demandante",
+            "type": "party",
+            "required": true,
+            "autofill": "cedula"
+          },
+          {
+            "name": "demandado_id",
+            "label": "Demandado",
+            "type": "party",
+            "required": true,
+            "autofill": "cedula|rnc"
+          },
+          {
+            "name": "tribunal",
+            "label": "Tribunal competente",
+            "type": "select",
+            "required": true,
+            "source": "infer:case/competencia"
+          },
+          {
+            "name": "hechos",
+            "label": "Hechos",
+            "type": "textarea",
+            "required": true
+          },
+          {
+            "name": "pretensiones",
+            "label": "Pretensiones",
+            "type": "list",
+            "item_type": "text",
+            "required": true
+          },
+          {
+            "name": "pruebas",
+            "label": "Pruebas",
+            "type": "list",
+            "item_type": "text",
+            "required": true
+          },
+          {
+            "name": "incluir_tesis",
+            "label": "Activar subsunción/tesis",
+            "type": "boolean",
+            "required": false,
+            "default": false
+          },
+          {
+            "name": "bienes",
+            "label": "Bienes u Objetos (múltiples)",
+            "type": "list",
+            "item_type": "object",
+            "schema": {
+              "fields": [
+                {
+                  "name": "tipo",
+                  "label": "Tipo",
+                  "type": "select",
+                  "options": [
+                    "Inmueble",
+                    "Mueble",
+                    "Suma de dinero",
+                    "Acción/participación",
+                    "Otro"
+                  ],
+                  "required": true
+                },
+                {
+                  "name": "descripcion",
+                  "label": "Descripción",
+                  "type": "textarea",
+                  "required": true
+                },
+                {
+                  "name": "matricula_o_id",
+                  "label": "Matrícula/ID",
+                  "type": "text",
+                  "required": false
+                },
+                {
+                  "name": "ubicacion",
+                  "label": "Ubicación/Dirección",
+                  "type": "text",
+                  "required": false
+                },
+                {
+                  "name": "valor_referencial",
+                  "label": "Valor referencial (RD$)",
+                  "type": "currency",
+                  "required": false
+                }
+              ]
+            },
+            "required": false
+          }
+        ]
+      },
+      "plantilla_md": "AL {tribunal}\n\nI. HECHOS\n{hechos}\n\nII. PRETENSIONES\n{pretensiones}\n\nIII. PRUEBAS\n{pruebas}\n"
+    },
+    {
+      "materia": "Civil y Comercial",
+      "naturaleza": "Judicial",
+      "ejecutor": "Abogado",
+      "slug": "fijacion-de-audiencia",
+      "input_schema_json": {
+        "fields": [
+          {
+            "name": "partes",
+            "label": "Partes (múltiples)",
+            "type": "list",
+            "item_type": "object",
+            "schema": {
+              "fields": [
+                {
+                  "name": "rol",
+                  "label": "Rol",
+                  "type": "select",
+                  "options": [
+                    "demandante",
+                    "demandado",
+                    "requirente",
+                    "requerido",
+                    "impetrante",
+                    "impetrado",
+                    "contratante",
+                    "contratado",
+                    "poderdante",
+                    "poderhabiente",
+                    "vendedor",
+                    "comprador",
+                    "arrendador",
+                    "arrendatario",
+                    "fiador",
+                    "querellante",
+                    "querellado",
+                    "actor_civil",
+                    "tercero_interviniente"
+                  ],
+                  "required": true
+                },
+                {
+                  "name": "persona_id",
+                  "label": "Persona (Cédula/RNC)",
+                  "type": "party",
+                  "required": true,
+                  "autofill": "cedula|rnc"
+                },
+                {
+                  "name": "representante_profesional_id",
+                  "label": "Abogado representante",
+                  "type": "professional",
+                  "subtype": "abogado",
+                  "source": "profesionales",
+                  "required": false
+                },
+                {
+                  "name": "calidad",
+                  "label": "Calidad/Observaciones",
+                  "type": "text",
+                  "required": false
+                }
+              ]
+            },
+            "required": false
+          },
+          {
+            "name": "expediente_id",
+            "label": "Expediente",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "tribunal",
+            "label": "Tribunal",
+            "type": "select",
+            "required": true,
+            "source": "infer:case/competencia"
+          },
+          {
+            "name": "motivo",
+            "label": "Motivo",
+            "type": "textarea",
+            "required": true
+          },
+          {
+            "name": "bienes",
+            "label": "Bienes u Objetos (múltiples)",
+            "type": "list",
+            "item_type": "object",
+            "schema": {
+              "fields": [
+                {
+                  "name": "tipo",
+                  "label": "Tipo",
+                  "type": "select",
+                  "options": [
+                    "Inmueble",
+                    "Mueble",
+                    "Suma de dinero",
+                    "Acción/participación",
+                    "Otro"
+                  ],
+                  "required": true
+                },
+                {
+                  "name": "descripcion",
+                  "label": "Descripción",
+                  "type": "textarea",
+                  "required": true
+                },
+                {
+                  "name": "matricula_o_id",
+                  "label": "Matrícula/ID",
+                  "type": "text",
+                  "required": false
+                },
+                {
+                  "name": "ubicacion",
+                  "label": "Ubicación/Dirección",
+                  "type": "text",
+                  "required": false
+                },
+                {
+                  "name": "valor_referencial",
+                  "label": "Valor referencial (RD$)",
+                  "type": "currency",
+                  "required": false
+                }
+              ]
+            },
+            "required": false
+          }
+        ]
+      },
+      "plantilla_md": "AL {tribunal}\nASUNTO: FIJACIÓN — Exp. {expediente_id}\n\n{motivo}\n"
+    },
+    {
+      "materia": "Civil y Comercial",
+      "naturaleza": "Judicial",
+      "ejecutor": "Abogado",
+      "slug": "conclusiones",
+      "input_schema_json": {
+        "fields": [
+          {
+            "name": "partes",
+            "label": "Partes (múltiples)",
+            "type": "list",
+            "item_type": "object",
+            "schema": {
+              "fields": [
+                {
+                  "name": "rol",
+                  "label": "Rol",
+                  "type": "select",
+                  "options": [
+                    "demandante",
+                    "demandado",
+                    "requirente",
+                    "requerido",
+                    "impetrante",
+                    "impetrado",
+                    "contratante",
+                    "contratado",
+                    "poderdante",
+                    "poderhabiente",
+                    "vendedor",
+                    "comprador",
+                    "arrendador",
+                    "arrendatario",
+                    "fiador",
+                    "querellante",
+                    "querellado",
+                    "actor_civil",
+                    "tercero_interviniente"
+                  ],
+                  "required": true
+                },
+                {
+                  "name": "persona_id",
+                  "label": "Persona (Cédula/RNC)",
+                  "type": "party",
+                  "required": true,
+                  "autofill": "cedula|rnc"
+                },
+                {
+                  "name": "representante_profesional_id",
+                  "label": "Abogado representante",
+                  "type": "professional",
+                  "subtype": "abogado",
+                  "source": "profesionales",
+                  "required": false
+                },
+                {
+                  "name": "calidad",
+                  "label": "Calidad/Observaciones",
+                  "type": "text",
+                  "required": false
+                }
+              ]
+            },
+            "required": false
+          },
+          {
+            "name": "expediente_id",
+            "label": "Expediente",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "petitorio",
+            "label": "Puntos",
+            "type": "list",
+            "item_type": "text",
+            "required": true
+          },
+          {
+            "name": "bienes",
+            "label": "Bienes u Objetos (múltiples)",
+            "type": "list",
+            "item_type": "object",
+            "schema": {
+              "fields": [
+                {
+                  "name": "tipo",
+                  "label": "Tipo",
+                  "type": "select",
+                  "options": [
+                    "Inmueble",
+                    "Mueble",
+                    "Suma de dinero",
+                    "Acción/participación",
+                    "Otro"
+                  ],
+                  "required": true
+                },
+                {
+                  "name": "descripcion",
+                  "label": "Descripción",
+                  "type": "textarea",
+                  "required": true
+                },
+                {
+                  "name": "matricula_o_id",
+                  "label": "Matrícula/ID",
+                  "type": "text",
+                  "required": false
+                },
+                {
+                  "name": "ubicacion",
+                  "label": "Ubicación/Dirección",
+                  "type": "text",
+                  "required": false
+                },
+                {
+                  "name": "valor_referencial",
+                  "label": "Valor referencial (RD$)",
+                  "type": "currency",
+                  "required": false
+                }
+              ]
+            },
+            "required": false
+          }
+        ]
+      },
+      "plantilla_md": "CONCLUSIONES — Exp. {expediente_id}\n{petitorio}\n"
+    },
+    {
+      "materia": "Civil y Comercial",
+      "naturaleza": "Judicial",
+      "ejecutor": "Abogado",
+      "slug": "escrito-incidental",
+      "input_schema_json": {
+        "fields": [
+          {
+            "name": "partes",
+            "label": "Partes (múltiples)",
+            "type": "list",
+            "item_type": "object",
+            "schema": {
+              "fields": [
+                {
+                  "name": "rol",
+                  "label": "Rol",
+                  "type": "select",
+                  "options": [
+                    "demandante",
+                    "demandado",
+                    "requirente",
+                    "requerido",
+                    "impetrante",
+                    "impetrado",
+                    "contratante",
+                    "contratado",
+                    "poderdante",
+                    "poderhabiente",
+                    "vendedor",
+                    "comprador",
+                    "arrendador",
+                    "arrendatario",
+                    "fiador",
+                    "querellante",
+                    "querellado",
+                    "actor_civil",
+                    "tercero_interviniente"
+                  ],
+                  "required": true
+                },
+                {
+                  "name": "persona_id",
+                  "label": "Persona (Cédula/RNC)",
+                  "type": "party",
+                  "required": true,
+                  "autofill": "cedula|rnc"
+                },
+                {
+                  "name": "representante_profesional_id",
+                  "label": "Abogado representante",
+                  "type": "professional",
+                  "subtype": "abogado",
+                  "source": "profesionales",
+                  "required": false
+                },
+                {
+                  "name": "calidad",
+                  "label": "Calidad/Observaciones",
+                  "type": "text",
+                  "required": false
+                }
+              ]
+            },
+            "required": false
+          },
+          {
+            "name": "expediente_id",
+            "label": "Expediente",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "tipo_incidente",
+            "label": "Tipo",
+            "type": "select",
+            "options": [
+              "Nulidad",
+              "Inadmisión",
+              "Acumulación",
+              "Exclusión de prueba",
+              "Suspensión"
+            ],
+            "required": true
+          },
+          {
+            "name": "fundamentos",
+            "label": "Fundamentos",
+            "type": "textarea",
+            "required": true
+          },
+          {
+            "name": "bienes",
+            "label": "Bienes u Objetos (múltiples)",
+            "type": "list",
+            "item_type": "object",
+            "schema": {
+              "fields": [
+                {
+                  "name": "tipo",
+                  "label": "Tipo",
+                  "type": "select",
+                  "options": [
+                    "Inmueble",
+                    "Mueble",
+                    "Suma de dinero",
+                    "Acción/participación",
+                    "Otro"
+                  ],
+                  "required": true
+                },
+                {
+                  "name": "descripcion",
+                  "label": "Descripción",
+                  "type": "textarea",
+                  "required": true
+                },
+                {
+                  "name": "matricula_o_id",
+                  "label": "Matrícula/ID",
+                  "type": "text",
+                  "required": false
+                },
+                {
+                  "name": "ubicacion",
+                  "label": "Ubicación/Dirección",
+                  "type": "text",
+                  "required": false
+                },
+                {
+                  "name": "valor_referencial",
+                  "label": "Valor referencial (RD$)",
+                  "type": "currency",
+                  "required": false
+                }
+              ]
+            },
+            "required": false
+          }
+        ]
+      },
+      "plantilla_md": "ESCRITO INCIDENTAL — {tipo_incidente}\nFundamentos:\n{fundamentos}\n"
+    },
+    {
+      "materia": "Civil y Comercial",
+      "naturaleza": "Judicial",
+      "ejecutor": "Abogado",
+      "slug": "deposito-de-documentos",
+      "input_schema_json": {
+        "fields": [
+          {
+            "name": "partes",
+            "label": "Partes (múltiples)",
+            "type": "list",
+            "item_type": "object",
+            "schema": {
+              "fields": [
+                {
+                  "name": "rol",
+                  "label": "Rol",
+                  "type": "select",
+                  "options": [
+                    "demandante",
+                    "demandado",
+                    "requirente",
+                    "requerido",
+                    "impetrante",
+                    "impetrado",
+                    "contratante",
+                    "contratado",
+                    "poderdante",
+                    "poderhabiente",
+                    "vendedor",
+                    "comprador",
+                    "arrendador",
+                    "arrendatario",
+                    "fiador",
+                    "querellante",
+                    "querellado",
+                    "actor_civil",
+                    "tercero_interviniente"
+                  ],
+                  "required": true
+                },
+                {
+                  "name": "persona_id",
+                  "label": "Persona (Cédula/RNC)",
+                  "type": "party",
+                  "required": true,
+                  "autofill": "cedula|rnc"
+                },
+                {
+                  "name": "representante_profesional_id",
+                  "label": "Abogado representante",
+                  "type": "professional",
+                  "subtype": "abogado",
+                  "source": "profesionales",
+                  "required": false
+                },
+                {
+                  "name": "calidad",
+                  "label": "Calidad/Observaciones",
+                  "type": "text",
+                  "required": false
+                }
+              ]
+            },
+            "required": false
+          },
+          {
+            "name": "expediente_id",
+            "label": "Expediente",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "lista_documentos",
+            "label": "Documentos",
+            "type": "list",
+            "item_type": "text",
+            "required": true
+          },
+          {
+            "name": "bienes",
+            "label": "Bienes u Objetos (múltiples)",
+            "type": "list",
+            "item_type": "object",
+            "schema": {
+              "fields": [
+                {
+                  "name": "tipo",
+                  "label": "Tipo",
+                  "type": "select",
+                  "options": [
+                    "Inmueble",
+                    "Mueble",
+                    "Suma de dinero",
+                    "Acción/participación",
+                    "Otro"
+                  ],
+                  "required": true
+                },
+                {
+                  "name": "descripcion",
+                  "label": "Descripción",
+                  "type": "textarea",
+                  "required": true
+                },
+                {
+                  "name": "matricula_o_id",
+                  "label": "Matrícula/ID",
+                  "type": "text",
+                  "required": false
+                },
+                {
+                  "name": "ubicacion",
+                  "label": "Ubicación/Dirección",
+                  "type": "text",
+                  "required": false
+                },
+                {
+                  "name": "valor_referencial",
+                  "label": "Valor referencial (RD$)",
+                  "type": "currency",
+                  "required": false
+                }
+              ]
+            },
+            "required": false
+          }
+        ]
+      },
+      "plantilla_md": "DEPÓSITO DE DOCUMENTOS — Exp. {expediente_id}\n{lista_documentos}\n"
+    },
+    {
+      "materia": "Civil y Comercial",
+      "naturaleza": "Judicial",
+      "ejecutor": "Abogado",
+      "slug": "demanda-incidental",
+      "input_schema_json": {
+        "fields": [
+          {
+            "name": "partes",
+            "label": "Partes (múltiples)",
+            "type": "list",
+            "item_type": "object",
+            "schema": {
+              "fields": [
+                {
+                  "name": "rol",
+                  "label": "Rol",
+                  "type": "select",
+                  "options": [
+                    "demandante",
+                    "demandado",
+                    "requirente",
+                    "requerido",
+                    "impetrante",
+                    "impetrado",
+                    "contratante",
+                    "contratado",
+                    "poderdante",
+                    "poderhabiente",
+                    "vendedor",
+                    "comprador",
+                    "arrendador",
+                    "arrendatario",
+                    "fiador",
+                    "querellante",
+                    "querellado",
+                    "actor_civil",
+                    "tercero_interviniente"
+                  ],
+                  "required": true
+                },
+                {
+                  "name": "persona_id",
+                  "label": "Persona (Cédula/RNC)",
+                  "type": "party",
+                  "required": true,
+                  "autofill": "cedula|rnc"
+                },
+                {
+                  "name": "representante_profesional_id",
+                  "label": "Abogado representante",
+                  "type": "professional",
+                  "subtype": "abogado",
+                  "source": "profesionales",
+                  "required": false
+                },
+                {
+                  "name": "calidad",
+                  "label": "Calidad/Observaciones",
+                  "type": "text",
+                  "required": false
+                }
+              ]
+            },
+            "required": false
+          },
+          {
+            "name": "expediente_id",
+            "label": "Expediente",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "objeto",
+            "label": "Objeto",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "hechos",
+            "label": "Hechos",
+            "type": "textarea",
+            "required": true
+          },
+          {
+            "name": "fundamentos",
+            "label": "Fundamentos",
+            "type": "textarea",
+            "required": true
+          },
+          {
+            "name": "bienes",
+            "label": "Bienes u Objetos (múltiples)",
+            "type": "list",
+            "item_type": "object",
+            "schema": {
+              "fields": [
+                {
+                  "name": "tipo",
+                  "label": "Tipo",
+                  "type": "select",
+                  "options": [
+                    "Inmueble",
+                    "Mueble",
+                    "Suma de dinero",
+                    "Acción/participación",
+                    "Otro"
+                  ],
+                  "required": true
+                },
+                {
+                  "name": "descripcion",
+                  "label": "Descripción",
+                  "type": "textarea",
+                  "required": true
+                },
+                {
+                  "name": "matricula_o_id",
+                  "label": "Matrícula/ID",
+                  "type": "text",
+                  "required": false
+                },
+                {
+                  "name": "ubicacion",
+                  "label": "Ubicación/Dirección",
+                  "type": "text",
+                  "required": false
+                },
+                {
+                  "name": "valor_referencial",
+                  "label": "Valor referencial (RD$)",
+                  "type": "currency",
+                  "required": false
+                }
+              ]
+            },
+            "required": false
+          }
+        ]
+      },
+      "plantilla_md": "DEMANDA INCIDENTAL — Exp. {expediente_id}\n{objeto}\n{hechos}\n{fundamentos}\n"
+    },
+    {
+      "materia": "Civil y Comercial",
+      "naturaleza": "Judicial",
+      "ejecutor": "Abogado",
+      "slug": "intervencion-forzosa",
+      "input_schema_json": {
+        "fields": [
+          {
+            "name": "partes",
+            "label": "Partes (múltiples)",
+            "type": "list",
+            "item_type": "object",
+            "schema": {
+              "fields": [
+                {
+                  "name": "rol",
+                  "label": "Rol",
+                  "type": "select",
+                  "options": [
+                    "demandante",
+                    "demandado",
+                    "requirente",
+                    "requerido",
+                    "impetrante",
+                    "impetrado",
+                    "contratante",
+                    "contratado",
+                    "poderdante",
+                    "poderhabiente",
+                    "vendedor",
+                    "comprador",
+                    "arrendador",
+                    "arrendatario",
+                    "fiador",
+                    "querellante",
+                    "querellado",
+                    "actor_civil",
+                    "tercero_interviniente"
+                  ],
+                  "required": true
+                },
+                {
+                  "name": "persona_id",
+                  "label": "Persona (Cédula/RNC)",
+                  "type": "party",
+                  "required": true,
+                  "autofill": "cedula|rnc"
+                },
+                {
+                  "name": "representante_profesional_id",
+                  "label": "Abogado representante",
+                  "type": "professional",
+                  "subtype": "abogado",
+                  "source": "profesionales",
+                  "required": false
+                },
+                {
+                  "name": "calidad",
+                  "label": "Calidad/Observaciones",
+                  "type": "text",
+                  "required": false
+                }
+              ]
+            },
+            "required": false
+          },
+          {
+            "name": "expediente_id",
+            "label": "Expediente",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "tercero_id",
+            "label": "Tercero",
+            "type": "party",
+            "required": true,
+            "autofill": "cedula|rnc"
+          },
+          {
+            "name": "motivo",
+            "label": "Motivo",
+            "type": "textarea",
+            "required": true
+          },
+          {
+            "name": "bienes",
+            "label": "Bienes u Objetos (múltiples)",
+            "type": "list",
+            "item_type": "object",
+            "schema": {
+              "fields": [
+                {
+                  "name": "tipo",
+                  "label": "Tipo",
+                  "type": "select",
+                  "options": [
+                    "Inmueble",
+                    "Mueble",
+                    "Suma de dinero",
+                    "Acción/participación",
+                    "Otro"
+                  ],
+                  "required": true
+                },
+                {
+                  "name": "descripcion",
+                  "label": "Descripción",
+                  "type": "textarea",
+                  "required": true
+                },
+                {
+                  "name": "matricula_o_id",
+                  "label": "Matrícula/ID",
+                  "type": "text",
+                  "required": false
+                },
+                {
+                  "name": "ubicacion",
+                  "label": "Ubicación/Dirección",
+                  "type": "text",
+                  "required": false
+                },
+                {
+                  "name": "valor_referencial",
+                  "label": "Valor referencial (RD$)",
+                  "type": "currency",
+                  "required": false
+                }
+              ]
+            },
+            "required": false
+          }
+        ]
+      },
+      "plantilla_md": "INTERVENCIÓN FORZOSA — Exp. {expediente_id}\n{motivo}\n"
+    },
+    {
+      "materia": "Civil y Comercial",
+      "naturaleza": "Judicial",
+      "ejecutor": "Abogado",
+      "slug": "intervencion-voluntaria",
+      "input_schema_json": {
+        "fields": [
+          {
+            "name": "partes",
+            "label": "Partes (múltiples)",
+            "type": "list",
+            "item_type": "object",
+            "schema": {
+              "fields": [
+                {
+                  "name": "rol",
+                  "label": "Rol",
+                  "type": "select",
+                  "options": [
+                    "demandante",
+                    "demandado",
+                    "requirente",
+                    "requerido",
+                    "impetrante",
+                    "impetrado",
+                    "contratante",
+                    "contratado",
+                    "poderdante",
+                    "poderhabiente",
+                    "vendedor",
+                    "comprador",
+                    "arrendador",
+                    "arrendatario",
+                    "fiador",
+                    "querellante",
+                    "querellado",
+                    "actor_civil",
+                    "tercero_interviniente"
+                  ],
+                  "required": true
+                },
+                {
+                  "name": "persona_id",
+                  "label": "Persona (Cédula/RNC)",
+                  "type": "party",
+                  "required": true,
+                  "autofill": "cedula|rnc"
+                },
+                {
+                  "name": "representante_profesional_id",
+                  "label": "Abogado representante",
+                  "type": "professional",
+                  "subtype": "abogado",
+                  "source": "profesionales",
+                  "required": false
+                },
+                {
+                  "name": "calidad",
+                  "label": "Calidad/Observaciones",
+                  "type": "text",
+                  "required": false
+                }
+              ]
+            },
+            "required": false
+          },
+          {
+            "name": "expediente_id",
+            "label": "Expediente",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "tercero_id",
+            "label": "Interviniente",
+            "type": "party",
+            "required": true,
+            "autofill": "cedula|rnc"
+          },
+          {
+            "name": "motivo",
+            "label": "Motivo",
+            "type": "textarea",
+            "required": true
+          },
+          {
+            "name": "bienes",
+            "label": "Bienes u Objetos (múltiples)",
+            "type": "list",
+            "item_type": "object",
+            "schema": {
+              "fields": [
+                {
+                  "name": "tipo",
+                  "label": "Tipo",
+                  "type": "select",
+                  "options": [
+                    "Inmueble",
+                    "Mueble",
+                    "Suma de dinero",
+                    "Acción/participación",
+                    "Otro"
+                  ],
+                  "required": true
+                },
+                {
+                  "name": "descripcion",
+                  "label": "Descripción",
+                  "type": "textarea",
+                  "required": true
+                },
+                {
+                  "name": "matricula_o_id",
+                  "label": "Matrícula/ID",
+                  "type": "text",
+                  "required": false
+                },
+                {
+                  "name": "ubicacion",
+                  "label": "Ubicación/Dirección",
+                  "type": "text",
+                  "required": false
+                },
+                {
+                  "name": "valor_referencial",
+                  "label": "Valor referencial (RD$)",
+                  "type": "currency",
+                  "required": false
+                }
+              ]
+            },
+            "required": false
+          }
+        ]
+      },
+      "plantilla_md": "INTERVENCIÓN VOLUNTARIA — Exp. {expediente_id}\n{motivo}\n"
+    },
+    {
+      "materia": "Civil y Comercial",
+      "naturaleza": "Judicial",
+      "ejecutor": "Abogado",
+      "slug": "recurso-de-apelacion",
+      "input_schema_json": {
+        "fields": [
+          {
+            "name": "partes",
+            "label": "Partes (múltiples)",
+            "type": "list",
+            "item_type": "object",
+            "schema": {
+              "fields": [
+                {
+                  "name": "rol",
+                  "label": "Rol",
+                  "type": "select",
+                  "options": [
+                    "demandante",
+                    "demandado",
+                    "requirente",
+                    "requerido",
+                    "impetrante",
+                    "impetrado",
+                    "contratante",
+                    "contratado",
+                    "poderdante",
+                    "poderhabiente",
+                    "vendedor",
+                    "comprador",
+                    "arrendador",
+                    "arrendatario",
+                    "fiador",
+                    "querellante",
+                    "querellado",
+                    "actor_civil",
+                    "tercero_interviniente"
+                  ],
+                  "required": true
+                },
+                {
+                  "name": "persona_id",
+                  "label": "Persona (Cédula/RNC)",
+                  "type": "party",
+                  "required": true,
+                  "autofill": "cedula|rnc"
+                },
+                {
+                  "name": "representante_profesional_id",
+                  "label": "Abogado representante",
+                  "type": "professional",
+                  "subtype": "abogado",
+                  "source": "profesionales",
+                  "required": false
+                },
+                {
+                  "name": "calidad",
+                  "label": "Calidad/Observaciones",
+                  "type": "text",
+                  "required": false
+                }
+              ]
+            },
+            "required": false
+          },
+          {
+            "name": "sentencia_ref",
+            "label": "Sentencia ref.",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "agravios",
+            "label": "Agravios",
+            "type": "list",
+            "item_type": "text",
+            "required": true
+          },
+          {
+            "name": "bienes",
+            "label": "Bienes u Objetos (múltiples)",
+            "type": "list",
+            "item_type": "object",
+            "schema": {
+              "fields": [
+                {
+                  "name": "tipo",
+                  "label": "Tipo",
+                  "type": "select",
+                  "options": [
+                    "Inmueble",
+                    "Mueble",
+                    "Suma de dinero",
+                    "Acción/participación",
+                    "Otro"
+                  ],
+                  "required": true
+                },
+                {
+                  "name": "descripcion",
+                  "label": "Descripción",
+                  "type": "textarea",
+                  "required": true
+                },
+                {
+                  "name": "matricula_o_id",
+                  "label": "Matrícula/ID",
+                  "type": "text",
+                  "required": false
+                },
+                {
+                  "name": "ubicacion",
+                  "label": "Ubicación/Dirección",
+                  "type": "text",
+                  "required": false
+                },
+                {
+                  "name": "valor_referencial",
+                  "label": "Valor referencial (RD$)",
+                  "type": "currency",
+                  "required": false
+                }
+              ]
+            },
+            "required": false
+          }
+        ]
+      },
+      "plantilla_md": "RECURSO DE APELACIÓN — {sentencia_ref}\n{agravios}\n"
+    },
+    {
+      "materia": "Civil y Comercial",
+      "naturaleza": "Judicial",
+      "ejecutor": "Abogado",
+      "slug": "recurso-de-casacion",
+      "input_schema_json": {
+        "fields": [
+          {
+            "name": "partes",
+            "label": "Partes (múltiples)",
+            "type": "list",
+            "item_type": "object",
+            "schema": {
+              "fields": [
+                {
+                  "name": "rol",
+                  "label": "Rol",
+                  "type": "select",
+                  "options": [
+                    "demandante",
+                    "demandado",
+                    "requirente",
+                    "requerido",
+                    "impetrante",
+                    "impetrado",
+                    "contratante",
+                    "contratado",
+                    "poderdante",
+                    "poderhabiente",
+                    "vendedor",
+                    "comprador",
+                    "arrendador",
+                    "arrendatario",
+                    "fiador",
+                    "querellante",
+                    "querellado",
+                    "actor_civil",
+                    "tercero_interviniente"
+                  ],
+                  "required": true
+                },
+                {
+                  "name": "persona_id",
+                  "label": "Persona (Cédula/RNC)",
+                  "type": "party",
+                  "required": true,
+                  "autofill": "cedula|rnc"
+                },
+                {
+                  "name": "representante_profesional_id",
+                  "label": "Abogado representante",
+                  "type": "professional",
+                  "subtype": "abogado",
+                  "source": "profesionales",
+                  "required": false
+                },
+                {
+                  "name": "calidad",
+                  "label": "Calidad/Observaciones",
+                  "type": "text",
+                  "required": false
+                }
+              ]
+            },
+            "required": false
+          },
+          {
+            "name": "sentencia_ref",
+            "label": "Sentencia ref.",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "medios_casacion",
+            "label": "Medios",
+            "type": "list",
+            "item_type": "text",
+            "required": true
+          },
+          {
+            "name": "bienes",
+            "label": "Bienes u Objetos (múltiples)",
+            "type": "list",
+            "item_type": "object",
+            "schema": {
+              "fields": [
+                {
+                  "name": "tipo",
+                  "label": "Tipo",
+                  "type": "select",
+                  "options": [
+                    "Inmueble",
+                    "Mueble",
+                    "Suma de dinero",
+                    "Acción/participación",
+                    "Otro"
+                  ],
+                  "required": true
+                },
+                {
+                  "name": "descripcion",
+                  "label": "Descripción",
+                  "type": "textarea",
+                  "required": true
+                },
+                {
+                  "name": "matricula_o_id",
+                  "label": "Matrícula/ID",
+                  "type": "text",
+                  "required": false
+                },
+                {
+                  "name": "ubicacion",
+                  "label": "Ubicación/Dirección",
+                  "type": "text",
+                  "required": false
+                },
+                {
+                  "name": "valor_referencial",
+                  "label": "Valor referencial (RD$)",
+                  "type": "currency",
+                  "required": false
+                }
+              ]
+            },
+            "required": false
+          }
+        ]
+      },
+      "plantilla_md": "RECURSO DE CASACIÓN — {sentencia_ref}\n{medios_casacion}\n"
+    },
+    {
+      "materia": "Civil y Comercial",
+      "naturaleza": "Judicial",
+      "ejecutor": "Alguacil",
+      "slug": "mandamiento-de-pago",
+      "input_schema_json": {
+        "fields": [
+          {
+            "name": "partes",
+            "label": "Partes (múltiples)",
+            "type": "list",
+            "item_type": "object",
+            "schema": {
+              "fields": [
+                {
+                  "name": "rol",
+                  "label": "Rol",
+                  "type": "select",
+                  "options": [
+                    "demandante",
+                    "demandado",
+                    "requirente",
+                    "requerido",
+                    "impetrante",
+                    "impetrado",
+                    "contratante",
+                    "contratado",
+                    "poderdante",
+                    "poderhabiente",
+                    "vendedor",
+                    "comprador",
+                    "arrendador",
+                    "arrendatario",
+                    "fiador",
+                    "querellante",
+                    "querellado",
+                    "actor_civil",
+                    "tercero_interviniente"
+                  ],
+                  "required": true
+                },
+                {
+                  "name": "persona_id",
+                  "label": "Persona (Cédula/RNC)",
+                  "type": "party",
+                  "required": true,
+                  "autofill": "cedula|rnc"
+                },
+                {
+                  "name": "representante_profesional_id",
+                  "label": "Abogado representante",
+                  "type": "professional",
+                  "subtype": "abogado",
+                  "source": "profesionales",
+                  "required": false
+                },
+                {
+                  "name": "calidad",
+                  "label": "Calidad/Observaciones",
+                  "type": "text",
+                  "required": false
+                }
+              ]
+            },
+            "required": false
+          },
+          {
+            "name": "requirente_id",
+            "label": "Requirente",
+            "type": "party",
+            "required": true,
+            "autofill": "cedula|rnc"
+          },
+          {
+            "name": "requerido_id",
+            "label": "Requerido",
+            "type": "party",
+            "required": true,
+            "autofill": "cedula|rnc"
+          },
+          {
+            "name": "abogado_apoderado_cedula",
+            "label": "Abogado apoderado",
+            "type": "professional",
+            "subtype": "abogado",
+            "source": "profesionales",
+            "required": true
+          },
+          {
+            "name": "monto_adeudado",
+            "label": "Monto (RD$)",
+            "type": "currency",
+            "required": true
+          },
+          {
+            "name": "domicilio_requerido",
+            "label": "Domicilio notificación",
+            "type": "address",
+            "required": true
+          },
+          {
+            "name": "bienes",
+            "label": "Bienes u Objetos (múltiples)",
+            "type": "list",
+            "item_type": "object",
+            "schema": {
+              "fields": [
+                {
+                  "name": "tipo",
+                  "label": "Tipo",
+                  "type": "select",
+                  "options": [
+                    "Inmueble",
+                    "Mueble",
+                    "Suma de dinero",
+                    "Acción/participación",
+                    "Otro"
+                  ],
+                  "required": true
+                },
+                {
+                  "name": "descripcion",
+                  "label": "Descripción",
+                  "type": "textarea",
+                  "required": true
+                },
+                {
+                  "name": "matricula_o_id",
+                  "label": "Matrícula/ID",
+                  "type": "text",
+                  "required": false
+                },
+                {
+                  "name": "ubicacion",
+                  "label": "Ubicación/Dirección",
+                  "type": "text",
+                  "required": false
+                },
+                {
+                  "name": "valor_referencial",
+                  "label": "Valor referencial (RD$)",
+                  "type": "currency",
+                  "required": false
+                }
+              ]
+            },
+            "required": false
+          }
+        ]
+      },
+      "plantilla_md": "MANDAMIENTO DE PAGO\nCERTIFICO Y DOY FE…\n"
+    },
+    {
+      "materia": "Civil y Comercial",
+      "naturaleza": "Extrajudicial",
+      "ejecutor": "Alguacil",
+      "slug": "intimacion-de-pago",
+      "input_schema_json": {
+        "fields": [
+          {
+            "name": "partes",
+            "label": "Partes (múltiples)",
+            "type": "list",
+            "item_type": "object",
+            "schema": {
+              "fields": [
+                {
+                  "name": "rol",
+                  "label": "Rol",
+                  "type": "select",
+                  "options": [
+                    "demandante",
+                    "demandado",
+                    "requirente",
+                    "requerido",
+                    "impetrante",
+                    "impetrado",
+                    "contratante",
+                    "contratado",
+                    "poderdante",
+                    "poderhabiente",
+                    "vendedor",
+                    "comprador",
+                    "arrendador",
+                    "arrendatario",
+                    "fiador",
+                    "querellante",
+                    "querellado",
+                    "actor_civil",
+                    "tercero_interviniente"
+                  ],
+                  "required": true
+                },
+                {
+                  "name": "persona_id",
+                  "label": "Persona (Cédula/RNC)",
+                  "type": "party",
+                  "required": true,
+                  "autofill": "cedula|rnc"
+                },
+                {
+                  "name": "representante_profesional_id",
+                  "label": "Abogado representante",
+                  "type": "professional",
+                  "subtype": "abogado",
+                  "source": "profesionales",
+                  "required": false
+                },
+                {
+                  "name": "calidad",
+                  "label": "Calidad/Observaciones",
+                  "type": "text",
+                  "required": false
+                }
+              ]
+            },
+            "required": false
+          },
+          {
+            "name": "requeriente_id",
+            "label": "Requeriente",
+            "type": "party",
+            "required": true,
+            "autofill": "cedula|rnc"
+          },
+          {
+            "name": "requerido_id",
+            "label": "Requerido",
+            "type": "party",
+            "required": true,
+            "autofill": "cedula|rnc"
+          },
+          {
+            "name": "monto",
+            "label": "Monto (RD$)",
+            "type": "currency",
+            "required": true
+          },
+          {
+            "name": "domicilio_notificacion",
+            "label": "Domicilio",
+            "type": "address",
+            "required": true
+          },
+          {
+            "name": "bienes",
+            "label": "Bienes u Objetos (múltiples)",
+            "type": "list",
+            "item_type": "object",
+            "schema": {
+              "fields": [
+                {
+                  "name": "tipo",
+                  "label": "Tipo",
+                  "type": "select",
+                  "options": [
+                    "Inmueble",
+                    "Mueble",
+                    "Suma de dinero",
+                    "Acción/participación",
+                    "Otro"
+                  ],
+                  "required": true
+                },
+                {
+                  "name": "descripcion",
+                  "label": "Descripción",
+                  "type": "textarea",
+                  "required": true
+                },
+                {
+                  "name": "matricula_o_id",
+                  "label": "Matrícula/ID",
+                  "type": "text",
+                  "required": false
+                },
+                {
+                  "name": "ubicacion",
+                  "label": "Ubicación/Dirección",
+                  "type": "text",
+                  "required": false
+                },
+                {
+                  "name": "valor_referencial",
+                  "label": "Valor referencial (RD$)",
+                  "type": "currency",
+                  "required": false
+                }
+              ]
+            },
+            "required": false
+          }
+        ]
+      },
+      "plantilla_md": "INTIMACIÓN DE PAGO — CERTIFICO Y DOY FE…\n"
+    },
+    {
+      "materia": "Civil y Comercial",
+      "naturaleza": "Extrajudicial",
+      "ejecutor": "Abogado",
+      "slug": "contrato-compraventa-inmueble",
+      "input_schema_json": {
+        "fields": [
+          {
+            "name": "partes",
+            "label": "Partes (múltiples)",
+            "type": "list",
+            "item_type": "object",
+            "schema": {
+              "fields": [
+                {
+                  "name": "rol",
+                  "label": "Rol",
+                  "type": "select",
+                  "options": [
+                    "demandante",
+                    "demandado",
+                    "requirente",
+                    "requerido",
+                    "impetrante",
+                    "impetrado",
+                    "contratante",
+                    "contratado",
+                    "poderdante",
+                    "poderhabiente",
+                    "vendedor",
+                    "comprador",
+                    "arrendador",
+                    "arrendatario",
+                    "fiador",
+                    "querellante",
+                    "querellado",
+                    "actor_civil",
+                    "tercero_interviniente"
+                  ],
+                  "required": true
+                },
+                {
+                  "name": "persona_id",
+                  "label": "Persona (Cédula/RNC)",
+                  "type": "party",
+                  "required": true,
+                  "autofill": "cedula|rnc"
+                },
+                {
+                  "name": "representante_profesional_id",
+                  "label": "Abogado representante",
+                  "type": "professional",
+                  "subtype": "abogado",
+                  "source": "profesionales",
+                  "required": false
+                },
+                {
+                  "name": "calidad",
+                  "label": "Calidad/Observaciones",
+                  "type": "text",
+                  "required": false
+                }
+              ]
+            },
+            "required": false
+          },
+          {
+            "name": "vendedor_id",
+            "label": "Vendedor",
+            "type": "party",
+            "required": true,
+            "autofill": "cedula|rnc"
+          },
+          {
+            "name": "comprador_id",
+            "label": "Comprador",
+            "type": "party",
+            "required": true,
+            "autofill": "cedula|rnc"
+          },
+          {
+            "name": "inmueble_matricula",
+            "label": "Matrícula",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "precio",
+            "label": "Precio (RD$)",
+            "type": "currency",
+            "required": true
+          },
+          {
+            "name": "bienes",
+            "label": "Bienes u Objetos (múltiples)",
+            "type": "list",
+            "item_type": "object",
+            "schema": {
+              "fields": [
+                {
+                  "name": "tipo",
+                  "label": "Tipo",
+                  "type": "select",
+                  "options": [
+                    "Inmueble",
+                    "Mueble",
+                    "Suma de dinero",
+                    "Acción/participación",
+                    "Otro"
+                  ],
+                  "required": true
+                },
+                {
+                  "name": "descripcion",
+                  "label": "Descripción",
+                  "type": "textarea",
+                  "required": true
+                },
+                {
+                  "name": "matricula_o_id",
+                  "label": "Matrícula/ID",
+                  "type": "text",
+                  "required": false
+                },
+                {
+                  "name": "ubicacion",
+                  "label": "Ubicación/Dirección",
+                  "type": "text",
+                  "required": false
+                },
+                {
+                  "name": "valor_referencial",
+                  "label": "Valor referencial (RD$)",
+                  "type": "currency",
+                  "required": false
+                }
+              ]
+            },
+            "required": false
+          }
+        ]
+      },
+      "plantilla_md": "CONTRATO DE COMPRAVENTA DE INMUEBLE\n…\n"
+    },
+    {
+      "materia": "Civil y Comercial",
+      "naturaleza": "Extrajudicial",
+      "ejecutor": "Abogado",
+      "slug": "poder-cuota-litis",
+      "input_schema_json": {
+        "fields": [
+          {
+            "name": "partes",
+            "label": "Partes (múltiples)",
+            "type": "list",
+            "item_type": "object",
+            "schema": {
+              "fields": [
+                {
+                  "name": "rol",
+                  "label": "Rol",
+                  "type": "select",
+                  "options": [
+                    "demandante",
+                    "demandado",
+                    "requirente",
+                    "requerido",
+                    "impetrante",
+                    "impetrado",
+                    "contratante",
+                    "contratado",
+                    "poderdante",
+                    "poderhabiente",
+                    "vendedor",
+                    "comprador",
+                    "arrendador",
+                    "arrendatario",
+                    "fiador",
+                    "querellante",
+                    "querellado",
+                    "actor_civil",
+                    "tercero_interviniente"
+                  ],
+                  "required": true
+                },
+                {
+                  "name": "persona_id",
+                  "label": "Persona (Cédula/RNC)",
+                  "type": "party",
+                  "required": true,
+                  "autofill": "cedula|rnc"
+                },
+                {
+                  "name": "representante_profesional_id",
+                  "label": "Abogado representante",
+                  "type": "professional",
+                  "subtype": "abogado",
+                  "source": "profesionales",
+                  "required": false
+                },
+                {
+                  "name": "calidad",
+                  "label": "Calidad/Observaciones",
+                  "type": "text",
+                  "required": false
+                }
+              ]
+            },
+            "required": false
+          },
+          {
+            "name": "poderdante_id",
+            "label": "Poderdante",
+            "type": "party",
+            "required": true,
+            "autofill": "cedula|rnc"
+          },
+          {
+            "name": "abogado_id",
+            "label": "Abogado apoderado",
+            "type": "professional",
+            "subtype": "abogado",
+            "required": true,
+            "source": "profesionales"
+          },
+          {
+            "name": "porcentaje_honorarios",
+            "label": "% Honorarios",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "bienes",
+            "label": "Bienes u Objetos (múltiples)",
+            "type": "list",
+            "item_type": "object",
+            "schema": {
+              "fields": [
+                {
+                  "name": "tipo",
+                  "label": "Tipo",
+                  "type": "select",
+                  "options": [
+                    "Inmueble",
+                    "Mueble",
+                    "Suma de dinero",
+                    "Acción/participación",
+                    "Otro"
+                  ],
+                  "required": true
+                },
+                {
+                  "name": "descripcion",
+                  "label": "Descripción",
+                  "type": "textarea",
+                  "required": true
+                },
+                {
+                  "name": "matricula_o_id",
+                  "label": "Matrícula/ID",
+                  "type": "text",
+                  "required": false
+                },
+                {
+                  "name": "ubicacion",
+                  "label": "Ubicación/Dirección",
+                  "type": "text",
+                  "required": false
+                },
+                {
+                  "name": "valor_referencial",
+                  "label": "Valor referencial (RD$)",
+                  "type": "currency",
+                  "required": false
+                }
+              ]
+            },
+            "required": false
+          }
+        ]
+      },
+      "plantilla_md": "PODER CUOTA-LITIS\n…\n"
+    },
+    {
+      "materia": "Civil y Comercial",
+      "naturaleza": "Extrajudicial",
+      "ejecutor": "Abogado",
+      "slug": "recibo-de-pago",
+      "input_schema_json": {
+        "fields": [
+          {
+            "name": "partes",
+            "label": "Partes (múltiples)",
+            "type": "list",
+            "item_type": "object",
+            "schema": {
+              "fields": [
+                {
+                  "name": "rol",
+                  "label": "Rol",
+                  "type": "select",
+                  "options": [
+                    "demandante",
+                    "demandado",
+                    "requirente",
+                    "requerido",
+                    "impetrante",
+                    "impetrado",
+                    "contratante",
+                    "contratado",
+                    "poderdante",
+                    "poderhabiente",
+                    "vendedor",
+                    "comprador",
+                    "arrendador",
+                    "arrendatario",
+                    "fiador",
+                    "querellante",
+                    "querellado",
+                    "actor_civil",
+                    "tercero_interviniente"
+                  ],
+                  "required": true
+                },
+                {
+                  "name": "persona_id",
+                  "label": "Persona (Cédula/RNC)",
+                  "type": "party",
+                  "required": true,
+                  "autofill": "cedula|rnc"
+                },
+                {
+                  "name": "representante_profesional_id",
+                  "label": "Abogado representante",
+                  "type": "professional",
+                  "subtype": "abogado",
+                  "source": "profesionales",
+                  "required": false
+                },
+                {
+                  "name": "calidad",
+                  "label": "Calidad/Observaciones",
+                  "type": "text",
+                  "required": false
+                }
+              ]
+            },
+            "required": false
+          },
+          {
+            "name": "acreedor_id",
+            "label": "Acreedor",
+            "type": "party",
+            "required": true,
+            "autofill": "cedula|rnc"
+          },
+          {
+            "name": "deudor_id",
+            "label": "Deudor",
+            "type": "party",
+            "required": true,
+            "autofill": "cedula|rnc"
+          },
+          {
+            "name": "monto",
+            "label": "Monto (RD$)",
+            "type": "currency",
+            "required": true
+          },
+          {
+            "name": "bienes",
+            "label": "Bienes u Objetos (múltiples)",
+            "type": "list",
+            "item_type": "object",
+            "schema": {
+              "fields": [
+                {
+                  "name": "tipo",
+                  "label": "Tipo",
+                  "type": "select",
+                  "options": [
+                    "Inmueble",
+                    "Mueble",
+                    "Suma de dinero",
+                    "Acción/participación",
+                    "Otro"
+                  ],
+                  "required": true
+                },
+                {
+                  "name": "descripcion",
+                  "label": "Descripción",
+                  "type": "textarea",
+                  "required": true
+                },
+                {
+                  "name": "matricula_o_id",
+                  "label": "Matrícula/ID",
+                  "type": "text",
+                  "required": false
+                },
+                {
+                  "name": "ubicacion",
+                  "label": "Ubicación/Dirección",
+                  "type": "text",
+                  "required": false
+                },
+                {
+                  "name": "valor_referencial",
+                  "label": "Valor referencial (RD$)",
+                  "type": "currency",
+                  "required": false
+                }
+              ]
+            },
+            "required": false
+          }
+        ]
+      },
+      "plantilla_md": "RECIBO DE PAGO\n…\n"
+    },
+    {
+      "materia": "Penal",
+      "naturaleza": "Judicial",
+      "ejecutor": "Abogado",
+      "slug": "querella-con-actor-civil",
+      "input_schema_json": {
+        "fields": [
+          {
+            "name": "partes",
+            "label": "Partes (múltiples)",
+            "type": "list",
+            "item_type": "object",
+            "schema": {
+              "fields": [
+                {
+                  "name": "rol",
+                  "label": "Rol",
+                  "type": "select",
+                  "options": [
+                    "demandante",
+                    "demandado",
+                    "requirente",
+                    "requerido",
+                    "impetrante",
+                    "impetrado",
+                    "contratante",
+                    "contratado",
+                    "poderdante",
+                    "poderhabiente",
+                    "vendedor",
+                    "comprador",
+                    "arrendador",
+                    "arrendatario",
+                    "fiador",
+                    "querellante",
+                    "querellado",
+                    "actor_civil",
+                    "tercero_interviniente"
+                  ],
+                  "required": true
+                },
+                {
+                  "name": "persona_id",
+                  "label": "Persona (Cédula/RNC)",
+                  "type": "party",
+                  "required": true,
+                  "autofill": "cedula|rnc"
+                },
+                {
+                  "name": "representante_profesional_id",
+                  "label": "Abogado representante",
+                  "type": "professional",
+                  "subtype": "abogado",
+                  "source": "profesionales",
+                  "required": false
+                },
+                {
+                  "name": "calidad",
+                  "label": "Calidad/Observaciones",
+                  "type": "text",
+                  "required": false
+                }
+              ]
+            },
+            "required": false
+          },
+          {
+            "name": "querellante_id",
+            "label": "Querellante",
+            "type": "party",
+            "required": true,
+            "autofill": "cedula"
+          },
+          {
+            "name": "querellado_id",
+            "label": "Querellado",
+            "type": "party",
+            "required": true,
+            "autofill": "cedula|rnc"
+          },
+          {
+            "name": "calificacion_juridica",
+            "label": "Calificación",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "hechos",
+            "label": "Hechos",
+            "type": "textarea",
+            "required": true
+          },
+          {
+            "name": "bienes",
+            "label": "Bienes u Objetos (múltiples)",
+            "type": "list",
+            "item_type": "object",
+            "schema": {
+              "fields": [
+                {
+                  "name": "tipo",
+                  "label": "Tipo",
+                  "type": "select",
+                  "options": [
+                    "Inmueble",
+                    "Mueble",
+                    "Suma de dinero",
+                    "Acción/participación",
+                    "Otro"
+                  ],
+                  "required": true
+                },
+                {
+                  "name": "descripcion",
+                  "label": "Descripción",
+                  "type": "textarea",
+                  "required": true
+                },
+                {
+                  "name": "matricula_o_id",
+                  "label": "Matrícula/ID",
+                  "type": "text",
+                  "required": false
+                },
+                {
+                  "name": "ubicacion",
+                  "label": "Ubicación/Dirección",
+                  "type": "text",
+                  "required": false
+                },
+                {
+                  "name": "valor_referencial",
+                  "label": "Valor referencial (RD$)",
+                  "type": "currency",
+                  "required": false
+                }
+              ]
+            },
+            "required": false
+          }
+        ]
+      },
+      "plantilla_md": "QUERELLA PENAL Y ACTOR CIVIL\n…\n"
+    },
+    {
+      "materia": "Civil y Comercial",
+      "naturaleza": "Extrajudicial",
+      "ejecutor": "Abogado",
+      "slug": "contrato-alquiler-local-comercial-modelo-hd",
+      "title": "Contrato de Alquiler (Local Comercial) — Modelo PRAXIS LEX",
+      "is_contrato": true,
+      "input_schema_json": {
+        "fields": [
+          {
+            "name": "partes",
+            "label": "Partes (múltiples)",
+            "type": "list",
+            "item_type": "object",
+            "schema": {
+              "fields": [
+                {
+                  "name": "rol",
+                  "label": "Rol",
+                  "type": "select",
+                  "options": [
+                    "demandante",
+                    "demandado",
+                    "requirente",
+                    "requerido",
+                    "impetrante",
+                    "impetrado",
+                    "contratante",
+                    "contratado",
+                    "poderdante",
+                    "poderhabiente",
+                    "vendedor",
+                    "comprador",
+                    "arrendador",
+                    "arrendatario",
+                    "fiador",
+                    "querellante",
+                    "querellado",
+                    "actor_civil",
+                    "tercero_interviniente"
+                  ],
+                  "required": true
+                },
+                {
+                  "name": "persona_id",
+                  "label": "Persona (Cédula/RNC)",
+                  "type": "party",
+                  "required": true,
+                  "autofill": "cedula|rnc"
+                },
+                {
+                  "name": "representante_profesional_id",
+                  "label": "Abogado representante",
+                  "type": "professional",
+                  "subtype": "abogado",
+                  "source": "profesionales",
+                  "required": false
+                },
+                {
+                  "name": "calidad",
+                  "label": "Calidad/Observaciones",
+                  "type": "text",
+                  "required": false
+                }
+              ]
+            },
+            "required": false
+          },
+          {
+            "name": "propietario_id",
+            "label": "Propietario",
+            "type": "party",
+            "required": true,
+            "autofill": "cedula|rnc"
+          },
+          {
+            "name": "inquilino_id",
+            "label": "Inquilino",
+            "type": "party",
+            "required": true,
+            "autofill": "cedula|rnc"
+          },
+          {
+            "name": "fiador_id",
+            "label": "Fiador solidario",
+            "type": "party",
+            "required": false,
+            "autofill": "cedula|rnc"
+          },
+          {
+            "name": "inmueble_direccion",
+            "label": "Dirección del local",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "inmueble_superficie_m2",
+            "label": "Superficie (m²)",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "inmueble_nivel",
+            "label": "Nivel",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "inmueble_estacionamientos",
+            "label": "Estacionamientos",
+            "type": "integer",
+            "required": true
+          },
+          {
+            "name": "division_interior",
+            "label": "División interior",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "uso_destinado",
+            "label": "Uso destinado",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "canon_mensual",
+            "label": "Canon mensual (RD$)",
+            "type": "currency",
+            "required": true
+          },
+          {
+            "name": "duracion_meses",
+            "label": "Duración (meses)",
+            "type": "integer",
+            "required": true,
+            "default": 12
+          },
+          {
+            "name": "fecha_inicio",
+            "label": "Fecha de inicio",
+            "type": "date",
+            "required": true
+          },
+          {
+            "name": "fecha_fin",
+            "label": "Fecha de fin",
+            "type": "date",
+            "required": true
+          },
+          {
+            "name": "pago_adelantado_total",
+            "label": "Pago adelantado total",
+            "type": "boolean",
+            "required": true,
+            "default": true
+          },
+          {
+            "name": "inspeccion_mes",
+            "label": "Mes inspección conjunta",
+            "type": "integer",
+            "required": true,
+            "default": 10
+          },
+          {
+            "name": "servicios_a_cargo",
+            "label": "Servicios a cargo",
+            "type": "list",
+            "item_type": "text",
+            "required": true,
+            "default": [
+              "Agua",
+              "Electricidad"
+            ]
+          },
+          {
+            "name": "deudas_previas_propietario",
+            "label": "Propietario asume deudas previas",
+            "type": "boolean",
+            "required": true,
+            "default": true
+          },
+          {
+            "name": "confidencialidad_anios",
+            "label": "Confidencialidad (años)",
+            "type": "integer",
+            "required": true,
+            "default": 5
+          },
+          {
+            "name": "ciudad_contrato",
+            "label": "Ciudad",
+            "type": "text",
+            "required": true,
+            "default": "Santo Domingo"
+          },
+          {
+            "name": "fecha_contrato",
+            "label": "Fecha contrato",
+            "type": "date",
+            "required": true
+          },
+          {
+            "name": "notario_cedula",
+            "label": "Notario (si aplica)",
+            "type": "professional",
+            "subtype": "notario",
+            "source": "profesionales",
+            "required": false
+          },
+          {
+            "name": "bienes",
+            "label": "Bienes u Objetos (múltiples)",
+            "type": "list",
+            "item_type": "object",
+            "schema": {
+              "fields": [
+                {
+                  "name": "tipo",
+                  "label": "Tipo",
+                  "type": "select",
+                  "options": [
+                    "Inmueble",
+                    "Mueble",
+                    "Suma de dinero",
+                    "Acción/participación",
+                    "Otro"
+                  ],
+                  "required": true
+                },
+                {
+                  "name": "descripcion",
+                  "label": "Descripción",
+                  "type": "textarea",
+                  "required": true
+                },
+                {
+                  "name": "matricula_o_id",
+                  "label": "Matrícula/ID",
+                  "type": "text",
+                  "required": false
+                },
+                {
+                  "name": "ubicacion",
+                  "label": "Ubicación/Dirección",
+                  "type": "text",
+                  "required": false
+                },
+                {
+                  "name": "valor_referencial",
+                  "label": "Valor referencial (RD$)",
+                  "type": "currency",
+                  "required": false
+                }
+              ]
+            },
+            "required": false
+          }
+        ]
+      },
+      "plantilla_md": "CONTRATO DE ALQUILER\n\n… (plantilla exacta con placeholders, ya cargada en sistema) …\n"
+    },
+    {
+      "materia": "Civil y Comercial",
+      "naturaleza": "Judicial",
+      "ejecutor": "Alguacil",
+      "slug": "acto-constitucion-abogado-y-avenir",
+      "title": "Acto de Constitución de Abogado y Avenir — Curial",
+      "input_schema_json": {
+        "fields": [
+          {
+            "name": "partes",
+            "label": "Partes (múltiples)",
+            "type": "list",
+            "item_type": "object",
+            "schema": {
+              "fields": [
+                {
+                  "name": "rol",
+                  "label": "Rol",
+                  "type": "select",
+                  "options": [
+                    "demandante",
+                    "demandado",
+                    "requirente",
+                    "requerido",
+                    "impetrante",
+                    "impetrado",
+                    "contratante",
+                    "contratado",
+                    "poderdante",
+                    "poderhabiente",
+                    "vendedor",
+                    "comprador",
+                    "arrendador",
+                    "arrendatario",
+                    "fiador",
+                    "querellante",
+                    "querellado",
+                    "actor_civil",
+                    "tercero_interviniente"
+                  ],
+                  "required": true
+                },
+                {
+                  "name": "persona_id",
+                  "label": "Persona (Cédula/RNC)",
+                  "type": "party",
+                  "required": true,
+                  "autofill": "cedula|rnc"
+                },
+                {
+                  "name": "representante_profesional_id",
+                  "label": "Abogado representante",
+                  "type": "professional",
+                  "subtype": "abogado",
+                  "source": "profesionales",
+                  "required": false
+                },
+                {
+                  "name": "calidad",
+                  "label": "Calidad/Observaciones",
+                  "type": "text",
+                  "required": false
+                }
+              ]
+            },
+            "required": false
+          },
+          {
+            "name": "requirente_id",
+            "label": "Requirente",
+            "type": "party",
+            "required": true,
+            "autofill": "cedula|rnc"
+          },
+          {
+            "name": "requerido_id",
+            "label": "Requerido",
+            "type": "party",
+            "required": true,
+            "autofill": "cedula|rnc"
+          },
+          {
+            "name": "abogado_apoderado_cedula",
+            "label": "Abogado apoderado",
+            "type": "professional",
+            "subtype": "abogado",
+            "source": "profesionales",
+            "required": true
+          },
+          {
+            "name": "domicilio_requerido",
+            "label": "Domicilio requerido",
+            "type": "address",
+            "required": true
+          },
+          {
+            "name": "tribunal",
+            "label": "Tribunal",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "fecha_audiencia",
+            "label": "Fecha audiencia",
+            "type": "date",
+            "required": false
+          },
+          {
+            "name": "hora_audiencia",
+            "label": "Hora audiencia",
+            "type": "time",
+            "required": false
+          },
+          {
+            "name": "bienes",
+            "label": "Bienes u Objetos (múltiples)",
+            "type": "list",
+            "item_type": "object",
+            "schema": {
+              "fields": [
+                {
+                  "name": "tipo",
+                  "label": "Tipo",
+                  "type": "select",
+                  "options": [
+                    "Inmueble",
+                    "Mueble",
+                    "Suma de dinero",
+                    "Acción/participación",
+                    "Otro"
+                  ],
+                  "required": true
+                },
+                {
+                  "name": "descripcion",
+                  "label": "Descripción",
+                  "type": "textarea",
+                  "required": true
+                },
+                {
+                  "name": "matricula_o_id",
+                  "label": "Matrícula/ID",
+                  "type": "text",
+                  "required": false
+                },
+                {
+                  "name": "ubicacion",
+                  "label": "Ubicación/Dirección",
+                  "type": "text",
+                  "required": false
+                },
+                {
+                  "name": "valor_referencial",
+                  "label": "Valor referencial (RD$)",
+                  "type": "currency",
+                  "required": false
+                }
+              ]
+            },
+            "required": false
+          }
+        ]
+      },
+      "plantilla_md": "ACTO DE CONSTITUCIÓN DE ABOGADO Y AVENIR\nCERTIFICO Y DOY FE…"
+    },
+    {
+      "materia": "Civil y Comercial",
+      "naturaleza": "Judicial",
+      "ejecutor": "Alguacil",
+      "slug": "acto-avenir-emplazamiento",
+      "title": "Acto AVENIR / Emplazamiento — Curial",
+      "input_schema_json": {
+        "fields": [
+          {
+            "name": "partes",
+            "label": "Partes (múltiples)",
+            "type": "list",
+            "item_type": "object",
+            "schema": {
+              "fields": [
+                {
+                  "name": "rol",
+                  "label": "Rol",
+                  "type": "select",
+                  "options": [
+                    "demandante",
+                    "demandado",
+                    "requirente",
+                    "requerido",
+                    "impetrante",
+                    "impetrado",
+                    "contratante",
+                    "contratado",
+                    "poderdante",
+                    "poderhabiente",
+                    "vendedor",
+                    "comprador",
+                    "arrendador",
+                    "arrendatario",
+                    "fiador",
+                    "querellante",
+                    "querellado",
+                    "actor_civil",
+                    "tercero_interviniente"
+                  ],
+                  "required": true
+                },
+                {
+                  "name": "persona_id",
+                  "label": "Persona (Cédula/RNC)",
+                  "type": "party",
+                  "required": true,
+                  "autofill": "cedula|rnc"
+                },
+                {
+                  "name": "representante_profesional_id",
+                  "label": "Abogado representante",
+                  "type": "professional",
+                  "subtype": "abogado",
+                  "source": "profesionales",
+                  "required": false
+                },
+                {
+                  "name": "calidad",
+                  "label": "Calidad/Observaciones",
+                  "type": "text",
+                  "required": false
+                }
+              ]
+            },
+            "required": false
+          },
+          {
+            "name": "requirente_id",
+            "label": "Requirente",
+            "type": "party",
+            "required": true,
+            "autofill": "cedula|rnc"
+          },
+          {
+            "name": "requerido_id",
+            "label": "Requerido",
+            "type": "party",
+            "required": true,
+            "autofill": "cedula|rnc"
+          },
+          {
+            "name": "domicilio_requerido",
+            "label": "Domicilio",
+            "type": "address",
+            "required": true
+          },
+          {
+            "name": "tribunal",
+            "label": "Tribunal",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "fecha_audiencia",
+            "label": "Fecha",
+            "type": "date",
+            "required": true
+          },
+          {
+            "name": "hora_audiencia",
+            "label": "Hora",
+            "type": "time",
+            "required": true
+          },
+          {
+            "name": "bienes",
+            "label": "Bienes u Objetos (múltiples)",
+            "type": "list",
+            "item_type": "object",
+            "schema": {
+              "fields": [
+                {
+                  "name": "tipo",
+                  "label": "Tipo",
+                  "type": "select",
+                  "options": [
+                    "Inmueble",
+                    "Mueble",
+                    "Suma de dinero",
+                    "Acción/participación",
+                    "Otro"
+                  ],
+                  "required": true
+                },
+                {
+                  "name": "descripcion",
+                  "label": "Descripción",
+                  "type": "textarea",
+                  "required": true
+                },
+                {
+                  "name": "matricula_o_id",
+                  "label": "Matrícula/ID",
+                  "type": "text",
+                  "required": false
+                },
+                {
+                  "name": "ubicacion",
+                  "label": "Ubicación/Dirección",
+                  "type": "text",
+                  "required": false
+                },
+                {
+                  "name": "valor_referencial",
+                  "label": "Valor referencial (RD$)",
+                  "type": "currency",
+                  "required": false
+                }
+              ]
+            },
+            "required": false
+          }
+        ]
+      },
+      "plantilla_md": "ACTO AVENIR / EMPLAZAMIENTO\nCERTIFICO Y DOY FE…"
+    },
+    {
+      "materia": "Civil y Comercial",
+      "naturaleza": "Judicial",
+      "ejecutor": "Abogado",
+      "slug": "inventario-documentos-deposito",
+      "title": "Inventario de Documentos para Depósito — Escrito",
+      "input_schema_json": {
+        "fields": [
+          {
+            "name": "partes",
+            "label": "Partes (múltiples)",
+            "type": "list",
+            "item_type": "object",
+            "schema": {
+              "fields": [
+                {
+                  "name": "rol",
+                  "label": "Rol",
+                  "type": "select",
+                  "options": [
+                    "demandante",
+                    "demandado",
+                    "requirente",
+                    "requerido",
+                    "impetrante",
+                    "impetrado",
+                    "contratante",
+                    "contratado",
+                    "poderdante",
+                    "poderhabiente",
+                    "vendedor",
+                    "comprador",
+                    "arrendador",
+                    "arrendatario",
+                    "fiador",
+                    "querellante",
+                    "querellado",
+                    "actor_civil",
+                    "tercero_interviniente"
+                  ],
+                  "required": true
+                },
+                {
+                  "name": "persona_id",
+                  "label": "Persona (Cédula/RNC)",
+                  "type": "party",
+                  "required": true,
+                  "autofill": "cedula|rnc"
+                },
+                {
+                  "name": "representante_profesional_id",
+                  "label": "Abogado representante",
+                  "type": "professional",
+                  "subtype": "abogado",
+                  "source": "profesionales",
+                  "required": false
+                },
+                {
+                  "name": "calidad",
+                  "label": "Calidad/Observaciones",
+                  "type": "text",
+                  "required": false
+                }
+              ]
+            },
+            "required": false
+          },
+          {
+            "name": "expediente",
+            "label": "Expediente",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "tribunal",
+            "label": "Tribunal/Secretaría",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "lista_documentos",
+            "label": "Documentos",
+            "type": "list",
+            "item_type": "text",
+            "required": true
+          },
+          {
+            "name": "bienes",
+            "label": "Bienes u Objetos (múltiples)",
+            "type": "list",
+            "item_type": "object",
+            "schema": {
+              "fields": [
+                {
+                  "name": "tipo",
+                  "label": "Tipo",
+                  "type": "select",
+                  "options": [
+                    "Inmueble",
+                    "Mueble",
+                    "Suma de dinero",
+                    "Acción/participación",
+                    "Otro"
+                  ],
+                  "required": true
+                },
+                {
+                  "name": "descripcion",
+                  "label": "Descripción",
+                  "type": "textarea",
+                  "required": true
+                },
+                {
+                  "name": "matricula_o_id",
+                  "label": "Matrícula/ID",
+                  "type": "text",
+                  "required": false
+                },
+                {
+                  "name": "ubicacion",
+                  "label": "Ubicación/Dirección",
+                  "type": "text",
+                  "required": false
+                },
+                {
+                  "name": "valor_referencial",
+                  "label": "Valor referencial (RD$)",
+                  "type": "currency",
+                  "required": false
+                }
+              ]
+            },
+            "required": false
+          }
+        ]
+      },
+      "plantilla_md": "INVENTARIO DE DOCUMENTOS\n…"
+    },
+    {
+      "materia": "Civil y Comercial",
+      "naturaleza": "Judicial",
+      "ejecutor": "Abogado",
+      "slug": "lista-de-testigos",
+      "title": "Lista de Testigos — Escrito",
+      "input_schema_json": {
+        "fields": [
+          {
+            "name": "partes",
+            "label": "Partes (múltiples)",
+            "type": "list",
+            "item_type": "object",
+            "schema": {
+              "fields": [
+                {
+                  "name": "rol",
+                  "label": "Rol",
+                  "type": "select",
+                  "options": [
+                    "demandante",
+                    "demandado",
+                    "requirente",
+                    "requerido",
+                    "impetrante",
+                    "impetrado",
+                    "contratante",
+                    "contratado",
+                    "poderdante",
+                    "poderhabiente",
+                    "vendedor",
+                    "comprador",
+                    "arrendador",
+                    "arrendatario",
+                    "fiador",
+                    "querellante",
+                    "querellado",
+                    "actor_civil",
+                    "tercero_interviniente"
+                  ],
+                  "required": true
+                },
+                {
+                  "name": "persona_id",
+                  "label": "Persona (Cédula/RNC)",
+                  "type": "party",
+                  "required": true,
+                  "autofill": "cedula|rnc"
+                },
+                {
+                  "name": "representante_profesional_id",
+                  "label": "Abogado representante",
+                  "type": "professional",
+                  "subtype": "abogado",
+                  "source": "profesionales",
+                  "required": false
+                },
+                {
+                  "name": "calidad",
+                  "label": "Calidad/Observaciones",
+                  "type": "text",
+                  "required": false
+                }
+              ]
+            },
+            "required": false
+          },
+          {
+            "name": "expediente",
+            "label": "Expediente",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "tribunal",
+            "label": "Tribunal",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "testigos",
+            "label": "Testigos",
+            "type": "list",
+            "item_type": "object",
+            "schema": {
+              "fields": [
+                {
+                  "name": "nombre_completo",
+                  "label": "Nombre",
+                  "type": "text",
+                  "required": true
+                },
+                {
+                  "name": "cedula",
+                  "label": "Cédula",
+                  "type": "text",
+                  "required": false,
+                  "autofill": "cedula"
+                },
+                {
+                  "name": "profesion",
+                  "label": "Profesión",
+                  "type": "text",
+                  "required": false
+                },
+                {
+                  "name": "domicilio",
+                  "label": "Domicilio",
+                  "type": "text",
+                  "required": false
+                },
+                {
+                  "name": "proposito",
+                  "label": "Propósito",
+                  "type": "textarea",
+                  "required": true
+                }
+              ]
+            },
+            "required": true
+          },
+          {
+            "name": "bienes",
+            "label": "Bienes u Objetos (múltiples)",
+            "type": "list",
+            "item_type": "object",
+            "schema": {
+              "fields": [
+                {
+                  "name": "tipo",
+                  "label": "Tipo",
+                  "type": "select",
+                  "options": [
+                    "Inmueble",
+                    "Mueble",
+                    "Suma de dinero",
+                    "Acción/participación",
+                    "Otro"
+                  ],
+                  "required": true
+                },
+                {
+                  "name": "descripcion",
+                  "label": "Descripción",
+                  "type": "textarea",
+                  "required": true
+                },
+                {
+                  "name": "matricula_o_id",
+                  "label": "Matrícula/ID",
+                  "type": "text",
+                  "required": false
+                },
+                {
+                  "name": "ubicacion",
+                  "label": "Ubicación/Dirección",
+                  "type": "text",
+                  "required": false
+                },
+                {
+                  "name": "valor_referencial",
+                  "label": "Valor referencial (RD$)",
+                  "type": "currency",
+                  "required": false
+                }
+              ]
+            },
+            "required": false
+          }
+        ]
+      },
+      "plantilla_md": "LISTA DE TESTIGOS\n…"
+    },
+    {
+      "materia": "Civil y Comercial",
+      "naturaleza": "Judicial",
+      "ejecutor": "Abogado",
+      "slug": "demanda-responsabilidad-civil",
+      "title": "Demanda en Responsabilidad Civil y Reparación de Daños",
+      "input_schema_json": {
+        "fields": [
+          {
+            "name": "partes",
+            "label": "Partes (múltiples)",
+            "type": "list",
+            "item_type": "object",
+            "schema": {
+              "fields": [
+                {
+                  "name": "rol",
+                  "label": "Rol",
+                  "type": "select",
+                  "options": [
+                    "demandante",
+                    "demandado",
+                    "requirente",
+                    "requerido",
+                    "impetrante",
+                    "impetrado",
+                    "contratante",
+                    "contratado",
+                    "poderdante",
+                    "poderhabiente",
+                    "vendedor",
+                    "comprador",
+                    "arrendador",
+                    "arrendatario",
+                    "fiador",
+                    "querellante",
+                    "querellado",
+                    "actor_civil",
+                    "tercero_interviniente"
+                  ],
+                  "required": true
+                },
+                {
+                  "name": "persona_id",
+                  "label": "Persona (Cédula/RNC)",
+                  "type": "party",
+                  "required": true,
+                  "autofill": "cedula|rnc"
+                },
+                {
+                  "name": "representante_profesional_id",
+                  "label": "Abogado representante",
+                  "type": "professional",
+                  "subtype": "abogado",
+                  "source": "profesionales",
+                  "required": false
+                },
+                {
+                  "name": "calidad",
+                  "label": "Calidad/Observaciones",
+                  "type": "text",
+                  "required": false
+                }
+              ]
+            },
+            "required": false
+          },
+          {
+            "name": "demandante_id",
+            "label": "Demandante",
+            "type": "party",
+            "required": true,
+            "autofill": "cedula"
+          },
+          {
+            "name": "demandado_id",
+            "label": "Demandado",
+            "type": "party",
+            "required": true,
+            "autofill": "cedula|rnc"
+          },
+          {
+            "name": "tribunal",
+            "label": "Tribunal",
+            "type": "select",
+            "required": true,
+            "source": "infer:case/competencia"
+          },
+          {
+            "name": "relato_factico",
+            "label": "Relato fáctico",
+            "type": "textarea",
+            "required": true
+          },
+          {
+            "name": "danos",
+            "label": "Daños",
+            "type": "list",
+            "item_type": "text",
+            "required": true
+          },
+          {
+            "name": "nexo_causal",
+            "label": "Vínculo causal",
+            "type": "textarea",
+            "required": true
+          },
+          {
+            "name": "pretensiones",
+            "label": "Pretensiones",
+            "type": "list",
+            "item_type": "text",
+            "required": true
+          },
+          {
+            "name": "pruebas",
+            "label": "Pruebas",
+            "type": "list",
+            "item_type": "text",
+            "required": true
+          },
+          {
+            "name": "incluir_tesis",
+            "label": "Activar tesis/subsunción",
+            "type": "boolean",
+            "required": false,
+            "default": true
+          },
+          {
+            "name": "bienes",
+            "label": "Bienes u Objetos (múltiples)",
+            "type": "list",
+            "item_type": "object",
+            "schema": {
+              "fields": [
+                {
+                  "name": "tipo",
+                  "label": "Tipo",
+                  "type": "select",
+                  "options": [
+                    "Inmueble",
+                    "Mueble",
+                    "Suma de dinero",
+                    "Acción/participación",
+                    "Otro"
+                  ],
+                  "required": true
+                },
+                {
+                  "name": "descripcion",
+                  "label": "Descripción",
+                  "type": "textarea",
+                  "required": true
+                },
+                {
+                  "name": "matricula_o_id",
+                  "label": "Matrícula/ID",
+                  "type": "text",
+                  "required": false
+                },
+                {
+                  "name": "ubicacion",
+                  "label": "Ubicación/Dirección",
+                  "type": "text",
+                  "required": false
+                },
+                {
+                  "name": "valor_referencial",
+                  "label": "Valor referencial (RD$)",
+                  "type": "currency",
+                  "required": false
+                }
+              ]
+            },
+            "required": false
+          }
+        ]
+      },
+      "plantilla_md": "DEMANDA EN RESPONSABILIDAD CIVIL Y REPARACIÓN DE DAÑOS\n…"
+    }
+  ],
+  "global_clauses": {
+    "confidencialidad": "CLÁUSULA DE CONFIDENCIALIDAD\n…",
+    "aml_155_17": "CUMPLIMIENTO LEY No. 155-17 (LA/FT)\n…",
+    "injection_policy": {
+      "apply_to": "all_contracts_except",
+      "except_slugs": [
+        "contrato-alquiler-local-comercial-modelo-hd"
+      ],
+      "position": "before_signatures"
+    }
+  },
+  "prompt_addendums": [
+    "ADDENDUM — Contrato de Alquiler y Cláusulas Globales …",
+    "ADDENDUM v1.2 — Modelos nuevos y reglas de separación por rol.\n- Alguacil: Constitución de Abogado y Avenir, Avenir/Emplazamiento (curiales).\n- Abogado: Inventario, Lista de Testigos, Demanda en Responsabilidad Civil.\n- Mantener separación estricta curial/abogado; activar subsunción solo cuando proceda.\n",
+    "ADDENDUM v1.3 — Multiparte y Multiobjeto\n1) Todos los actos aceptan `partes[]` y `bienes[]` (ver roles y estructura).\n2) Normalizar payload legacy a este modelo antes del render (no duplicar datos).\n3) Derivar arrays por rol y bloques `{block_partes}`/`{block_bienes}` en el motor de plantillas.\n4) Guardrails: no mezclar curial/abogado/notarial; validar roles mínimos por tipo.\n",
+    "# ADDENDUM v1.3.1 — Fidelidad estricta al Modelo (FORMA/ESTILO)\n\n## Objetivo\nGarantizar que cada acto generado respete **exactamente** la forma, el estilo y la estructura del **modelo fuente** (plantilla), sin reescrituras libres ni “mejoras” de redacción.\n\n## Reglas de fidelidad\n1) **Prohibido parafrasear**: no reescribir títulos, encabezados, cláusulas, fórmulas curiales/notariales, ni enumeraciones del modelo.\n2) **Estructura intacta**: conservar numeración, literales (I/II/III, 1/2/3, a/b/c), mayúsculas, negritas, sangrías, alineaciones, rótulos y orden de secciones tal cual el modelo.\n3) **Texto fijo ≠ variable**: solo reemplazar **placeholders** definidos; el texto fijo del modelo **no se altera**.\n4) **Bloques opcionales controlados**: insertar únicamente en los puntos previstos (p. ej., `{block_partes}`, `{block_bienes}`, `{bloque_certificacion_notarial}`, `{bloque_jurisprudencia}`) o en apéndices al final cuando así lo disponga el addendum; **nunca** dentro del cuerpo fijo del modelo si no existe marcador.\n5) **Compatibilidad DOCX/PDF**: respetar saltos de línea/párrafo y estilos para que el render a DOCX/PDF conserve tipografía, espaciados y jerarquías.\n6) **No duplicación**: si el modelo trae firmas, certificaciones o leyendas predeterminadas, no duplicarlas; completar solo datos variables.\n7) **Datos desde el sistema**: rellenar desde cédula/RNC/módulos (Clientes, Profesionales, etc.) y solicitar **únicamente** lo faltante para el acto.\n8) **Guardrails de rol**: jamás mezclar lenguaje curial en escritos de abogado ni viceversa; respetar naturaleza judicial/extrajudicial y la materia.\n\n## Validaciones duras (antes de render)\n- `fail_on_missing_placeholder`: si falta un dato obligatorio, devolver `missing_fields` (no inventar texto).\n- `fail_on_template_drift`: si se detecta cambio de estructura (encabezados/orden/rotulado), abortar y reportar `template_drift`.\n- `fail_on_unauthorized_insertion`: si intenta insertar contenido en zonas sin marcador, abortar y reportar `unauthorized_insertion`.\n\n## Implantación\n- Activar **Template Fidelity Mode = STRICT** para todos los actos.\n- Render sólo reemplaza placeholders y agrega bloques permitidos en marcadores o apéndice final.\n- Mantener logs de: `placeholders_faltantes`, `bloques_insertados`, `fuentes_autocompletadas`.\n"
+  ],
+  "rendering_policies": {
+    "template_fidelity_mode": "STRICT",
+    "enforcement": {
+      "fail_on_missing_placeholder": true,
+      "fail_on_template_drift": true,
+      "fail_on_unauthorized_insertion": true
+    },
+    "allowed_insertion_points": [
+      "{block_partes}",
+      "{block_bienes}",
+      "{bloque_certificacion_notarial}",
+      "{bloque_jurisprudencia}",
+      "{bloque_anexos}",
+      "{apendice_estandar}"
+    ],
+    "doc_export": {
+      "preserve_headings": true,
+      "preserve_numbering": true,
+      "preserve_spacing": true
+    }
+  }
+}

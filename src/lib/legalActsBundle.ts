@@ -1,4 +1,4 @@
-import bundleData from '@/data/praxislex_bundle_v1_2.json';
+import bundleData from '@/data/praxislex_bundle_v1_3_1.json';
 
 export interface ActFieldSchema {
   name: string;
