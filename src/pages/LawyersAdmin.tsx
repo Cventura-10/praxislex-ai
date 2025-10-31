@@ -64,6 +64,11 @@ const LawyersAdmin = () => {
     jurisdiccion: "",
     institucion: "",
     direccion: "",
+    nacionalidad: "",
+    estado_civil: "",
+    fecha_nacimiento: "",
+    lugar_nacimiento: "",
+    pasaporte: "",
   });
 
   const resetForm = () => {
@@ -79,6 +84,11 @@ const LawyersAdmin = () => {
       jurisdiccion: "",
       institucion: "",
       direccion: "",
+      nacionalidad: "",
+      estado_civil: "",
+      fecha_nacimiento: "",
+      lugar_nacimiento: "",
+      pasaporte: "",
     });
   };
 
@@ -244,140 +254,211 @@ const LawyersAdmin = () => {
               {config.buttonText}
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Agregar {config.title.slice(0, -1)}</DialogTitle>
               <DialogDescription>Complete los datos del profesional</DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="nombre">Nombre Completo *</Label>
-                <Input
-                  id="nombre"
-                  value={formData.nombre}
-                  onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
-                  placeholder="Ej: Dra. María González"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="cedula">Cédula</Label>
-                <Input
-                  id="cedula"
-                  value={formData.cedula}
-                  onChange={(e) => setFormData({ ...formData, cedula: e.target.value })}
-                  placeholder="001-1234567-8"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  placeholder="profesional@firma.com"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="telefono">Teléfono</Label>
-                <Input
-                  id="telefono"
-                  value={formData.telefono}
-                  onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
-                  placeholder="+1 809 555 0101"
-                />
-              </div>
+            
+            <Tabs defaultValue="basicos" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="basicos">Datos Básicos</TabsTrigger>
+                <TabsTrigger value="generales">Datos Generales</TabsTrigger>
+              </TabsList>
               
-              {activeTab === "abogados" && (
-                <div className="grid gap-2">
-                  <Label htmlFor="rol">Rol</Label>
-                  <Select value={formData.rol} onValueChange={(value) => setFormData({ ...formData, rol: value })}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar rol" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="socio">Socio</SelectItem>
-                      <SelectItem value="abogado">Abogado</SelectItem>
-                      <SelectItem value="asociado">Asociado</SelectItem>
-                      <SelectItem value="pasante">Pasante</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
+              <TabsContent value="basicos" className="grid gap-4 py-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="nombre">Nombre Completo *</Label>
+                    <Input
+                      id="nombre"
+                      value={formData.nombre}
+                      onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                      placeholder="Dra. María González"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="cedula">Cédula</Label>
+                    <Input
+                      id="cedula"
+                      value={formData.cedula}
+                      onChange={(e) => setFormData({ ...formData, cedula: e.target.value })}
+                      placeholder="001-1234567-8"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      placeholder="profesional@firma.com"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="telefono">Teléfono</Label>
+                    <Input
+                      id="telefono"
+                      value={formData.telefono}
+                      onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
+                      placeholder="809-555-0101"
+                    />
+                  </div>
+                  
+                  {activeTab === "abogados" && (
+                    <div className="grid gap-2">
+                      <Label htmlFor="rol">Rol</Label>
+                      <Select value={formData.rol} onValueChange={(value) => setFormData({ ...formData, rol: value })}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Seleccionar rol" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="socio">Socio</SelectItem>
+                          <SelectItem value="abogado">Abogado</SelectItem>
+                          <SelectItem value="asociado">Asociado</SelectItem>
+                          <SelectItem value="pasante">Pasante</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
 
-              {(activeTab === "notarios" || activeTab === "alguaciles" || activeTab === "peritos" || activeTab === "tasadores") && (
-                <div className="grid gap-2">
-                  <Label htmlFor="matricula">Matrícula</Label>
-                  <Input
-                    id="matricula"
-                    value={formData.matricula}
-                    onChange={(e) => setFormData({ ...formData, matricula: e.target.value })}
-                    placeholder="Número de matrícula"
-                  />
-                </div>
-              )}
+                  {(activeTab === "notarios" || activeTab === "alguaciles" || activeTab === "peritos" || activeTab === "tasadores") && (
+                    <div className="grid gap-2">
+                      <Label htmlFor="matricula">Matrícula</Label>
+                      <Input
+                        id="matricula"
+                        value={formData.matricula}
+                        onChange={(e) => setFormData({ ...formData, matricula: e.target.value })}
+                        placeholder="Número de matrícula"
+                      />
+                    </div>
+                  )}
 
-              {(activeTab === "peritos" || activeTab === "tasadores") && (
-                <div className="grid gap-2">
-                  <Label htmlFor="especialidad">Especialidad</Label>
-                  <Input
-                    id="especialidad"
-                    value={formData.especialidad}
-                    onChange={(e) => setFormData({ ...formData, especialidad: e.target.value })}
-                    placeholder="Ej: Valuación de propiedades"
-                  />
-                </div>
-              )}
+                  {(activeTab === "peritos" || activeTab === "tasadores") && (
+                    <div className="grid gap-2">
+                      <Label htmlFor="especialidad">Especialidad</Label>
+                      <Input
+                        id="especialidad"
+                        value={formData.especialidad}
+                        onChange={(e) => setFormData({ ...formData, especialidad: e.target.value })}
+                        placeholder="Ej: Valuación de propiedades"
+                      />
+                    </div>
+                  )}
 
-              {(activeTab === "notarios" || activeTab === "alguaciles" || activeTab === "peritos" || activeTab === "tasadores") && (
-                <div className="grid gap-2">
-                  <Label htmlFor="jurisdiccion">Jurisdicción de Actuación</Label>
-                  <Input
-                    id="jurisdiccion"
-                    value={formData.jurisdiccion}
-                    onChange={(e) => setFormData({ ...formData, jurisdiccion: e.target.value })}
-                    placeholder="Ej: Santo Domingo, Distrito Nacional"
-                  />
-                </div>
-              )}
+                  {(activeTab === "notarios" || activeTab === "alguaciles" || activeTab === "peritos" || activeTab === "tasadores") && (
+                    <div className="grid gap-2">
+                      <Label htmlFor="jurisdiccion">Jurisdicción de Actuación</Label>
+                      <Input
+                        id="jurisdiccion"
+                        value={formData.jurisdiccion}
+                        onChange={(e) => setFormData({ ...formData, jurisdiccion: e.target.value })}
+                        placeholder="Santo Domingo, Distrito Nacional"
+                      />
+                    </div>
+                  )}
 
-              {activeTab === "alguaciles" && (
-                <div className="grid gap-2">
-                  <Label htmlFor="tribunal">Tribunal Asignado</Label>
-                  <Input
-                    id="tribunal"
-                    value={formData.direccion}
-                    onChange={(e) => setFormData({ ...formData, direccion: e.target.value })}
-                    placeholder="Ej: Primera Sala Civil y Comercial"
-                  />
-                </div>
-              )}
+                  {activeTab === "alguaciles" && (
+                    <div className="grid gap-2 col-span-2">
+                      <Label htmlFor="tribunal">Tribunal Asignado</Label>
+                      <Input
+                        id="tribunal"
+                        value={formData.direccion}
+                        onChange={(e) => setFormData({ ...formData, direccion: e.target.value })}
+                        placeholder="Primera Sala Civil y Comercial"
+                      />
+                    </div>
+                  )}
 
-              {activeTab === "peritos" && (
-                <div className="grid gap-2">
-                  <Label htmlFor="institucion">Institución</Label>
-                  <Input
-                    id="institucion"
-                    value={formData.institucion}
-                    onChange={(e) => setFormData({ ...formData, institucion: e.target.value })}
-                    placeholder="Institución de certificación"
-                  />
+                  {activeTab === "peritos" && (
+                    <div className="grid gap-2">
+                      <Label htmlFor="institucion">Institución</Label>
+                      <Input
+                        id="institucion"
+                        value={formData.direccion}
+                        onChange={(e) => setFormData({ ...formData, direccion: e.target.value })}
+                        placeholder="Institución de certificación"
+                      />
+                    </div>
+                  )}
                 </div>
-              )}
-
-              {(activeTab === "notarios" || activeTab === "alguaciles" || activeTab === "peritos" || activeTab === "tasadores") && (
-                <div className="grid gap-2">
-                  <Label htmlFor="direccion">Dirección</Label>
-                  <Input
-                    id="direccion"
-                    value={formData.direccion}
-                    onChange={(e) => setFormData({ ...formData, direccion: e.target.value })}
-                    placeholder="Dirección del profesional"
-                  />
+              </TabsContent>
+              
+              <TabsContent value="generales" className="grid gap-4 py-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="nacionalidad">Nacionalidad</Label>
+                    <Select value={formData.nacionalidad} onValueChange={(value) => setFormData({ ...formData, nacionalidad: value })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Dominicana">Dominicana</SelectItem>
+                        <SelectItem value="Haitiana">Haitiana</SelectItem>
+                        <SelectItem value="Estadounidense">Estadounidense</SelectItem>
+                        <SelectItem value="Española">Española</SelectItem>
+                        <SelectItem value="Venezolana">Venezolana</SelectItem>
+                        <SelectItem value="Otra">Otra</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="estado_civil">Estado Civil</Label>
+                    <Select value={formData.estado_civil} onValueChange={(value) => setFormData({ ...formData, estado_civil: value })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Soltero/a">Soltero/a</SelectItem>
+                        <SelectItem value="Casado/a">Casado/a</SelectItem>
+                        <SelectItem value="Divorciado/a">Divorciado/a</SelectItem>
+                        <SelectItem value="Unión Libre">Unión Libre</SelectItem>
+                        <SelectItem value="Viudo/a">Viudo/a</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="fecha_nacimiento">Fecha de Nacimiento</Label>
+                    <Input
+                      id="fecha_nacimiento"
+                      type="date"
+                      value={formData.fecha_nacimiento}
+                      onChange={(e) => setFormData({ ...formData, fecha_nacimiento: e.target.value })}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="lugar_nacimiento">Lugar de Nacimiento</Label>
+                    <Input
+                      id="lugar_nacimiento"
+                      value={formData.lugar_nacimiento}
+                      onChange={(e) => setFormData({ ...formData, lugar_nacimiento: e.target.value })}
+                      placeholder="Santo Domingo, DN"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="pasaporte">Pasaporte</Label>
+                    <Input
+                      id="pasaporte"
+                      value={formData.pasaporte}
+                      onChange={(e) => setFormData({ ...formData, pasaporte: e.target.value })}
+                      placeholder="A12345678"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="direccion">Dirección</Label>
+                    <Input
+                      id="direccion"
+                      value={formData.direccion}
+                      onChange={(e) => setFormData({ ...formData, direccion: e.target.value })}
+                      placeholder="Dirección completa"
+                    />
+                  </div>
                 </div>
-              )}
-            </div>
-            <div className="flex justify-end gap-2">
+              </TabsContent>
+            </Tabs>
+            
+            <div className="flex justify-end gap-2 pt-4 border-t">
               <Button variant="outline" onClick={() => {
                 setShowNewDialog(false);
                 resetForm();
