@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,7 +30,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Eye, ArrowLeft, UserCheck, FileText, Gavel, FlaskConical, Home } from "lucide-react";
+import { Plus, Eye, ArrowLeft, UserCheck, FileText, Gavel, FlaskConical, Home, Edit, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useLawyers, Lawyer } from "@/hooks/useLawyers";
 import { useNotarios, Notario } from "@/hooks/useNotarios";
@@ -42,13 +43,14 @@ const LawyersAdmin = () => {
   const { toast } = useToast();
   
   const { lawyers, loading: loadingLawyers, createLawyer } = useLawyers();
-  const { notarios, loading: loadingNotarios, createNotario } = useNotarios();
-  const { alguaciles, loading: loadingAlguaciles, createAlguacil } = useAlguaciles();
-  const { peritos, loading: loadingPeritos, createPerito } = usePeritos();
-  const { tasadores, loading: loadingTasadores, createTasador } = useTasadores();
+  const { notarios, loading: loadingNotarios, createNotario, updateNotario, deleteNotario } = useNotarios();
+  const { alguaciles, loading: loadingAlguaciles, createAlguacil, updateAlguacil, deleteAlguacil } = useAlguaciles();
+  const { peritos, loading: loadingPeritos, createPerito, updatePerito, deletePerito } = usePeritos();
+  const { tasadores, loading: loadingTasadores, createTasador, updateTasador, deleteTasador } = useTasadores();
   
   const [activeTab, setActiveTab] = useState("abogados");
   const [showNewDialog, setShowNewDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
   const [showViewDialog, setShowViewDialog] = useState(false);
   const [selectedItem, setSelectedItem] = useState<any>(null);
   
@@ -177,6 +179,83 @@ const LawyersAdmin = () => {
   const handleView = (item: any) => {
     setSelectedItem(item);
     setShowViewDialog(true);
+  };
+
+  const handleEdit = (item: any) => {
+    setSelectedItem(item);
+    setFormData({
+      nombre: item.nombre || "",
+      cedula: item.cedula || item.cedula_encrypted || "",
+      email: item.email || "",
+      telefono: item.telefono || "",
+      rol: item.rol || "abogado",
+      estado: item.estado || "activo",
+      especialidad: item.especialidad || "",
+      matricula: item.matricula || item.matricula_card || item.matricula_cdn || "",
+      jurisdiccion: item.jurisdiccion || "",
+      institucion: "",
+      direccion: item.direccion || item.despacho_direccion || item.oficina_direccion || item.direccion_notificaciones || "",
+      nacionalidad: item.nacionalidad || "",
+      estado_civil: item.estado_civil || "",
+      fecha_nacimiento: item.fecha_nacimiento || "",
+      lugar_nacimiento: item.lugar_nacimiento || "",
+      pasaporte: item.pasaporte || "",
+    });
+    setShowEditDialog(true);
+  };
+
+  const handleDelete = async (item: any) => {
+    if (!window.confirm(`¿Estás seguro de eliminar a ${item.nombre}?`)) return;
+    
+    try {
+      if (activeTab === "abogados") {
+        await supabase.from("lawyers").delete().eq("id", item.id);
+      } else if (activeTab === "notarios") {
+        await deleteNotario(item.id);
+      } else if (activeTab === "alguaciles") {
+        await deleteAlguacil(item.id);
+      } else if (activeTab === "peritos") {
+        await deletePerito(item.id);
+      } else if (activeTab === "tasadores") {
+        await deleteTasador(item.id);
+      }
+      toast({ title: "Eliminado", description: "Profesional eliminado exitosamente" });
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  };
+
+  const handleUpdate = async () => {
+    try {
+      if (activeTab === "abogados") {
+        await supabase.from("lawyers").update({
+          nombre: formData.nombre,
+          cedula: formData.cedula,
+          email: formData.email,
+          telefono: formData.telefono,
+          rol: formData.rol,
+          direccion: formData.direccion,
+          nacionalidad: formData.nacionalidad,
+          estado_civil: formData.estado_civil,
+          fecha_nacimiento: formData.fecha_nacimiento || null,
+          lugar_nacimiento: formData.lugar_nacimiento,
+          pasaporte: formData.pasaporte,
+        }).eq("id", selectedItem.id);
+      } else if (activeTab === "notarios") {
+        await updateNotario({ id: selectedItem.id, ...formData });
+      } else if (activeTab === "alguaciles") {
+        await updateAlguacil({ id: selectedItem.id, ...formData });
+      } else if (activeTab === "peritos") {
+        await updatePerito({ id: selectedItem.id, ...formData });
+      } else if (activeTab === "tasadores") {
+        await updateTasador({ id: selectedItem.id, ...formData });
+      }
+      setShowEditDialog(false);
+      resetForm();
+      toast({ title: "Actualizado", description: "Profesional actualizado exitosamente" });
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
   };
 
   const getTabConfig = () => {
@@ -551,15 +630,17 @@ const LawyersAdmin = () => {
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right">
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => handleView(item)}
-                            className="gap-2"
-                          >
-                            <Eye className="h-4 w-4" />
-                            Ver Detalles
-                          </Button>
+                          <div className="flex gap-2 justify-end">
+                            <Button variant="ghost" size="icon" onClick={() => handleView(item)} title="Ver detalles">
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => handleEdit(item)} title="Editar">
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => handleDelete(item)} title="Eliminar">
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -644,6 +725,114 @@ const LawyersAdmin = () => {
             <Button variant="outline" onClick={() => setShowViewDialog(false)}>
               Cerrar
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Professional Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Editar {config.title.slice(0, -1)}</DialogTitle>
+            <DialogDescription>Modifica los datos del profesional</DialogDescription>
+          </DialogHeader>
+          
+          <Tabs defaultValue="basicos" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="basicos">Datos Básicos</TabsTrigger>
+              <TabsTrigger value="generales">Datos Generales</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="basicos" className="grid gap-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label>Nombre Completo *</Label>
+                  <Input value={formData.nombre} onChange={(e) => setFormData({ ...formData, nombre: e.target.value })} />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Cédula</Label>
+                  <Input value={formData.cedula} onChange={(e) => setFormData({ ...formData, cedula: e.target.value })} />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Email</Label>
+                  <Input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Teléfono</Label>
+                  <Input value={formData.telefono} onChange={(e) => setFormData({ ...formData, telefono: e.target.value })} />
+                </div>
+                {activeTab === "abogados" && (
+                  <div className="grid gap-2">
+                    <Label>Rol</Label>
+                    <Select value={formData.rol} onValueChange={(v) => setFormData({ ...formData, rol: v })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="socio">Socio</SelectItem>
+                        <SelectItem value="abogado">Abogado</SelectItem>
+                        <SelectItem value="asociado">Asociado</SelectItem>
+                        <SelectItem value="pasante">Pasante</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                <div className="grid gap-2">
+                  <Label>Matrícula</Label>
+                  <Input value={formData.matricula} onChange={(e) => setFormData({ ...formData, matricula: e.target.value })} />
+                </div>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="generales" className="grid gap-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label>Nacionalidad</Label>
+                  <Select value={formData.nacionalidad} onValueChange={(v) => setFormData({ ...formData, nacionalidad: v })}>
+                    <SelectTrigger><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Dominicana">Dominicana</SelectItem>
+                      <SelectItem value="Haitiana">Haitiana</SelectItem>
+                      <SelectItem value="Estadounidense">Estadounidense</SelectItem>
+                      <SelectItem value="Española">Española</SelectItem>
+                      <SelectItem value="Otra">Otra</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label>Estado Civil</Label>
+                  <Select value={formData.estado_civil} onValueChange={(v) => setFormData({ ...formData, estado_civil: v })}>
+                    <SelectTrigger><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Soltero/a">Soltero/a</SelectItem>
+                      <SelectItem value="Casado/a">Casado/a</SelectItem>
+                      <SelectItem value="Divorciado/a">Divorciado/a</SelectItem>
+                      <SelectItem value="Unión Libre">Unión Libre</SelectItem>
+                      <SelectItem value="Viudo/a">Viudo/a</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label>Fecha de Nacimiento</Label>
+                  <Input type="date" value={formData.fecha_nacimiento} onChange={(e) => setFormData({ ...formData, fecha_nacimiento: e.target.value })} />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Lugar de Nacimiento</Label>
+                  <Input value={formData.lugar_nacimiento} onChange={(e) => setFormData({ ...formData, lugar_nacimiento: e.target.value })} />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Pasaporte</Label>
+                  <Input value={formData.pasaporte} onChange={(e) => setFormData({ ...formData, pasaporte: e.target.value })} />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Dirección</Label>
+                  <Input value={formData.direccion} onChange={(e) => setFormData({ ...formData, direccion: e.target.value })} />
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
+          
+          <div className="flex justify-end gap-2 pt-4 border-t">
+            <Button variant="outline" onClick={() => setShowEditDialog(false)}>Cancelar</Button>
+            <Button onClick={handleUpdate}>Guardar Cambios</Button>
           </div>
         </DialogContent>
       </Dialog>
