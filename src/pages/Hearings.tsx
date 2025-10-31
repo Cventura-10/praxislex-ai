@@ -24,6 +24,8 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { CalendarView } from "@/components/calendar/CalendarView";
+import { useCalendarEvents } from "@/hooks/useCalendarEvents";
 
 interface Hearing {
   id: string;
@@ -56,6 +58,9 @@ const Hearings = () => {
   const [showNewDeadlineDialog, setShowNewDeadlineDialog] = useState(false);
   const [hearingCalendarOpen, setHearingCalendarOpen] = useState(false);
   const [deadlineCalendarOpen, setDeadlineCalendarOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
+  
+  const { events } = useCalendarEvents();
 
   const hearingForm = useForm<HearingInput>({
     resolver: zodResolver(HearingSchema),
@@ -290,9 +295,13 @@ const Hearings = () => {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="gap-2">
+          <Button 
+            variant={viewMode === 'calendar' ? 'default' : 'outline'} 
+            className="gap-2"
+            onClick={() => setViewMode(viewMode === 'calendar' ? 'list' : 'calendar')}
+          >
             <CalendarIcon className="h-4 w-4" />
-            Ver calendario
+            {viewMode === 'calendar' ? 'Ver lista' : 'Ver calendario'}
           </Button>
           <Dialog open={showNewHearingDialog} onOpenChange={setShowNewHearingDialog}>
             <DialogTrigger asChild>
@@ -430,7 +439,14 @@ const Hearings = () => {
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      {viewMode === 'calendar' ? (
+        <CalendarView 
+          events={events}
+          hearings={hearings}
+          deadlines={deadlines}
+        />
+      ) : (
+        <div className="grid gap-6 md:grid-cols-2">
         <Card className="shadow-medium">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -675,7 +691,8 @@ const Hearings = () => {
             )}
           </CardContent>
         </Card>
-      </div>
+        </div>
+      )}
     </div>
   );
 };
