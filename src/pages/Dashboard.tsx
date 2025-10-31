@@ -18,6 +18,7 @@ import {
 import { CaseStatusBadge } from "@/components/cases/CaseStatusBadge";
 import { useToast } from "@/hooks/use-toast";
 import { dashboardNavigate } from "@/lib/dashboardNavigation";
+import { PortalJudicialAccess } from "@/components/portal-judicial/PortalJudicialAccess";
 
 const Dashboard = () => {
   const { toast } = useToast();
@@ -465,6 +466,11 @@ const Dashboard = () => {
                 )}
               </CardContent>
             </Card>
+
+            {/* v1.4.5 - Portal Judicial SCJ */}
+            <div className="md:col-span-2">
+              <PortalJudicialAccess defaultPath="/login" />
+            </div>
           </div>
 
           <Card className="shadow-medium">

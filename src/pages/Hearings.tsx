@@ -15,7 +15,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar as CalendarIcon, Clock, MapPin, Plus, AlertTriangle, Edit, Trash2, CheckCircle2, ArrowLeft } from "lucide-react";
+import { Calendar as CalendarIcon, Clock, MapPin, Plus, AlertTriangle, Edit, Trash2, CheckCircle2, ArrowLeft, ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -26,6 +26,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { CalendarView } from "@/components/calendar/CalendarView";
 import { useCalendarEvents } from "@/hooks/useCalendarEvents";
+import { CalendarICSImport } from "@/components/portal-judicial/CalendarICSImport";
 
 interface Hearing {
   id: string;
@@ -295,6 +296,19 @@ const Hearings = () => {
           </div>
         </div>
         <div className="flex gap-2">
+          {/* v1.4.5 - Acceso Portal Judicial */}
+          <Button 
+            variant="secondary"
+            className="gap-2"
+            onClick={() => {
+              window.open('https://poderjudicial.gob.do/portal-servicios/mis-audiencias', 'PortalJudicialSCJ', 'width=1200,height=800');
+              toast({ title: "Portal Judicial abierto", description: "Accediendo a Mis Audiencias en el Portal Judicial SCJ" });
+            }}
+          >
+            <ExternalLink className="h-4 w-4" />
+            Abrir en Portal SCJ
+          </Button>
+          
           <Button 
             variant={viewMode === 'calendar' ? 'default' : 'outline'} 
             className="gap-2"
@@ -691,6 +705,11 @@ const Hearings = () => {
             )}
           </CardContent>
         </Card>
+        
+        {/* v1.4.5 - Importación de calendario ICS desde Portal Judicial */}
+        <div className="md:col-span-2">
+          <CalendarICSImport />
+        </div>
         </div>
       )}
     </div>
