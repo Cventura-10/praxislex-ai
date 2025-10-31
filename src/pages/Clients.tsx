@@ -16,6 +16,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -48,6 +56,20 @@ interface RevealedClientData {
   email: string;
   telefono: string;
   direccion: string;
+  nacionalidad?: string;
+  estado_civil?: string;
+  profesion?: string;
+  fecha_nacimiento?: string;
+  lugar_nacimiento?: string;
+  pasaporte?: string;
+  ocupacion?: string;
+  empresa_empleador?: string;
+  matricula_card?: string;
+  matricula_profesional?: string;
+  tipo_persona?: string;
+  razon_social?: string;
+  representante_legal?: string;
+  cargo_representante?: string;
 }
 
 const Clients = () => {
@@ -68,6 +90,20 @@ const Clients = () => {
     email: "",
     telefono: "",
     direccion: "",
+    nacionalidad: "",
+    estado_civil: "",
+    profesion: "",
+    fecha_nacimiento: "",
+    lugar_nacimiento: "",
+    pasaporte: "",
+    ocupacion: "",
+    empresa_empleador: "",
+    matricula_card: "",
+    matricula_profesional: "",
+    tipo_persona: "fisica",
+    razon_social: "",
+    representante_legal: "",
+    cargo_representante: "",
   });
 
   const [editClient, setEditClient] = useState({
@@ -76,6 +112,20 @@ const Clients = () => {
     email: "",
     telefono: "",
     direccion: "",
+    nacionalidad: "",
+    estado_civil: "",
+    profesion: "",
+    fecha_nacimiento: "",
+    lugar_nacimiento: "",
+    pasaporte: "",
+    ocupacion: "",
+    empresa_empleador: "",
+    matricula_card: "",
+    matricula_profesional: "",
+    tipo_persona: "fisica",
+    razon_social: "",
+    representante_legal: "",
+    cargo_representante: "",
   });
 
   useEffect(() => {
@@ -159,6 +209,20 @@ const Clients = () => {
             email: validationResult.data.email || null,
             telefono: validationResult.data.telefono || null,
             direccion: validationResult.data.direccion || null,
+            nacionalidad: newClient.nacionalidad || null,
+            estado_civil: newClient.estado_civil || null,
+            profesion: newClient.profesion || null,
+            fecha_nacimiento: newClient.fecha_nacimiento || null,
+            lugar_nacimiento: newClient.lugar_nacimiento || null,
+            pasaporte: newClient.pasaporte || null,
+            ocupacion: newClient.ocupacion || null,
+            empresa_empleador: newClient.empresa_empleador || null,
+            matricula_card: newClient.matricula_card || null,
+            matricula_profesional: newClient.matricula_profesional || null,
+            tipo_persona: newClient.tipo_persona || 'fisica',
+            razon_social: newClient.razon_social || null,
+            representante_legal: newClient.representante_legal || null,
+            cargo_representante: newClient.cargo_representante || null,
           } as any,
         ])
         .select()
@@ -199,6 +263,20 @@ const Clients = () => {
         email: "",
         telefono: "",
         direccion: "",
+        nacionalidad: "",
+        estado_civil: "",
+        profesion: "",
+        fecha_nacimiento: "",
+        lugar_nacimiento: "",
+        pasaporte: "",
+        ocupacion: "",
+        empresa_empleador: "",
+        matricula_card: "",
+        matricula_profesional: "",
+        tipo_persona: "fisica",
+        razon_social: "",
+        representante_legal: "",
+        cargo_representante: "",
       });
       fetchClients();
     } catch (error: any) {
@@ -253,6 +331,20 @@ const Clients = () => {
           email: revealedData.email || "",
           telefono: revealedData.telefono || "",
           direccion: revealedData.direccion || "",
+          nacionalidad: revealedData.nacionalidad || "",
+          estado_civil: revealedData.estado_civil || "",
+          profesion: revealedData.profesion || "",
+          fecha_nacimiento: revealedData.fecha_nacimiento || "",
+          lugar_nacimiento: revealedData.lugar_nacimiento || "",
+          pasaporte: revealedData.pasaporte || "",
+          ocupacion: revealedData.ocupacion || "",
+          empresa_empleador: revealedData.empresa_empleador || "",
+          matricula_card: revealedData.matricula_card || "",
+          matricula_profesional: revealedData.matricula_profesional || "",
+          tipo_persona: revealedData.tipo_persona || "fisica",
+          razon_social: revealedData.razon_social || "",
+          representante_legal: revealedData.representante_legal || "",
+          cargo_representante: revealedData.cargo_representante || "",
         });
       } catch (error: any) {
         toast({
@@ -270,6 +362,20 @@ const Clients = () => {
         email: revealedData.email || "",
         telefono: revealedData.telefono || "",
         direccion: revealedData.direccion || "",
+        nacionalidad: revealedData.nacionalidad || "",
+        estado_civil: revealedData.estado_civil || "",
+        profesion: revealedData.profesion || "",
+        fecha_nacimiento: revealedData.fecha_nacimiento || "",
+        lugar_nacimiento: revealedData.lugar_nacimiento || "",
+        pasaporte: revealedData.pasaporte || "",
+        ocupacion: revealedData.ocupacion || "",
+        empresa_empleador: revealedData.empresa_empleador || "",
+        matricula_card: revealedData.matricula_card || "",
+        matricula_profesional: revealedData.matricula_profesional || "",
+        tipo_persona: revealedData.tipo_persona || "fisica",
+        razon_social: revealedData.razon_social || "",
+        representante_legal: revealedData.representante_legal || "",
+        cargo_representante: revealedData.cargo_representante || "",
       });
     }
     
@@ -314,6 +420,20 @@ const Clients = () => {
           email: validationResult.data.email || null,
           telefono: validationResult.data.telefono || null,
           direccion: validationResult.data.direccion || null,
+          nacionalidad: editClient.nacionalidad || null,
+          estado_civil: editClient.estado_civil || null,
+          profesion: editClient.profesion || null,
+          fecha_nacimiento: editClient.fecha_nacimiento || null,
+          lugar_nacimiento: editClient.lugar_nacimiento || null,
+          pasaporte: editClient.pasaporte || null,
+          ocupacion: editClient.ocupacion || null,
+          empresa_empleador: editClient.empresa_empleador || null,
+          matricula_card: editClient.matricula_card || null,
+          matricula_profesional: editClient.matricula_profesional || null,
+          tipo_persona: editClient.tipo_persona || 'fisica',
+          razon_social: editClient.razon_social || null,
+          representante_legal: editClient.representante_legal || null,
+          cargo_representante: editClient.cargo_representante || null,
         })
         .eq("id", selectedClient.id);
 
@@ -464,60 +584,227 @@ const Clients = () => {
               Nuevo cliente
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Crear Nuevo Cliente</DialogTitle>
               <DialogDescription>Complete los datos del nuevo cliente</DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="nombre_completo">Nombre Completo *</Label>
-                <Input
-                  id="nombre_completo"
-                  value={newClient.nombre_completo}
-                  onChange={(e) => setNewClient({ ...newClient, nombre_completo: e.target.value })}
-                  placeholder="Ej: Juan Pérez"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="cedula_rnc_encrypted">Cédula/RNC *</Label>
-                <Input
-                  id="cedula_rnc_encrypted"
-                  value={newClient.cedula_rnc_encrypted}
-                  onChange={(e) => setNewClient({ ...newClient, cedula_rnc_encrypted: e.target.value })}
-                  placeholder="Ej: 001-1234567-8"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={newClient.email}
-                  onChange={(e) => setNewClient({ ...newClient, email: e.target.value })}
-                  placeholder="cliente@example.com"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="telefono">Teléfono</Label>
-                <Input
-                  id="telefono"
-                  value={newClient.telefono}
-                  onChange={(e) => setNewClient({ ...newClient, telefono: e.target.value })}
-                  placeholder="+1 809 555 0101"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="direccion">Dirección</Label>
-                <Input
-                  id="direccion"
-                  value={newClient.direccion}
-                  onChange={(e) => setNewClient({ ...newClient, direccion: e.target.value })}
-                  placeholder="Dirección completa"
-                />
-              </div>
-            </div>
-            <div className="flex justify-end gap-2">
+            <Tabs defaultValue="basicos" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="basicos">Datos Básicos</TabsTrigger>
+                <TabsTrigger value="generales">Generales</TabsTrigger>
+                <TabsTrigger value="profesional">Profesional</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="basicos" className="grid gap-4 py-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="nombre_completo">Nombre Completo *</Label>
+                    <Input
+                      id="nombre_completo"
+                      value={newClient.nombre_completo}
+                      onChange={(e) => setNewClient({ ...newClient, nombre_completo: e.target.value })}
+                      placeholder="Juan Pérez García"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="cedula_rnc_encrypted">Cédula/RNC *</Label>
+                    <Input
+                      id="cedula_rnc_encrypted"
+                      value={newClient.cedula_rnc_encrypted}
+                      onChange={(e) => setNewClient({ ...newClient, cedula_rnc_encrypted: e.target.value })}
+                      placeholder="001-1234567-8"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="tipo_persona">Tipo de Persona</Label>
+                    <Select value={newClient.tipo_persona} onValueChange={(value) => setNewClient({ ...newClient, tipo_persona: value })}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="fisica">Física</SelectItem>
+                        <SelectItem value="juridica">Jurídica</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="pasaporte">Pasaporte</Label>
+                    <Input
+                      id="pasaporte"
+                      value={newClient.pasaporte}
+                      onChange={(e) => setNewClient({ ...newClient, pasaporte: e.target.value })}
+                      placeholder="A12345678"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={newClient.email}
+                      onChange={(e) => setNewClient({ ...newClient, email: e.target.value })}
+                      placeholder="cliente@example.com"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="telefono">Teléfono</Label>
+                    <Input
+                      id="telefono"
+                      value={newClient.telefono}
+                      onChange={(e) => setNewClient({ ...newClient, telefono: e.target.value })}
+                      placeholder="809-555-0101"
+                    />
+                  </div>
+                  <div className="grid gap-2 col-span-2">
+                    <Label htmlFor="direccion">Dirección</Label>
+                    <Input
+                      id="direccion"
+                      value={newClient.direccion}
+                      onChange={(e) => setNewClient({ ...newClient, direccion: e.target.value })}
+                      placeholder="Dirección completa"
+                    />
+                  </div>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="generales" className="grid gap-4 py-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="nacionalidad">Nacionalidad</Label>
+                    <Select value={newClient.nacionalidad} onValueChange={(value) => setNewClient({ ...newClient, nacionalidad: value })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Dominicana">Dominicana</SelectItem>
+                        <SelectItem value="Haitiana">Haitiana</SelectItem>
+                        <SelectItem value="Estadounidense">Estadounidense</SelectItem>
+                        <SelectItem value="Española">Española</SelectItem>
+                        <SelectItem value="Venezolana">Venezolana</SelectItem>
+                        <SelectItem value="Otra">Otra</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="estado_civil">Estado Civil</Label>
+                    <Select value={newClient.estado_civil} onValueChange={(value) => setNewClient({ ...newClient, estado_civil: value })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Soltero/a">Soltero/a</SelectItem>
+                        <SelectItem value="Casado/a">Casado/a</SelectItem>
+                        <SelectItem value="Divorciado/a">Divorciado/a</SelectItem>
+                        <SelectItem value="Unión Libre">Unión Libre</SelectItem>
+                        <SelectItem value="Viudo/a">Viudo/a</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="fecha_nacimiento">Fecha de Nacimiento</Label>
+                    <Input
+                      id="fecha_nacimiento"
+                      type="date"
+                      value={newClient.fecha_nacimiento}
+                      onChange={(e) => setNewClient({ ...newClient, fecha_nacimiento: e.target.value })}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="lugar_nacimiento">Lugar de Nacimiento</Label>
+                    <Input
+                      id="lugar_nacimiento"
+                      value={newClient.lugar_nacimiento}
+                      onChange={(e) => setNewClient({ ...newClient, lugar_nacimiento: e.target.value })}
+                      placeholder="Santo Domingo, DN"
+                    />
+                  </div>
+                  {newClient.tipo_persona === 'juridica' && (
+                    <>
+                      <div className="grid gap-2 col-span-2">
+                        <Label htmlFor="razon_social">Razón Social</Label>
+                        <Input
+                          id="razon_social"
+                          value={newClient.razon_social}
+                          onChange={(e) => setNewClient({ ...newClient, razon_social: e.target.value })}
+                          placeholder="Nombre legal de la empresa"
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="representante_legal">Representante Legal</Label>
+                        <Input
+                          id="representante_legal"
+                          value={newClient.representante_legal}
+                          onChange={(e) => setNewClient({ ...newClient, representante_legal: e.target.value })}
+                          placeholder="Nombre del representante"
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="cargo_representante">Cargo del Representante</Label>
+                        <Input
+                          id="cargo_representante"
+                          value={newClient.cargo_representante}
+                          onChange={(e) => setNewClient({ ...newClient, cargo_representante: e.target.value })}
+                          placeholder="Gerente, Presidente, etc."
+                        />
+                      </div>
+                    </>
+                  )}
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="profesional" className="grid gap-4 py-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="profesion">Profesión</Label>
+                    <Input
+                      id="profesion"
+                      value={newClient.profesion}
+                      onChange={(e) => setNewClient({ ...newClient, profesion: e.target.value })}
+                      placeholder="Abogado, Médico, etc."
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="ocupacion">Ocupación</Label>
+                    <Input
+                      id="ocupacion"
+                      value={newClient.ocupacion}
+                      onChange={(e) => setNewClient({ ...newClient, ocupacion: e.target.value })}
+                      placeholder="Comerciante, Empleado, etc."
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="empresa_empleador">Empresa/Empleador</Label>
+                    <Input
+                      id="empresa_empleador"
+                      value={newClient.empresa_empleador}
+                      onChange={(e) => setNewClient({ ...newClient, empresa_empleador: e.target.value })}
+                      placeholder="Nombre de la empresa"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="matricula_card">Matrícula CARD</Label>
+                    <Input
+                      id="matricula_card"
+                      value={newClient.matricula_card}
+                      onChange={(e) => setNewClient({ ...newClient, matricula_card: e.target.value })}
+                      placeholder="Solo si es abogado"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="matricula_profesional">Matrícula Profesional</Label>
+                    <Input
+                      id="matricula_profesional"
+                      value={newClient.matricula_profesional}
+                      onChange={(e) => setNewClient({ ...newClient, matricula_profesional: e.target.value })}
+                      placeholder="Matrícula de otra profesión"
+                    />
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
+            
+            <div className="flex justify-end gap-2 pt-4 border-t">
               <Button variant="outline" onClick={() => setShowNewClientDialog(false)}>
                 Cancelar
               </Button>
@@ -758,60 +1045,227 @@ const Clients = () => {
 
       {/* Edit Client Dialog */}
       <Dialog open={showEditClientDialog} onOpenChange={setShowEditClientDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Editar Cliente</DialogTitle>
             <DialogDescription>Modifica los datos del cliente</DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="edit_nombre_completo">Nombre Completo *</Label>
-              <Input
-                id="edit_nombre_completo"
-                value={editClient.nombre_completo}
-                onChange={(e) => setEditClient({ ...editClient, nombre_completo: e.target.value })}
-                placeholder="Ej: Juan Pérez"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="edit_cedula_rnc_encrypted">Cédula/RNC *</Label>
-              <Input
-                id="edit_cedula_rnc_encrypted"
-                value={editClient.cedula_rnc_encrypted}
-                onChange={(e) => setEditClient({ ...editClient, cedula_rnc_encrypted: e.target.value })}
-                placeholder="Ej: 001-1234567-8"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="edit_email">Email</Label>
-              <Input
-                id="edit_email"
-                type="email"
-                value={editClient.email}
-                onChange={(e) => setEditClient({ ...editClient, email: e.target.value })}
-                placeholder="cliente@example.com"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="edit_telefono">Teléfono</Label>
-              <Input
-                id="edit_telefono"
-                value={editClient.telefono}
-                onChange={(e) => setEditClient({ ...editClient, telefono: e.target.value })}
-                placeholder="+1 809 555 0101"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="edit_direccion">Dirección</Label>
-              <Input
-                id="edit_direccion"
-                value={editClient.direccion}
-                onChange={(e) => setEditClient({ ...editClient, direccion: e.target.value })}
-                placeholder="Dirección completa"
-              />
-            </div>
-          </div>
-          <div className="flex justify-end gap-2">
+          <Tabs defaultValue="basicos" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="basicos">Datos Básicos</TabsTrigger>
+              <TabsTrigger value="generales">Generales</TabsTrigger>
+              <TabsTrigger value="profesional">Profesional</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="basicos" className="grid gap-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="edit_nombre_completo">Nombre Completo *</Label>
+                  <Input
+                    id="edit_nombre_completo"
+                    value={editClient.nombre_completo}
+                    onChange={(e) => setEditClient({ ...editClient, nombre_completo: e.target.value })}
+                    placeholder="Juan Pérez García"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="edit_cedula_rnc_encrypted">Cédula/RNC *</Label>
+                  <Input
+                    id="edit_cedula_rnc_encrypted"
+                    value={editClient.cedula_rnc_encrypted}
+                    onChange={(e) => setEditClient({ ...editClient, cedula_rnc_encrypted: e.target.value })}
+                    placeholder="001-1234567-8"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="edit_tipo_persona">Tipo de Persona</Label>
+                  <Select value={editClient.tipo_persona} onValueChange={(value) => setEditClient({ ...editClient, tipo_persona: value })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="fisica">Física</SelectItem>
+                      <SelectItem value="juridica">Jurídica</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="edit_pasaporte">Pasaporte</Label>
+                  <Input
+                    id="edit_pasaporte"
+                    value={editClient.pasaporte}
+                    onChange={(e) => setEditClient({ ...editClient, pasaporte: e.target.value })}
+                    placeholder="A12345678"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="edit_email">Email</Label>
+                  <Input
+                    id="edit_email"
+                    type="email"
+                    value={editClient.email}
+                    onChange={(e) => setEditClient({ ...editClient, email: e.target.value })}
+                    placeholder="cliente@example.com"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="edit_telefono">Teléfono</Label>
+                  <Input
+                    id="edit_telefono"
+                    value={editClient.telefono}
+                    onChange={(e) => setEditClient({ ...editClient, telefono: e.target.value })}
+                    placeholder="809-555-0101"
+                  />
+                </div>
+                <div className="grid gap-2 col-span-2">
+                  <Label htmlFor="edit_direccion">Dirección</Label>
+                  <Input
+                    id="edit_direccion"
+                    value={editClient.direccion}
+                    onChange={(e) => setEditClient({ ...editClient, direccion: e.target.value })}
+                    placeholder="Dirección completa"
+                  />
+                </div>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="generales" className="grid gap-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="edit_nacionalidad">Nacionalidad</Label>
+                  <Select value={editClient.nacionalidad} onValueChange={(value) => setEditClient({ ...editClient, nacionalidad: value })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Dominicana">Dominicana</SelectItem>
+                      <SelectItem value="Haitiana">Haitiana</SelectItem>
+                      <SelectItem value="Estadounidense">Estadounidense</SelectItem>
+                      <SelectItem value="Española">Española</SelectItem>
+                      <SelectItem value="Venezolana">Venezolana</SelectItem>
+                      <SelectItem value="Otra">Otra</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="edit_estado_civil">Estado Civil</Label>
+                  <Select value={editClient.estado_civil} onValueChange={(value) => setEditClient({ ...editClient, estado_civil: value })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Soltero/a">Soltero/a</SelectItem>
+                      <SelectItem value="Casado/a">Casado/a</SelectItem>
+                      <SelectItem value="Divorciado/a">Divorciado/a</SelectItem>
+                      <SelectItem value="Unión Libre">Unión Libre</SelectItem>
+                      <SelectItem value="Viudo/a">Viudo/a</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="edit_fecha_nacimiento">Fecha de Nacimiento</Label>
+                  <Input
+                    id="edit_fecha_nacimiento"
+                    type="date"
+                    value={editClient.fecha_nacimiento}
+                    onChange={(e) => setEditClient({ ...editClient, fecha_nacimiento: e.target.value })}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="edit_lugar_nacimiento">Lugar de Nacimiento</Label>
+                  <Input
+                    id="edit_lugar_nacimiento"
+                    value={editClient.lugar_nacimiento}
+                    onChange={(e) => setEditClient({ ...editClient, lugar_nacimiento: e.target.value })}
+                    placeholder="Santo Domingo, DN"
+                  />
+                </div>
+                {editClient.tipo_persona === 'juridica' && (
+                  <>
+                    <div className="grid gap-2 col-span-2">
+                      <Label htmlFor="edit_razon_social">Razón Social</Label>
+                      <Input
+                        id="edit_razon_social"
+                        value={editClient.razon_social}
+                        onChange={(e) => setEditClient({ ...editClient, razon_social: e.target.value })}
+                        placeholder="Nombre legal de la empresa"
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="edit_representante_legal">Representante Legal</Label>
+                      <Input
+                        id="edit_representante_legal"
+                        value={editClient.representante_legal}
+                        onChange={(e) => setEditClient({ ...editClient, representante_legal: e.target.value })}
+                        placeholder="Nombre del representante"
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="edit_cargo_representante">Cargo del Representante</Label>
+                      <Input
+                        id="edit_cargo_representante"
+                        value={editClient.cargo_representante}
+                        onChange={(e) => setEditClient({ ...editClient, cargo_representante: e.target.value })}
+                        placeholder="Gerente, Presidente, etc."
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="profesional" className="grid gap-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="edit_profesion">Profesión</Label>
+                  <Input
+                    id="edit_profesion"
+                    value={editClient.profesion}
+                    onChange={(e) => setEditClient({ ...editClient, profesion: e.target.value })}
+                    placeholder="Abogado, Médico, etc."
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="edit_ocupacion">Ocupación</Label>
+                  <Input
+                    id="edit_ocupacion"
+                    value={editClient.ocupacion}
+                    onChange={(e) => setEditClient({ ...editClient, ocupacion: e.target.value })}
+                    placeholder="Comerciante, Empleado, etc."
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="edit_empresa_empleador">Empresa/Empleador</Label>
+                  <Input
+                    id="edit_empresa_empleador"
+                    value={editClient.empresa_empleador}
+                    onChange={(e) => setEditClient({ ...editClient, empresa_empleador: e.target.value })}
+                    placeholder="Nombre de la empresa"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="edit_matricula_card">Matrícula CARD</Label>
+                  <Input
+                    id="edit_matricula_card"
+                    value={editClient.matricula_card}
+                    onChange={(e) => setEditClient({ ...editClient, matricula_card: e.target.value })}
+                    placeholder="Solo si es abogado"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="edit_matricula_profesional">Matrícula Profesional</Label>
+                  <Input
+                    id="edit_matricula_profesional"
+                    value={editClient.matricula_profesional}
+                    onChange={(e) => setEditClient({ ...editClient, matricula_profesional: e.target.value })}
+                    placeholder="Matrícula de otra profesión"
+                  />
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
+          
+          <div className="flex justify-end gap-2 pt-4 border-t">
             <Button variant="outline" onClick={() => setShowEditClientDialog(false)}>
               Cancelar
             </Button>
