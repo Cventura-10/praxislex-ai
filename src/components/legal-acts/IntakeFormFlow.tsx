@@ -28,6 +28,7 @@ import {
   PeritoSelector, 
   TasadorSelector 
 } from "./ProfessionalSelectors";
+import { ClientSelector } from "./ClientSelector";
 
 interface IntakeFormFlowProps {
   actInfo: {
@@ -163,6 +164,12 @@ export function IntakeFormFlow({ actInfo }: IntakeFormFlowProps) {
   const [selectedAlguacil, setSelectedAlguacil] = useState<Alguacil | null>(null);
   const [selectedPerito, setSelectedPerito] = useState<Perito | null>(null);
   const [selectedTasador, setSelectedTasador] = useState<Tasador | null>(null);
+  
+  // Estados para clientes seleccionados
+  const [selectedDemandante, setSelectedDemandante] = useState<string | null>(null);
+  const [selectedDemandado, setSelectedDemandado] = useState<string | null>(null);
+  const [selectedPrimeraParte, setSelectedPrimeraParte] = useState<string | null>(null);
+  const [selectedSegundaParte, setSelectedSegundaParte] = useState<string | null>(null);
   
   // Nuevos estados para múltiples partes
   const [numVendedores, setNumVendedores] = useState(1);
@@ -688,8 +695,96 @@ export function IntakeFormFlow({ actInfo }: IntakeFormFlowProps) {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          {/* Selector de Demandante/Primera Parte (si el primer campo es de demandante) */}
+          {currentStep === 0 && (isJudicial ? 
+            currentFields.some(f => f.key === 'demandante_nombre') :
+            currentFields.some(f => f.key === 'primera_parte_nombre')
+          ) && (
+            <ClientSelector
+              label={isJudicial ? "Demandante" : "Primera Parte"}
+              fieldPrefix={isJudicial ? "demandante" : "primera_parte"}
+              value={isJudicial ? selectedDemandante : selectedPrimeraParte}
+              onChange={isJudicial ? setSelectedDemandante : setSelectedPrimeraParte}
+              onFieldUpdate={handleFieldsUpdate}
+              required={true}
+            />
+          )}
+
+          {/* Selector de Demandado/Segunda Parte (si aparece en campos actuales) */}
+          {(isJudicial ? 
+            currentFields.some(f => f.key === 'demandado_nombre') :
+            currentFields.some(f => f.key === 'segunda_parte_nombre')
+          ) && (
+            <ClientSelector
+              label={isJudicial ? "Demandado" : "Segunda Parte"}
+              fieldPrefix={isJudicial ? "demandado" : "segunda_parte"}
+              value={isJudicial ? selectedDemandado : selectedSegundaParte}
+              onChange={isJudicial ? setSelectedDemandado : setSelectedSegundaParte}
+              onFieldUpdate={handleFieldsUpdate}
+              required={true}
+            />
+          )}
+
           {currentFields.map((field) => {
             const isLawyerField = field.key.startsWith('abogado_');
+            
+            // Ocultar campos de cliente que ya se autocompletaron
+            const isClientField = (
+              field.key.startsWith('demandante_') || 
+              field.key.startsWith('demandado_') ||
+              field.key.startsWith('primera_parte_') || 
+              field.key.startsWith('segunda_parte_')
+            );
+            
+            // Si el campo ya está autocompletado y tiene valor, mostrar solo como lectura
+            if (isClientField && formData[field.key]) {
+              return (
+                <div key={field.key} className="space-y-2">
+                  <Label htmlFor={field.key} className="text-muted-foreground">
+                    {field.label}
+                    {field.required && <span className="text-destructive ml-1">*</span>}
+                  </Label>
+                  <Input
+                    id={field.key}
+                    type={field.type}
+                    value={formData[field.key] || ""}
+                    onChange={(e) => handleFieldChange(field.key, e.target.value)}
+                    className="bg-muted/30"
+                  />
+                  <p className="text-xs text-muted-foreground">✓ Autocompletado desde cliente</p>
+                </div>
+              );
+            }
+            
+            // Si es un campo de cliente sin valor, permitir entrada manual
+            if (isClientField && !formData[field.key]) {
+              return (
+                <div key={field.key} className="space-y-2">
+                  <Label htmlFor={field.key}>
+                    {field.label}
+                    {field.required && <span className="text-destructive ml-1">*</span>}
+                  </Label>
+                  {field.type === "textarea" ? (
+                    <Textarea
+                      id={field.key}
+                      value={formData[field.key] || ""}
+                      onChange={(e) => handleFieldChange(field.key, e.target.value)}
+                      rows={4}
+                      className="resize-none"
+                      placeholder="Ingrese manualmente o seleccione cliente arriba"
+                    />
+                  ) : (
+                    <Input
+                      id={field.key}
+                      type={field.type}
+                      value={formData[field.key] || ""}
+                      onChange={(e) => handleFieldChange(field.key, e.target.value)}
+                      placeholder="Ingrese manualmente o seleccione cliente arriba"
+                    />
+                  )}
+                </div>
+              );
+            }
             
             return (
               <div key={field.key} className="space-y-2">
