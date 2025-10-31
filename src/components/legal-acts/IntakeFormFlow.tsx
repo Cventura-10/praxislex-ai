@@ -29,6 +29,7 @@ import {
   TasadorSelector 
 } from "./ProfessionalSelectors";
 import { ClientSelector } from "./ClientSelector";
+import { TribunalSelector } from "./TribunalSelector";
 
 interface IntakeFormFlowProps {
   actInfo: {
@@ -784,6 +785,19 @@ export function IntakeFormFlow({ actInfo }: IntakeFormFlowProps) {
                     />
                   )}
                 </div>
+              );
+            }
+            
+            // Campo especial: Tribunal/Juzgado con selector
+            if (field.key === 'tribunal_nombre') {
+              return (
+                <TribunalSelector
+                  key={field.key}
+                  value={formData[field.key] || ""}
+                  onChange={(value) => handleFieldChange(field.key, value)}
+                  label={field.label}
+                  required={field.required}
+                />
               );
             }
             
