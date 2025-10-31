@@ -242,13 +242,71 @@ const LawyersAdmin = () => {
           pasaporte: formData.pasaporte,
         }).eq("id", selectedItem.id);
       } else if (activeTab === "notarios") {
-        await updateNotario({ id: selectedItem.id, ...formData });
+        await updateNotario({ 
+          id: selectedItem.id, 
+          nombre: formData.nombre,
+          cedula_encrypted: formData.cedula,
+          email: formData.email,
+          telefono: formData.telefono,
+          matricula_cdn: formData.matricula,
+          jurisdiccion: formData.jurisdiccion,
+          oficina_direccion: formData.direccion,
+          nacionalidad: formData.nacionalidad,
+          estado_civil: formData.estado_civil,
+          fecha_nacimiento: formData.fecha_nacimiento || null,
+          lugar_nacimiento: formData.lugar_nacimiento,
+          pasaporte: formData.pasaporte,
+        });
       } else if (activeTab === "alguaciles") {
-        await updateAlguacil({ id: selectedItem.id, ...formData });
+        await updateAlguacil({ 
+          id: selectedItem.id,
+          nombre: formData.nombre,
+          cedula_encrypted: formData.cedula,
+          email: formData.email,
+          telefono: formData.telefono,
+          matricula: formData.matricula,
+          jurisdiccion: formData.jurisdiccion,
+          direccion_notificaciones: formData.direccion,
+          nacionalidad: formData.nacionalidad,
+          estado_civil: formData.estado_civil,
+          fecha_nacimiento: formData.fecha_nacimiento || null,
+          lugar_nacimiento: formData.lugar_nacimiento,
+          pasaporte: formData.pasaporte,
+        });
       } else if (activeTab === "peritos") {
-        await updatePerito({ id: selectedItem.id, ...formData });
+        await updatePerito({ 
+          id: selectedItem.id,
+          nombre: formData.nombre,
+          cedula_encrypted: formData.cedula,
+          email: formData.email,
+          telefono: formData.telefono,
+          especialidad: formData.especialidad,
+          matricula: formData.matricula,
+          jurisdiccion: formData.jurisdiccion,
+          direccion: formData.direccion,
+          nacionalidad: formData.nacionalidad,
+          estado_civil: formData.estado_civil,
+          fecha_nacimiento: formData.fecha_nacimiento || null,
+          lugar_nacimiento: formData.lugar_nacimiento,
+          pasaporte: formData.pasaporte,
+        });
       } else if (activeTab === "tasadores") {
-        await updateTasador({ id: selectedItem.id, ...formData });
+        await updateTasador({ 
+          id: selectedItem.id,
+          nombre: formData.nombre,
+          cedula_encrypted: formData.cedula,
+          email: formData.email,
+          telefono: formData.telefono,
+          especialidad: formData.especialidad,
+          matricula: formData.matricula,
+          jurisdiccion: formData.jurisdiccion,
+          direccion: formData.direccion,
+          nacionalidad: formData.nacionalidad,
+          estado_civil: formData.estado_civil,
+          fecha_nacimiento: formData.fecha_nacimiento || null,
+          lugar_nacimiento: formData.lugar_nacimiento,
+          pasaporte: formData.pasaporte,
+        });
       }
       setShowEditDialog(false);
       resetForm();
