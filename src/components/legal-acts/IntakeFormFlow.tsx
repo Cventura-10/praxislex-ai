@@ -51,7 +51,8 @@ const isJudicialActType = (actId: string): boolean => {
     'mandamiento_pago', 'embargo_ejecutivo', 'referimiento', 'desalojo',
     'querella_actor_civil', 'acto_acusacion', 'medidas_coercion',
     'demanda_laboral', 'citacion_laboral', 'contencioso_administrativo',
-    'recurso_anulacion', 'amparo'
+    'recurso_anulacion', 'amparo', 'particion_bienes', 'deslinde',
+    'saneamiento_titulo', 'reivindicacion'
   ];
   return judicialTypes.includes(actId);
 };

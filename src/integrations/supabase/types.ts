@@ -811,7 +811,7 @@ export type Database = {
           entity_id: string
           entity_type: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           payload_hash: string
           user_agent: string | null
         }
@@ -823,7 +823,7 @@ export type Database = {
           entity_id: string
           entity_type: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           payload_hash: string
           user_agent?: string | null
         }
@@ -835,7 +835,7 @@ export type Database = {
           entity_id?: string
           entity_type?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           payload_hash?: string
           user_agent?: string | null
         }
@@ -2335,7 +2335,7 @@ export type Database = {
           bucket_id: string
           created_at: string | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           object_name: string
           user_agent: string | null
           user_id: string
@@ -2345,7 +2345,7 @@ export type Database = {
           bucket_id: string
           created_at?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           object_name: string
           user_agent?: string | null
           user_id: string
@@ -2355,7 +2355,7 @@ export type Database = {
           bucket_id?: string
           created_at?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           object_name?: string
           user_agent?: string | null
           user_id?: string
@@ -2541,7 +2541,7 @@ export type Database = {
           access_granted: boolean
           accessed_at: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           module_accessed: string
           user_agent: string | null
           user_id: string | null
@@ -2550,7 +2550,7 @@ export type Database = {
           access_granted?: boolean
           accessed_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           module_accessed: string
           user_agent?: string | null
           user_id?: string | null
@@ -2559,7 +2559,7 @@ export type Database = {
           access_granted?: boolean
           accessed_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           module_accessed?: string
           user_agent?: string | null
           user_id?: string | null
@@ -2820,7 +2820,7 @@ export type Database = {
           entity_id: string | null
           entity_type: string | null
           reference: string | null
-          search_vector: unknown | null
+          search_vector: unknown
           title: string | null
           user_id: string | null
         }
@@ -2856,10 +2856,7 @@ export type Database = {
           success: boolean
         }[]
       }
-      actualizar_estado_plazos: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
+      actualizar_estado_plazos: { Args: never; Returns: number }
       calcular_plazo_procesal: {
         Args: {
           p_fecha_inicio: string
@@ -2876,14 +2873,8 @@ export type Database = {
         Args: { _client_id: string; _user_id: string }
         Returns: boolean
       }
-      can_refresh_search_index: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      check_ai_credits: {
-        Args: { p_user_id: string }
-        Returns: boolean
-      }
+      can_refresh_search_index: { Args: never; Returns: boolean }
+      check_ai_credits: { Args: { p_user_id: string }; Returns: boolean }
       check_and_log_pii_access: {
         Args: { p_client_id: string; p_user_id: string }
         Returns: boolean
@@ -2910,26 +2901,14 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: boolean
       }
-      check_search_rate_limit: {
-        Args: { p_user_id: string }
-        Returns: boolean
-      }
+      check_search_rate_limit: { Args: { p_user_id: string }; Returns: boolean }
       check_token_rate_limit: {
         Args: { p_token_hash: string }
         Returns: boolean
       }
-      cleanup_old_notifications: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
-      cleanup_old_rate_limits: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
-      consume_ai_credit: {
-        Args: { p_user_id: string }
-        Returns: boolean
-      }
+      cleanup_old_notifications: { Args: never; Returns: number }
+      cleanup_old_rate_limits: { Args: never; Returns: number }
+      consume_ai_credit: { Args: { p_user_id: string }; Returns: boolean }
       create_notification: {
         Args: {
           p_action_label?: string
@@ -2946,24 +2925,12 @@ export type Database = {
         }
         Returns: string
       }
-      decrypt_cedula: {
-        Args: { p_encrypted_cedula: string }
-        Returns: string
-      }
-      encrypt_cedula: {
-        Args: { p_cedula: string }
-        Returns: string
-      }
-      generate_case_number: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      generate_invoice_number: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      decrypt_cedula: { Args: { p_encrypted_cedula: string }; Returns: string }
+      encrypt_cedula: { Args: { p_cedula: string }; Returns: string }
+      generate_case_number: { Args: never; Returns: string }
+      generate_invoice_number: { Args: never; Returns: string }
       get_accessible_clients_safe: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           created_at: string
           id: string
@@ -3020,7 +2987,7 @@ export type Database = {
         }[]
       }
       get_my_client_data_masked: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           accepted_terms: boolean
           cedula_rnc_masked: string
@@ -3033,7 +3000,7 @@ export type Database = {
         }[]
       }
       get_my_profile: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           created_at: string
           full_name: string
@@ -3042,33 +3009,21 @@ export type Database = {
         }[]
       }
       get_security_validation: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           check_name: string
           status: string
           violations: number
         }[]
       }
-      get_user_role: {
-        Args: { p_user_id: string }
-        Returns: string
-      }
-      get_user_tenant_id: {
-        Args: { p_user_id: string }
-        Returns: string
-      }
-      get_user_tenant_ids: {
-        Args: { p_user_id: string }
-        Returns: string[]
-      }
+      get_user_role: { Args: { p_user_id: string }; Returns: string }
+      get_user_tenant_id: { Args: { p_user_id: string }; Returns: string }
+      get_user_tenant_ids: { Args: { p_user_id: string }; Returns: string[] }
       get_user_tenant_ids_safe: {
         Args: { _user_id: string }
         Returns: string[]
       }
-      has_admin_verification: {
-        Args: { _user_id: string }
-        Returns: boolean
-      }
+      has_admin_verification: { Args: { _user_id: string }; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -3080,14 +3035,8 @@ export type Database = {
         Args: { _role: string; _user_id: string }
         Returns: boolean
       }
-      hash_invitation_token: {
-        Args: { p_token: string }
-        Returns: string
-      }
-      hash_payload: {
-        Args: { data: Json }
-        Returns: string
-      }
+      hash_invitation_token: { Args: { p_token: string }; Returns: string }
+      hash_payload: { Args: { data: Json }; Returns: string }
       is_tenant_admin: {
         Args: { _tenant_id: string; _user_id: string }
         Returns: boolean
@@ -3123,18 +3072,12 @@ export type Database = {
         }
         Returns: undefined
       }
-      mark_all_notifications_read: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
+      mark_all_notifications_read: { Args: never; Returns: number }
       mark_notification_read: {
         Args: { p_notification_id: string }
         Returns: boolean
       }
-      refresh_search_index: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      refresh_search_index: { Args: never; Returns: undefined }
       reveal_client_pii: {
         Args: { p_client_id: string }
         Returns: {
@@ -3146,10 +3089,7 @@ export type Database = {
           telefono: string
         }[]
       }
-      sanitize_error: {
-        Args: { p_error_code: string }
-        Returns: Json
-      }
+      sanitize_error: { Args: { p_error_code: string }; Returns: Json }
       search_entities: {
         Args: {
           p_entity_types?: string[]
@@ -3242,10 +3182,7 @@ export type Database = {
           is_valid: boolean
         }[]
       }
-      verify_audit_integrity: {
-        Args: { p_event_id: string }
-        Returns: boolean
-      }
+      verify_audit_integrity: { Args: { p_event_id: string }; Returns: boolean }
       verify_invitation_token: {
         Args: { p_hash: string; p_token: string }
         Returns: boolean
