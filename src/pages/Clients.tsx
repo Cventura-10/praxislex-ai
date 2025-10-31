@@ -280,9 +280,28 @@ const Clients = () => {
     if (!selectedClient) return;
 
     try {
+      // Validate with Zod schema before proceeding
+      const validationResult = clientSchema.safeParse({
+        nombre_completo: editClient.nombre_completo,
+        cedula_rnc_encrypted: editClient.cedula_rnc_encrypted,
+        email: editClient.email || undefined,
+        telefono: editClient.telefono || undefined,
+        direccion: editClient.direccion || undefined,
+      });
+
+      if (!validationResult.success) {
+        const errors = validationResult.error.issues;
+        toast({
+          title: "Datos inválidos",
+          description: errors.map(e => e.message).join(', '),
+          variant: "destructive",
+        });
+        return;
+      }
+
       // Encrypt cedula before updating
       const { data: encryptedCedula, error: encryptError } = await supabase.rpc('encrypt_cedula', {
-        p_cedula: editClient.cedula_rnc_encrypted
+        p_cedula: validationResult.data.cedula_rnc_encrypted
       });
 
       if (encryptError) throw encryptError;
@@ -290,15 +309,22 @@ const Clients = () => {
       const { error } = await supabase
         .from("clients")
         .update({
-          nombre_completo: editClient.nombre_completo,
+          nombre_completo: validationResult.data.nombre_completo,
           cedula_rnc_encrypted: encryptedCedula,
-          email: editClient.email || null,
-          telefono: editClient.telefono || null,
-          direccion: editClient.direccion || null,
+          email: validationResult.data.email || null,
+          telefono: validationResult.data.telefono || null,
+          direccion: validationResult.data.direccion || null,
         })
         .eq("id", selectedClient.id);
 
       if (error) throw error;
+
+      // Invalidar los datos revelados en caché
+      setRevealedClientsData(prev => {
+        const newMap = new Map(prev);
+        newMap.delete(selectedClient.id);
+        return newMap;
+      });
 
       toast({
         title: "Cliente actualizado",
@@ -309,6 +335,7 @@ const Clients = () => {
       setSelectedClient(null);
       fetchClients();
     } catch (error: any) {
+      console.error("Error updating client:", error);
       toast({
         title: "Error",
         description: error.message || "No se pudo actualizar el cliente",
