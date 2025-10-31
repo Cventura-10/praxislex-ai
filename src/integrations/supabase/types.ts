@@ -289,6 +289,93 @@ export type Database = {
         }
         Relationships: []
       }
+      calendar_events: {
+        Row: {
+          acto_slug: string | null
+          created_at: string | null
+          created_by: string | null
+          descripcion: string | null
+          estado: string | null
+          expediente_id: string | null
+          fin: string
+          id: string
+          inicio: string
+          materia: string | null
+          partes_relacionadas: string[] | null
+          prioridad: string | null
+          recordatorios: Json | null
+          responsables: string[] | null
+          tenant_id: string | null
+          tipo_evento: string
+          titulo: string
+          ubicacion: string | null
+          updated_at: string | null
+          user_id: string
+          zona_horaria: string | null
+        }
+        Insert: {
+          acto_slug?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          descripcion?: string | null
+          estado?: string | null
+          expediente_id?: string | null
+          fin: string
+          id?: string
+          inicio: string
+          materia?: string | null
+          partes_relacionadas?: string[] | null
+          prioridad?: string | null
+          recordatorios?: Json | null
+          responsables?: string[] | null
+          tenant_id?: string | null
+          tipo_evento: string
+          titulo: string
+          ubicacion?: string | null
+          updated_at?: string | null
+          user_id: string
+          zona_horaria?: string | null
+        }
+        Update: {
+          acto_slug?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          descripcion?: string | null
+          estado?: string | null
+          expediente_id?: string | null
+          fin?: string
+          id?: string
+          inicio?: string
+          materia?: string | null
+          partes_relacionadas?: string[] | null
+          prioridad?: string | null
+          recordatorios?: Json | null
+          responsables?: string[] | null
+          tenant_id?: string | null
+          tipo_evento?: string
+          titulo?: string
+          ubicacion?: string | null
+          updated_at?: string | null
+          user_id?: string
+          zona_horaria?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "current_user_tenant"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendar_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       case_stages: {
         Row: {
           activo: boolean | null
@@ -2433,6 +2520,72 @@ export type Database = {
           window_start?: string
         }
         Relationships: []
+      }
+      signature_envelopes: {
+        Row: {
+          acto_slug: string
+          audit_trail: Json | null
+          created_at: string | null
+          created_by: string | null
+          documento_origen: string
+          documento_url: string | null
+          estado: string | null
+          firmantes: Json
+          id: string
+          placeholders_firmas: Json | null
+          politicas: Json
+          tenant_id: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          acto_slug: string
+          audit_trail?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          documento_origen: string
+          documento_url?: string | null
+          estado?: string | null
+          firmantes?: Json
+          id?: string
+          placeholders_firmas?: Json | null
+          politicas?: Json
+          tenant_id?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          acto_slug?: string
+          audit_trail?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          documento_origen?: string
+          documento_url?: string | null
+          estado?: string | null
+          firmantes?: Json
+          id?: string
+          placeholders_firmas?: Json | null
+          politicas?: Json
+          tenant_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "signature_envelopes_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "current_user_tenant"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "signature_envelopes_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       storage_access_audit: {
         Row: {
