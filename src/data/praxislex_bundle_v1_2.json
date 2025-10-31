@@ -1,0 +1,1205 @@
+{
+  "version": "1.2",
+  "generated_at": "2025-10-31T16:50:23.210401",
+  "actos": [
+    {
+      "materia": "Civil y Comercial",
+      "naturaleza": "Judicial",
+      "ejecutor": "Abogado",
+      "slug": "demanda-cobro-de-pesos",
+      "input_schema_json": {
+        "fields": [
+          {
+            "name": "demandante_id",
+            "label": "Demandante (ID/Cédula)",
+            "type": "party",
+            "required": true,
+            "autofill": "cedula"
+          },
+          {
+            "name": "demandado_id",
+            "label": "Demandado (ID/Cédula/RNC)",
+            "type": "party",
+            "required": true,
+            "autofill": "cedula|rnc"
+          },
+          {
+            "name": "tribunal",
+            "label": "Tribunal competente",
+            "type": "select",
+            "required": true,
+            "source": "infer:case/competencia"
+          },
+          {
+            "name": "hechos",
+            "label": "Hechos relevantes",
+            "type": "textarea",
+            "required": true
+          },
+          {
+            "name": "pretensiones",
+            "label": "Pretensiones",
+            "type": "list",
+            "item_type": "text",
+            "required": true
+          },
+          {
+            "name": "pruebas",
+            "label": "Relación de pruebas",
+            "type": "list",
+            "item_type": "text",
+            "required": true
+          },
+          {
+            "name": "incluir_tesis",
+            "label": "Activar subsunción/tesis",
+            "type": "boolean",
+            "required": false,
+            "default": false
+          },
+          {
+            "name": "normas_clave",
+            "label": "Normas clave (opcional)",
+            "type": "list",
+            "item_type": "text",
+            "required": false
+          }
+        ]
+      },
+      "plantilla_md": "AL {tribunal}\n\nI. PRESENTACIÓN\nComparece {demandante.nombre_completo}, asistido por el abogado {abogado_actor.nombre} ({abogado_actor.matricula}).\n\nII. HECHOS\n{hechos}\n\nIII. FUNDAMENTOS DE DERECHO\n{bloque_normativo}\n\nIV. PRETENSIONES\n{pretensiones}\n\nV. PRUEBAS\n{pruebas}\n\nPOR TANTO: Se sirva acoger la demanda."
+    },
+    {
+      "materia": "Civil y Comercial",
+      "naturaleza": "Judicial",
+      "ejecutor": "Abogado",
+      "slug": "fijacion-de-audiencia",
+      "input_schema_json": {
+        "fields": [
+          {
+            "name": "expediente_id",
+            "label": "Expediente",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "tribunal",
+            "label": "Tribunal",
+            "type": "select",
+            "required": true,
+            "source": "infer:case/competencia"
+          },
+          {
+            "name": "motivo",
+            "label": "Motivo de la fijación",
+            "type": "textarea",
+            "required": true
+          },
+          {
+            "name": "disponibilidad_propuesta",
+            "label": "Disponibilidad propuesta",
+            "type": "textarea",
+            "required": false
+          }
+        ]
+      },
+      "plantilla_md": "AL {tribunal}\n\nASUNTO: FIJACIÓN DE AUDIENCIA — Exp. {expediente_id}\n\n{motivo}\n\nSe solicita fijación a la mayor brevedad.\nFirma: {abogado_actor.nombre} ({abogado_actor.matricula})"
+    },
+    {
+      "materia": "Civil y Comercial",
+      "naturaleza": "Judicial",
+      "ejecutor": "Abogado",
+      "slug": "conclusiones",
+      "input_schema_json": {
+        "fields": [
+          {
+            "name": "expediente_id",
+            "label": "Expediente",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "petitorio",
+            "label": "Puntos concluidos",
+            "type": "list",
+            "item_type": "text",
+            "required": true
+          },
+          {
+            "name": "medios_de_prueba",
+            "label": "Medios de prueba (si aplica)",
+            "type": "list",
+            "item_type": "text",
+            "required": false
+          }
+        ]
+      },
+      "plantilla_md": "AL TRIBUNAL — CONCLUSIONES (Exp. {expediente_id})\n\nII. CONCLUSIONES\n{petitorio}\n\nIII. MEDIOS DE PRUEBA\n{medios_de_prueba}\n\nPOR TANTO: se acojan las presentes conclusiones."
+    },
+    {
+      "materia": "Civil y Comercial",
+      "naturaleza": "Judicial",
+      "ejecutor": "Abogado",
+      "slug": "escrito-incidental",
+      "input_schema_json": {
+        "fields": [
+          {
+            "name": "expediente_id",
+            "label": "Expediente",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "tipo_incidente",
+            "label": "Tipo de incidente",
+            "type": "select",
+            "options": [
+              "Nulidad",
+              "Inadmisión",
+              "Acumulación",
+              "Exclusión de prueba",
+              "Suspensión"
+            ],
+            "required": true
+          },
+          {
+            "name": "fundamentos",
+            "label": "Fundamentos",
+            "type": "textarea",
+            "required": true
+          },
+          {
+            "name": "petitorio",
+            "label": "Petitorio",
+            "type": "list",
+            "item_type": "text",
+            "required": true
+          }
+        ]
+      },
+      "plantilla_md": "ESCRITO INCIDENTAL — {tipo_incidente} (Exp. {expediente_id})\n\nI. FUNDAMENTOS\n{fundamentos}\n\nII. PETITORIO\n{petitorio}"
+    },
+    {
+      "materia": "Civil y Comercial",
+      "naturaleza": "Judicial",
+      "ejecutor": "Abogado",
+      "slug": "deposito-de-documentos",
+      "input_schema_json": {
+        "fields": [
+          {
+            "name": "expediente_id",
+            "label": "Expediente",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "lista_documentos",
+            "label": "Documentos a depositar",
+            "type": "list",
+            "item_type": "text",
+            "required": true
+          }
+        ]
+      },
+      "plantilla_md": "DEPÓSITO DE DOCUMENTOS — Exp. {expediente_id}\n\nSe depositan los siguientes documentos:\n{lista_documentos}\n\nFirma: {abogado_actor.nombre} ({abogado_actor.matricula})"
+    },
+    {
+      "materia": "Civil y Comercial",
+      "naturaleza": "Judicial",
+      "ejecutor": "Abogado",
+      "slug": "demanda-incidental",
+      "input_schema_json": {
+        "fields": [
+          {
+            "name": "expediente_id",
+            "label": "Expediente",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "objeto",
+            "label": "Objeto de la demanda incidental",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "hechos",
+            "label": "Hechos",
+            "type": "textarea",
+            "required": true
+          },
+          {
+            "name": "fundamentos",
+            "label": "Fundamentos",
+            "type": "textarea",
+            "required": true
+          }
+        ]
+      },
+      "plantilla_md": "DEMANDA INCIDENTAL (Exp. {expediente_id})\n\nI. OBJETO\n{objeto}\n\nII. HECHOS\n{hechos}\n\nIII. FUNDAMENTOS\n{fundamentos}"
+    },
+    {
+      "materia": "Civil y Comercial",
+      "naturaleza": "Judicial",
+      "ejecutor": "Abogado",
+      "slug": "intervencion-forzosa",
+      "input_schema_json": {
+        "fields": [
+          {
+            "name": "expediente_id",
+            "label": "Expediente",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "tercero_id",
+            "label": "Tercero (ID/Cédula/RNC)",
+            "type": "party",
+            "required": true,
+            "autofill": "cedula|rnc"
+          },
+          {
+            "name": "motivo",
+            "label": "Motivo",
+            "type": "textarea",
+            "required": true
+          },
+          {
+            "name": "alcance",
+            "label": "Alcance",
+            "type": "text",
+            "required": true
+          }
+        ]
+      },
+      "plantilla_md": "INTERVENCIÓN FORZOSA — Exp. {expediente_id}\n\nMotivo: {motivo}\nAlcance: {alcance}"
+    },
+    {
+      "materia": "Civil y Comercial",
+      "naturaleza": "Judicial",
+      "ejecutor": "Abogado",
+      "slug": "intervencion-voluntaria",
+      "input_schema_json": {
+        "fields": [
+          {
+            "name": "expediente_id",
+            "label": "Expediente",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "tercero_id",
+            "label": "Interviniente (ID/Cédula/RNC)",
+            "type": "party",
+            "required": true,
+            "autofill": "cedula|rnc"
+          },
+          {
+            "name": "motivo",
+            "label": "Motivo",
+            "type": "textarea",
+            "required": true
+          },
+          {
+            "name": "alcance",
+            "label": "Alcance",
+            "type": "text",
+            "required": true
+          }
+        ]
+      },
+      "plantilla_md": "INTERVENCIÓN VOLUNTARIA — Exp. {expediente_id}\n\nMotivo: {motivo}\nAlcance: {alcance}"
+    },
+    {
+      "materia": "Civil y Comercial",
+      "naturaleza": "Judicial",
+      "ejecutor": "Abogado",
+      "slug": "recurso-de-apelacion",
+      "input_schema_json": {
+        "fields": [
+          {
+            "name": "sentencia_ref",
+            "label": "Sentencia recurrida",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "agravios",
+            "label": "Agravios",
+            "type": "list",
+            "item_type": "text",
+            "required": true
+          },
+          {
+            "name": "petitorio",
+            "label": "Petitorio",
+            "type": "list",
+            "item_type": "text",
+            "required": true
+          }
+        ]
+      },
+      "plantilla_md": "RECURSO DE APELACIÓN — Ref. {sentencia_ref}\n\nAGRAVIOS\n{agravios}\n\nPETITORIO\n{petitorio}"
+    },
+    {
+      "materia": "Civil y Comercial",
+      "naturaleza": "Judicial",
+      "ejecutor": "Abogado",
+      "slug": "recurso-de-casacion",
+      "input_schema_json": {
+        "fields": [
+          {
+            "name": "sentencia_ref",
+            "label": "Sentencia recurrida",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "medios_casacion",
+            "label": "Medios de casación",
+            "type": "list",
+            "item_type": "text",
+            "required": true
+          },
+          {
+            "name": "violaciones_normativas",
+            "label": "Violaciones normativas",
+            "type": "list",
+            "item_type": "text",
+            "required": true
+          }
+        ]
+      },
+      "plantilla_md": "RECURSO DE CASACIÓN — Ref. {sentencia_ref}\n\nMEDIOS\n{medios_casacion}\n\nVIOLACIONES\n{violaciones_normativas}"
+    },
+    {
+      "materia": "Civil y Comercial",
+      "naturaleza": "Judicial",
+      "ejecutor": "Alguacil",
+      "slug": "mandamiento-de-pago",
+      "input_schema_json": {
+        "fields": [
+          {
+            "name": "requirente_id",
+            "label": "Requirente",
+            "type": "party",
+            "required": true,
+            "autofill": "cedula|rnc"
+          },
+          {
+            "name": "requerido_id",
+            "label": "Requerido",
+            "type": "party",
+            "required": true,
+            "autofill": "cedula|rnc"
+          },
+          {
+            "name": "abogado_apoderado_cedula",
+            "label": "Abogado apoderado",
+            "type": "professional",
+            "subtype": "abogado",
+            "required": true,
+            "source": "profesionales"
+          },
+          {
+            "name": "monto_adeudado",
+            "label": "Monto adeudado (RD$)",
+            "type": "currency",
+            "required": true
+          },
+          {
+            "name": "concepto",
+            "label": "Concepto",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "plazo_franco_dias",
+            "label": "Plazo franco (días)",
+            "type": "integer",
+            "required": true,
+            "default": 1
+          },
+          {
+            "name": "domicilio_requerido",
+            "label": "Domicilio del requerido",
+            "type": "address",
+            "required": true
+          },
+          {
+            "name": "ciudad_actuacion",
+            "label": "Ciudad",
+            "type": "text",
+            "required": true
+          }
+        ]
+      },
+      "plantilla_md": "MANDAMIENTO DE PAGO\n\nCERTIFICO Y DOY FE: notifiqué a {requerido.nombre_completo}…"
+    },
+    {
+      "materia": "Civil y Comercial",
+      "naturaleza": "Extrajudicial",
+      "ejecutor": "Alguacil",
+      "slug": "intimacion-de-pago",
+      "input_schema_json": {
+        "fields": [
+          {
+            "name": "requeriente_id",
+            "label": "Requeriente",
+            "type": "party",
+            "required": true,
+            "autofill": "cedula|rnc"
+          },
+          {
+            "name": "requerido_id",
+            "label": "Requerido",
+            "type": "party",
+            "required": true,
+            "autofill": "cedula|rnc"
+          },
+          {
+            "name": "monto",
+            "label": "Monto (RD$)",
+            "type": "currency",
+            "required": true
+          },
+          {
+            "name": "concepto",
+            "label": "Concepto",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "plazo",
+            "label": "Plazo (días)",
+            "type": "integer",
+            "required": true,
+            "default": 5
+          },
+          {
+            "name": "domicilio_notificacion",
+            "label": "Domicilio de notificación",
+            "type": "address",
+            "required": true
+          }
+        ]
+      },
+      "plantilla_md": "INTIMACIÓN DE PAGO\n\nCERTIFICO Y DOY FE: intimé al pago de RD${monto} por {concepto} en {domicilio_notificacion}…"
+    },
+    {
+      "materia": "Civil y Comercial",
+      "naturaleza": "Extrajudicial",
+      "ejecutor": "Abogado",
+      "slug": "contrato-compraventa-inmueble",
+      "input_schema_json": {
+        "fields": [
+          {
+            "name": "vendedor_id",
+            "label": "Vendedor",
+            "type": "party",
+            "required": true,
+            "autofill": "cedula|rnc"
+          },
+          {
+            "name": "comprador_id",
+            "label": "Comprador",
+            "type": "party",
+            "required": true,
+            "autofill": "cedula|rnc"
+          },
+          {
+            "name": "inmueble_matricula",
+            "label": "Matrícula del inmueble",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "precio",
+            "label": "Precio (RD$)",
+            "type": "currency",
+            "required": true
+          },
+          {
+            "name": "forma_pago",
+            "label": "Forma de pago",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "entrega",
+            "label": "Fecha de entrega",
+            "type": "date",
+            "required": true
+          },
+          {
+            "name": "jurisdiccion",
+            "label": "Jurisdicción",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "notario_cedula",
+            "label": "Notario",
+            "type": "professional",
+            "subtype": "notario",
+            "required": false,
+            "source": "profesionales"
+          }
+        ]
+      },
+      "plantilla_md": "CONTRATO DE COMPRAVENTA DE INMUEBLE\n\nENTRE {vendedor.nombre_completo} y {comprador.nombre_completo}…"
+    },
+    {
+      "materia": "Civil y Comercial",
+      "naturaleza": "Extrajudicial",
+      "ejecutor": "Abogado",
+      "slug": "poder-cuota-litis",
+      "input_schema_json": {
+        "fields": [
+          {
+            "name": "poderdante_id",
+            "label": "Poderdante",
+            "type": "party",
+            "required": true,
+            "autofill": "cedula|rnc"
+          },
+          {
+            "name": "abogado_id",
+            "label": "Abogado apoderado",
+            "type": "professional",
+            "subtype": "abogado",
+            "required": true,
+            "source": "profesionales"
+          },
+          {
+            "name": "asunto",
+            "label": "Asunto/Materia",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "porcentaje_honorarios",
+            "label": "Porcentaje (%)",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "gastos_iniciales",
+            "label": "Gastos iniciales (RD$)",
+            "type": "currency",
+            "required": false
+          },
+          {
+            "name": "irrevocabilidad",
+            "label": "Irrevocabilidad",
+            "type": "boolean",
+            "required": false,
+            "default": false
+          },
+          {
+            "name": "notario_cedula",
+            "label": "Notario (si aplica)",
+            "type": "professional",
+            "subtype": "notario",
+            "required": false,
+            "source": "profesionales"
+          }
+        ]
+      },
+      "plantilla_md": "PODER CUOTA-LITIS\n\nPoderdante: {poderdante.nombre_completo}\nApoderado: {abogado.nombre} ({abogado.matricula})…"
+    },
+    {
+      "materia": "Civil y Comercial",
+      "naturaleza": "Extrajudicial",
+      "ejecutor": "Abogado",
+      "slug": "recibo-de-pago",
+      "input_schema_json": {
+        "fields": [
+          {
+            "name": "acreedor_id",
+            "label": "Acreedor",
+            "type": "party",
+            "required": true,
+            "autofill": "cedula|rnc"
+          },
+          {
+            "name": "deudor_id",
+            "label": "Deudor",
+            "type": "party",
+            "required": true,
+            "autofill": "cedula|rnc"
+          },
+          {
+            "name": "monto",
+            "label": "Monto (RD$)",
+            "type": "currency",
+            "required": true
+          },
+          {
+            "name": "concepto",
+            "label": "Concepto",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "fecha_pago",
+            "label": "Fecha de pago",
+            "type": "date",
+            "required": true
+          },
+          {
+            "name": "forma_pago",
+            "label": "Forma de pago",
+            "type": "text",
+            "required": false
+          },
+          {
+            "name": "saldo_pendiente",
+            "label": "Saldo pendiente (RD$)",
+            "type": "currency",
+            "required": false
+          }
+        ]
+      },
+      "plantilla_md": "RECIBO DE PAGO\n\nYo, {acreedor.nombre_completo}, declaro haber recibido de {deudor.nombre_completo} RD${monto} por {concepto}…"
+    },
+    {
+      "materia": "Penal",
+      "naturaleza": "Judicial",
+      "ejecutor": "Abogado",
+      "slug": "querella-con-actor-civil",
+      "input_schema_json": {
+        "fields": [
+          {
+            "name": "querellante_id",
+            "label": "Querellante",
+            "type": "party",
+            "required": true,
+            "autofill": "cedula"
+          },
+          {
+            "name": "querellado_id",
+            "label": "Querellado",
+            "type": "party",
+            "required": true,
+            "autofill": "cedula|rnc"
+          },
+          {
+            "name": "fiscalia",
+            "label": "Fiscalía",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "calificacion_juridica",
+            "label": "Calificación jurídica",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "hechos",
+            "label": "Hechos",
+            "type": "textarea",
+            "required": true
+          },
+          {
+            "name": "pruebas",
+            "label": "Pruebas",
+            "type": "list",
+            "item_type": "text",
+            "required": true
+          },
+          {
+            "name": "indemnizacion",
+            "label": "Indemnización (RD$)",
+            "type": "currency",
+            "required": false
+          }
+        ]
+      },
+      "plantilla_md": "QUERELLA PENAL Y CONSTITUCIÓN EN ACTOR CIVIL\n\nI. PARTES\n{querellante.nombre_completo} vs {querellado.nombre_completo}\n\nII. HECHOS\n{hechos}\n\nIII. PRUEBAS\n{pruebas}"
+    },
+    {
+      "materia": "Civil y Comercial",
+      "naturaleza": "Extrajudicial",
+      "ejecutor": "Abogado",
+      "slug": "contrato-alquiler-local-comercial-modelo-hd",
+      "title": "Contrato de Alquiler (Local Comercial) — Modelo PRAXIS LEX",
+      "is_contrato": true,
+      "input_schema_json": {
+        "fields": [
+          {
+            "name": "propietario_id",
+            "label": "Propietario (ID/Cédula/RNC)",
+            "type": "party",
+            "required": true,
+            "autofill": "cedula|rnc"
+          },
+          {
+            "name": "inquilino_id",
+            "label": "Inquilino (ID/Cédula/RNC)",
+            "type": "party",
+            "required": true,
+            "autofill": "cedula|rnc"
+          },
+          {
+            "name": "fiador_id",
+            "label": "Fiador solidario (opcional)",
+            "type": "party",
+            "required": false,
+            "autofill": "cedula|rnc"
+          },
+          {
+            "name": "inmueble_direccion",
+            "label": "Dirección del local",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "inmueble_superficie_m2",
+            "label": "Superficie (m²)",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "inmueble_nivel",
+            "label": "Nivel",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "inmueble_estacionamientos",
+            "label": "Estacionamientos (cantidad)",
+            "type": "integer",
+            "required": true
+          },
+          {
+            "name": "division_interior",
+            "label": "División interior (ej. gypsum)",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "uso_destinado",
+            "label": "Uso destinado (ej. estudio TV)",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "canon_mensual",
+            "label": "Canon mensual (RD$)",
+            "type": "currency",
+            "required": true
+          },
+          {
+            "name": "duracion_meses",
+            "label": "Duración (meses)",
+            "type": "integer",
+            "required": true,
+            "default": 12
+          },
+          {
+            "name": "fecha_inicio",
+            "label": "Fecha de inicio",
+            "type": "date",
+            "required": true
+          },
+          {
+            "name": "fecha_fin",
+            "label": "Fecha de fin",
+            "type": "date",
+            "required": true
+          },
+          {
+            "name": "pago_adelantado_total",
+            "label": "Pago adelantado total del período",
+            "type": "boolean",
+            "required": true,
+            "default": true
+          },
+          {
+            "name": "inspeccion_mes",
+            "label": "Mes para inspección conjunta",
+            "type": "integer",
+            "required": true,
+            "default": 10
+          },
+          {
+            "name": "servicios_a_cargo",
+            "label": "Servicios a cargo del inquilino",
+            "type": "list",
+            "item_type": "text",
+            "required": true,
+            "default": [
+              "Agua",
+              "Electricidad",
+              "Otros vinculados al local"
+            ]
+          },
+          {
+            "name": "deudas_previas_propietario",
+            "label": "Propietario asume deudas previas",
+            "type": "boolean",
+            "required": true,
+            "default": true
+          },
+          {
+            "name": "domicilio_propietario",
+            "label": "Domicilio judicial del propietario",
+            "type": "text",
+            "required": false,
+            "autofill": "party.address"
+          },
+          {
+            "name": "domicilio_inquilino",
+            "label": "Domicilio judicial del inquilino",
+            "type": "text",
+            "required": false,
+            "autofill": "party.address"
+          },
+          {
+            "name": "confidencialidad_anios",
+            "label": "Vigencia de confidencialidad (años)",
+            "type": "integer",
+            "required": true,
+            "default": 5
+          },
+          {
+            "name": "ciudad_contrato",
+            "label": "Ciudad",
+            "type": "text",
+            "required": true,
+            "default": "Santo Domingo"
+          },
+          {
+            "name": "fecha_contrato",
+            "label": "Fecha de firma",
+            "type": "date",
+            "required": true
+          },
+          {
+            "name": "notario_cedula",
+            "label": "Notario (si aplica)",
+            "type": "professional",
+            "subtype": "notario",
+            "source": "profesionales",
+            "required": false
+          }
+        ]
+      },
+      "plantilla_md": "CONTRATO DE ALQUILER\n\nENTRE: De una parte, {propietario.nombre_completo}, {propietario.generales_breves}, quien para lo que sigue de este contrato se llamará **EL PROPIETARIO**;\n\nY de la otra parte, {inquilino.nombre_completo}, {inquilino.generales_breves}, quien para los fines del presente convenio se denominará **EL INQUILINO**.\n\nSE HA CONVENIDO Y PACTADO LO SIGUIENTE:\n\nPRIMERO: EL PROPIETARIO da en alquiler a EL INQUILINO, quien acepta, un local comercial ubicado en {inmueble_direccion}, con las siguientes características: a) Superficie: {inmueble_superficie_m2} m²; b) Nivel: {inmueble_nivel}; c) Estacionamiento: {inmueble_estacionamientos} parqueo(s) en la parte frontal; d) División interior: {division_interior}. El local se encuentra en excelente estado de conservación, habiendo sido visto, examinado y aceptado por EL INQUILINO a su entera satisfacción. Se destinará exclusivamente a {uso_destinado}, quedando terminantemente prohibido destinarlo a otro uso distinto, cederlo, subarrendarlo —total o parcialmente— o transferir su ocupación, sea a título oneroso o gratuito, sin el consentimiento previo y por escrito de EL PROPIETARIO.\n\nSEGUNDO: EL INQUILINO se obliga a mantener el inmueble en buen estado de conservación, así como a realizar, a su exclusivo cargo, todas las reparaciones menores o locativas necesarias para el uso normal del local, incluyendo pero no limitándose a: 1) paredes, pisos, puertas, ventanas, cristales, pestillos y cerraduras; 2) instalaciones eléctricas e instalaciones sanitarias; 3) obstrucciones de inodoros, lavamanos, baños, fregaderos, lavaderos o cualquier otro desagüe y 4) cambio de zapatillas, roturas de llaves y similares. Asimismo, corresponderá a EL INQUILINO la pintura interior del local durante la vigencia del presente contrato.\n\nTERCERO: Si durante el curso de este Contrato ocurriere entre los ocupantes del local algún caso de enfermedad contagiosa y fuere necesario, según la autoridad sanitaria, efectuar la desinfección, los gastos originados correrán por cuenta de EL INQUILINO, quien además velará por el cumplimiento de los reglamentos aplicables, haciéndose responsable de las infracciones mientras dure este Contrato.\n\nCUARTO: EL INQUILINO no hará cambios o distribuciones en el local sin autorización previa y por escrito de EL PROPIETARIO. Aun cuando se autoricen, las mejoras e instalaciones queden a beneficio de EL PROPIETARIO, sin compensación.\n\nQUINTO: EL INQUILINO pagará un canon mensual de **RD${canon_mensual}**. La duración pactada es de **{duracion_meses} meses**, para un total anual proporcional. {% if pago_adelantado_total %}El total del período será pagado íntegramente al momento de la firma.{% endif %} En caso de ocupación inferior al plazo, no procede reembolso por parte de EL PROPIETARIO.\n\nSEXTO: Transcurridos **{inspeccion_mes} meses** de vigencia, las partes realizarán inspección conjunta para evaluar estado y determinar reparaciones locativas, las cuales podrán cubrirse con hasta dos (2) meses de renta restantes si así acuerdan.\n\nSÉPTIMO: Este Contrato regirá **desde {fecha_inicio} hasta {fecha_fin}**.\n\nOCTAVO: Los servicios de {servicios_a_cargo} y demás gastos vinculados al local correrán por cuenta del INQUILINO. El PROPIETARIO asumirá y pagará cualquier deuda u obligación contraída con anterioridad a la firma.\n\nNOVENO: Fiador solidario: {fiador.nombre_completo} {fiador.generales_breves}. La fiadora constituye en garantía sus bienes muebles e inmuebles, presentes y futuros, para asegurar el fiel cumplimiento de las obligaciones derivadas de este contrato.\n\nDÉCIMO: Para la ejecución de este Contrato, EL INQUILINO y el FIADOR SOLIDARIO eligen domicilio en sus respectivas direcciones indicadas más arriba, así como en la dirección del inmueble objeto del presente.\n\nUNDÉCIMO: **CONFIDENCIALIDAD.** Las partes se obligan a mantener la más estricta confidencialidad sobre la información intercambiada o generada en el marco de este contrato (datos personales, información financiera, detalles del inmueble u otra no pública). Esta obligación continuará por **{confidencialidad_anios} años** posteriores a la terminación.\n\nDUODÉCIMO: **CUMPLIMIENTO DE LA LEY No. 155-17 (LA/FT).** Las partes declaran el origen lícito de los fondos involucrados y su compromiso de cumplir la Ley No. 155-17 y normativa complementaria. En particular: (a) el INQUILINO proveerá información razonable para verificar origen lícito si fuere requerido; (b) ambas partes reportarán actividades sospechosas conforme la ley; (c) la violación de esta cláusula faculta la terminación inmediata sin perjuicio de acciones legales.\n\nHECHO Y FIRMADO en {ciudad_contrato}, a {fecha_contrato}.\n\nFirmas:\n\nEL PROPIETARIO: {propietario.nombre_completo}\n\nEL INQUILINO: {inquilino.nombre_completo}\n\nFIADOR SOLIDARIO: {fiador.nombre_completo}\n\n{bloque_certificacion_notarial}\n"
+    },
+    {
+      "materia": "Civil y Comercial",
+      "naturaleza": "Judicial",
+      "ejecutor": "Alguacil",
+      "slug": "acto-constitucion-abogado-y-avenir",
+      "title": "Acto de Constitución de Abogado y Avenir — Curial",
+      "input_schema_json": {
+        "fields": [
+          {
+            "name": "requirente_id",
+            "label": "Requirente (ID/Cédula/RNC)",
+            "type": "party",
+            "required": true,
+            "autofill": "cedula|rnc"
+          },
+          {
+            "name": "requerido_id",
+            "label": "Requerido (ID/Cédula/RNC)",
+            "type": "party",
+            "required": true,
+            "autofill": "cedula|rnc"
+          },
+          {
+            "name": "abogado_apoderado_cedula",
+            "label": "Abogado apoderado",
+            "type": "professional",
+            "subtype": "abogado",
+            "source": "profesionales",
+            "required": true
+          },
+          {
+            "name": "domicilio_requerido",
+            "label": "Domicilio del requerido",
+            "type": "address",
+            "required": true
+          },
+          {
+            "name": "tribunal",
+            "label": "Tribunal (para avenir)",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "fecha_audiencia",
+            "label": "Fecha audiencia/comparecencia",
+            "type": "date",
+            "required": false
+          },
+          {
+            "name": "hora_audiencia",
+            "label": "Hora audiencia",
+            "type": "time",
+            "required": false
+          },
+          {
+            "name": "ciudad_actuacion",
+            "label": "Ciudad de actuación",
+            "type": "text",
+            "required": true,
+            "default": "Santo Domingo"
+          },
+          {
+            "name": "observaciones",
+            "label": "Observaciones",
+            "type": "textarea",
+            "required": false
+          }
+        ]
+      },
+      "plantilla_md": "ACTO DE CONSTITUCIÓN DE ABOGADO Y AVENIR\n\nDesignación Protocolar del Alguacil: No. {alguacil.designacion} • Año {alguacil.anio}\nCiudad de la actuación: {ciudad_actuacion}, a {fecha_acto}.\n\nREQUIRENTE: {requirente.nombre_completo}, {requirente.generales_breves}.\nREQUERIDO: {requerido.nombre_completo}, {requerido.generales_breves}.\nFIRMA APODERADA: {abogado_apoderado.nombre} ({abogado_apoderado.matricula}), {abogado_apoderado.contacto}.\n\nDECLARACIÓN DE MANDATO Y PROCESO VERBAL DE TRASLADOS\nYo, {alguacil.nombre_completo}, exequátur {alguacil.exequatur}, CERTIFICO Y DOY FE que me trasladé a {domicilio_requerido}, donde notifiqué a {requerido.nombre_completo} la CONSTITUCIÓN DE ABOGADO en favor del requirente, bajo las más amplias reservas de derecho.\n\nAVENIR/EMPLAZAMIENTO\nSe CITA, EMPLAZA E INVITA a {requerido.nombre_completo} para que comparezca ante {tribunal}, el día {fecha_audiencia} a las {hora_audiencia}, a los fines legales correspondientes.\n\n{observaciones}\n\nDeclaración verbal de recibo: Dejé copia en manos competentes. \nCostos del proceso: RD${costo?}.\n\nFirmado y sellado: {alguacil.nombre_completo}, Alguacil.\n"
+    },
+    {
+      "materia": "Civil y Comercial",
+      "naturaleza": "Judicial",
+      "ejecutor": "Alguacil",
+      "slug": "acto-avenir-emplazamiento",
+      "title": "Acto AVENIR / Emplazamiento — Curial",
+      "input_schema_json": {
+        "fields": [
+          {
+            "name": "requirente_id",
+            "label": "Requirente (ID/Cédula/RNC)",
+            "type": "party",
+            "required": true,
+            "autofill": "cedula|rnc"
+          },
+          {
+            "name": "requerido_id",
+            "label": "Requerido (ID/Cédula/RNC)",
+            "type": "party",
+            "required": true,
+            "autofill": "cedula|rnc"
+          },
+          {
+            "name": "domicilio_requerido",
+            "label": "Domicilio del requerido",
+            "type": "address",
+            "required": true
+          },
+          {
+            "name": "tribunal",
+            "label": "Tribunal",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "fecha_audiencia",
+            "label": "Fecha de audiencia",
+            "type": "date",
+            "required": true
+          },
+          {
+            "name": "hora_audiencia",
+            "label": "Hora de audiencia",
+            "type": "time",
+            "required": true
+          },
+          {
+            "name": "ciudad_actuacion",
+            "label": "Ciudad de actuación",
+            "type": "text",
+            "required": true,
+            "default": "Santo Domingo"
+          }
+        ]
+      },
+      "plantilla_md": "ACTO AVENIR / EMPLAZAMIENTO\n\nDesignación Protocolar: No. {alguacil.designacion} • Año {alguacil.anio}\nCiudad: {ciudad_actuacion}, a {fecha_acto}.\n\nRequirente: {requirente.nombre_completo}\nRequerido: {requerido.nombre_completo}\n\nCERTIFICO Y DOY FE: me trasladé a {domicilio_requerido} y notifiqué el presente acto, citando y emplazando a comparecer ante {tribunal}, el {fecha_audiencia} a las {hora_audiencia}, bajo reservas de derecho.\n\nCopia dejada a persona hábil. Costos: RD${costo?}.\n\nFirma y sello del Alguacil: {alguacil.nombre_completo}.\n"
+    },
+    {
+      "materia": "Civil y Comercial",
+      "naturaleza": "Judicial",
+      "ejecutor": "Abogado",
+      "slug": "inventario-documentos-deposito",
+      "title": "Inventario de Documentos para Depósito — Escrito",
+      "input_schema_json": {
+        "fields": [
+          {
+            "name": "expediente",
+            "label": "Expediente",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "tribunal",
+            "label": "Tribunal/Secretaría",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "lista_documentos",
+            "label": "Documentos (uno por renglón)",
+            "type": "list",
+            "item_type": "text",
+            "required": true
+          }
+        ]
+      },
+      "plantilla_md": "INVENTARIO DE DOCUMENTOS A SER DEPOSITADOS\n{tribunal}\nEXP.: {expediente}\n\nDOCUMENTOS:\n{lista_documentos}\n\nEn {ciudad?}, a {fecha_acto}.\n{abogado_actor.nombre} ({abogado_actor.matricula}) — Abogado.\n"
+    },
+    {
+      "materia": "Civil y Comercial",
+      "naturaleza": "Judicial",
+      "ejecutor": "Abogado",
+      "slug": "lista-de-testigos",
+      "title": "Lista de Testigos — Escrito",
+      "input_schema_json": {
+        "fields": [
+          {
+            "name": "expediente",
+            "label": "Expediente",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "tribunal",
+            "label": "Tribunal",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "testigos",
+            "label": "Testigos",
+            "type": "list",
+            "item_type": "object",
+            "schema": {
+              "fields": [
+                {
+                  "name": "nombre_completo",
+                  "label": "Nombre completo",
+                  "type": "text",
+                  "required": true
+                },
+                {
+                  "name": "cedula",
+                  "label": "Cédula",
+                  "type": "text",
+                  "required": false,
+                  "autofill": "cedula"
+                },
+                {
+                  "name": "profesion",
+                  "label": "Profesión",
+                  "type": "text",
+                  "required": false
+                },
+                {
+                  "name": "domicilio",
+                  "label": "Domicilio",
+                  "type": "text",
+                  "required": false
+                },
+                {
+                  "name": "proposito",
+                  "label": "Propósito del testimonio",
+                  "type": "textarea",
+                  "required": true
+                }
+              ]
+            },
+            "required": true
+          }
+        ]
+      },
+      "plantilla_md": "LISTA DE TESTIGOS\n{tribunal}\nEXP.: {expediente}\n\nTESTIGOS PROPUESTOS:\n{#each testigos}\n• {nombre_completo}, Céd. {cedula}, {profesion}, {domicilio}.\n  Propósito: {proposito}\n{/each}\n\nEn {ciudad?}, a {fecha_acto}.\n{abogado_actor.nombre} ({abogado_actor.matricula}) — Abogado.\n"
+    },
+    {
+      "materia": "Civil y Comercial",
+      "naturaleza": "Judicial",
+      "ejecutor": "Abogado",
+      "slug": "demanda-responsabilidad-civil",
+      "title": "Demanda en Responsabilidad Civil y Reparación de Daños",
+      "input_schema_json": {
+        "fields": [
+          {
+            "name": "demandante_id",
+            "label": "Demandante",
+            "type": "party",
+            "required": true,
+            "autofill": "cedula"
+          },
+          {
+            "name": "demandado_id",
+            "label": "Demandado",
+            "type": "party",
+            "required": true,
+            "autofill": "cedula|rnc"
+          },
+          {
+            "name": "tribunal",
+            "label": "Tribunal competente",
+            "type": "select",
+            "required": true,
+            "source": "infer:case/competencia"
+          },
+          {
+            "name": "relato_factico",
+            "label": "Relato fáctico",
+            "type": "textarea",
+            "required": true
+          },
+          {
+            "name": "danos",
+            "label": "Daños alegados",
+            "type": "list",
+            "item_type": "text",
+            "required": true
+          },
+          {
+            "name": "nexo_causal",
+            "label": "Vínculo causal",
+            "type": "textarea",
+            "required": true
+          },
+          {
+            "name": "pretensiones",
+            "label": "Pretensiones",
+            "type": "list",
+            "item_type": "text",
+            "required": true
+          },
+          {
+            "name": "pruebas",
+            "label": "Pruebas",
+            "type": "list",
+            "item_type": "text",
+            "required": true
+          },
+          {
+            "name": "incluir_tesis",
+            "label": "Activar tesis/subsunción",
+            "type": "boolean",
+            "required": false,
+            "default": true
+          }
+        ]
+      },
+      "plantilla_md": "AL {tribunal}\n\nDEMANDA EN RESPONSABILIDAD CIVIL Y REPARACIÓN DE DAÑOS\n\nI. PARTES Y REPRESENTACIÓN\nDemandante: {demandante.nombre_completo}, {demandante.generales_breves}.\nDemandado: {demandado.nombre_completo}, {demandado.generales_breves}.\nAbogado: {abogado_actor.nombre} ({abogado_actor.matricula}).\n\nII. RELATO FÁCTICO\n{relato_factico}\n\nIII. FUNDAMENTOS DE DERECHO {# if incluir_tesis #}(con subsunción){# endif #}\n— Art. 1382, 1383 y 1384 del Código Civil (falta, culpa ajena y responsabilidad por dependientes).\n— Art. 1146 y 1147 del Código Civil (mora, indemnización).\n{bloque_jurisprudencia?}\nEncaje: {nexo_causal}\n\nIV. DAÑOS\n{danos}\n\nV. PRUEBAS\n{pruebas}\n\nVI. PRETENSIONES\n{pretensiones}\n\nPOR TANTO: se acoja la demanda en todas sus partes.\n{abogado_actor.nombre} ({abogado_actor.matricula})\n"
+    }
+  ],
+  "global_clauses": {
+    "confidencialidad": "CLÁUSULA DE CONFIDENCIALIDAD\nLas partes se obligan a mantener confidencial toda información no pública a la que tengan acceso con ocasión del contrato, incluyendo pero sin limitarse a datos personales, información técnica, financiera, comercial o de procesos. Esta obligación subsistirá por cinco (5) años contados desde la terminación del contrato, salvo exigencia legal o judicial en contrario.\n",
+    "aml_155_17": "CUMPLIMIENTO LEY No. 155-17 (LA/FT)\nLas partes declaran y garantizan que los fondos involucrados provienen de fuentes lícitas y se comprometen a cumplir la Ley No. 155-17 contra el Lavado de Activos y Financiamiento del Terrorismo y su normativa complementaria. Se obligan a proporcionar información razonable de debida diligencia cuando sea solicitada y a reportar actividades sospechosas conforme las disposiciones aplicables.\n",
+    "injection_policy": {
+      "apply_to": "all_contracts_except",
+      "except_slugs": [
+        "contrato-alquiler-local-comercial-modelo-hd"
+      ],
+      "position": "before_signatures"
+    }
+  },
+  "prompt_addendums": [
+    "# ADDENDUM — CONTRATO DE ALQUILER y CLÁUSULAS GLOBALES\n1) Cuando el tipo sea `contrato-alquiler-local-comercial-modelo-hd`, usa exactamente la plantilla de alquiler provista, rellenando solo placeholders con datos del sistema o faltantes.\n2) Para todo otro contrato (is_contrato=true), agrega automáticamente las cláusulas de CONFIDENCIALIDAD y LEY 155-17 antes de la sección de firmas, salvo que ya existan cláusulas equivalentes.\n3) Prohibido mezclar lenguaje curial/notarial fuera de contexto. No repetir datos existentes en DB. Si falta un campo indispensable, devolver `missing_fields` sin inventar.\n",
+    "## ADDENDUM v1.2 — Nuevos modelos (materias correspondientes)\n- **Civil y Comercial • Judicial • Alguacil**: \n  - `acto-constitucion-abogado-y-avenir` (curial) — usar plantilla curial, con designación protocolar, proceso verbal, citación y avenir. No incluir bloques de abogado.\n  - `acto-avenir-emplazamiento` (curial) — citación/emplazamiento puro.\n- **Civil y Comercial • Judicial • Abogado**:\n  - `inventario-documentos-deposito` — escrito simple de inventario para secretaría.\n  - `lista-de-testigos` — listado estructurado con propósito de cada testigo.\n  - `demanda-responsabilidad-civil` — usar el modelo actualizado y limpio de curial; permitir `incluir_tesis` para activar subsunción (encaje de hechos/derecho) cuando proceda.\n\nReglas: mantener la separación estricta de roles (alguacil vs abogado), no pedir datos que obren en sistema (autofill por cédula/RNC), y conservar estilo moderno.\n"
+  ]
+}
