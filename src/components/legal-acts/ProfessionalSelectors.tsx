@@ -28,6 +28,12 @@ export function LawyerSelector({ value, onChange, onFieldUpdate }: LawyerSelecto
         abogado_despacho: lawyer.despacho_direccion || '',
         abogado_email: lawyer.email || '',
         abogado_telefono: lawyer.telefono || '',
+        abogado_direccion: lawyer.direccion || lawyer.despacho_direccion || '',
+        abogado_nacionalidad: lawyer.nacionalidad || '',
+        abogado_estado_civil: lawyer.estado_civil || '',
+        abogado_fecha_nacimiento: lawyer.fecha_nacimiento || '',
+        abogado_lugar_nacimiento: lawyer.lugar_nacimiento || '',
+        abogado_pasaporte: lawyer.pasaporte || '',
       });
     }
   };
@@ -83,6 +89,11 @@ export function NotarioSelector({ value, onChange, onFieldUpdate }: NotarioSelec
         notario_jurisdiccion: notario.jurisdiccion || '',
         notario_telefono: notario.telefono || '',
         notario_email: notario.email || '',
+        notario_nacionalidad: notario.nacionalidad || '',
+        notario_estado_civil: notario.estado_civil || '',
+        notario_fecha_nacimiento: notario.fecha_nacimiento || '',
+        notario_lugar_nacimiento: notario.lugar_nacimiento || '',
+        notario_pasaporte: notario.pasaporte || '',
       });
     }
   };
@@ -137,6 +148,11 @@ export function AlguacilSelector({ value, onChange, onFieldUpdate }: AlguacilSel
         alguacil_jurisdiccion: alguacil.jurisdiccion || '',
         alguacil_direccion: alguacil.direccion_notificaciones || '',
         alguacil_telefono: alguacil.telefono || '',
+        alguacil_nacionalidad: alguacil.nacionalidad || '',
+        alguacil_estado_civil: alguacil.estado_civil || '',
+        alguacil_fecha_nacimiento: alguacil.fecha_nacimiento || '',
+        alguacil_lugar_nacimiento: alguacil.lugar_nacimiento || '',
+        alguacil_pasaporte: alguacil.pasaporte || '',
       });
     }
   };
@@ -193,6 +209,11 @@ export function PeritoSelector({ value, onChange, onFieldUpdate }: PeritoSelecto
         perito_institucion: perito.institucion || '',
         perito_telefono: perito.telefono || '',
         perito_email: perito.email || '',
+        perito_nacionalidad: perito.nacionalidad || '',
+        perito_estado_civil: perito.estado_civil || '',
+        perito_fecha_nacimiento: perito.fecha_nacimiento || '',
+        perito_lugar_nacimiento: perito.lugar_nacimiento || '',
+        perito_pasaporte: perito.pasaporte || '',
       });
     }
   };
@@ -249,6 +270,11 @@ export function TasadorSelector({ value, onChange, onFieldUpdate }: TasadorSelec
         tasador_direccion: tasador.direccion || '',
         tasador_telefono: tasador.telefono || '',
         tasador_email: tasador.email || '',
+        tasador_nacionalidad: tasador.nacionalidad || '',
+        tasador_estado_civil: tasador.estado_civil || '',
+        tasador_fecha_nacimiento: tasador.fecha_nacimiento || '',
+        tasador_lugar_nacimiento: tasador.lugar_nacimiento || '',
+        tasador_pasaporte: tasador.pasaporte || '',
       });
     }
   };

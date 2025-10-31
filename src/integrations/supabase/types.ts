@@ -182,11 +182,16 @@ export type Database = {
           direccion_notificaciones: string | null
           email: string | null
           estado: string | null
+          estado_civil: string | null
+          fecha_nacimiento: string | null
           firma_digital_url: string | null
           id: string
           jurisdiccion: string
+          lugar_nacimiento: string | null
           matricula: string | null
+          nacionalidad: string | null
           nombre: string
+          pasaporte: string | null
           telefono: string | null
           tenant_id: string | null
           tribunal_asignado: string | null
@@ -199,11 +204,16 @@ export type Database = {
           direccion_notificaciones?: string | null
           email?: string | null
           estado?: string | null
+          estado_civil?: string | null
+          fecha_nacimiento?: string | null
           firma_digital_url?: string | null
           id?: string
           jurisdiccion: string
+          lugar_nacimiento?: string | null
           matricula?: string | null
+          nacionalidad?: string | null
           nombre: string
+          pasaporte?: string | null
           telefono?: string | null
           tenant_id?: string | null
           tribunal_asignado?: string | null
@@ -216,11 +226,16 @@ export type Database = {
           direccion_notificaciones?: string | null
           email?: string | null
           estado?: string | null
+          estado_civil?: string | null
+          fecha_nacimiento?: string | null
           firma_digital_url?: string | null
           id?: string
           jurisdiccion?: string
+          lugar_nacimiento?: string | null
           matricula?: string | null
+          nacionalidad?: string | null
           nombre?: string
+          pasaporte?: string | null
           telefono?: string | null
           tenant_id?: string | null
           tribunal_asignado?: string | null
@@ -1424,12 +1439,18 @@ export type Database = {
           cedula: string | null
           created_at: string | null
           despacho_direccion: string | null
+          direccion: string | null
           email: string | null
           estado: string | null
+          estado_civil: string | null
+          fecha_nacimiento: string | null
           firma_digital_url: string | null
           id: string
+          lugar_nacimiento: string | null
           matricula_card: string | null
+          nacionalidad: string | null
           nombre: string
+          pasaporte: string | null
           rol: string | null
           telefono: string | null
           tenant_id: string | null
@@ -1440,12 +1461,18 @@ export type Database = {
           cedula?: string | null
           created_at?: string | null
           despacho_direccion?: string | null
+          direccion?: string | null
           email?: string | null
           estado?: string | null
+          estado_civil?: string | null
+          fecha_nacimiento?: string | null
           firma_digital_url?: string | null
           id?: string
+          lugar_nacimiento?: string | null
           matricula_card?: string | null
+          nacionalidad?: string | null
           nombre: string
+          pasaporte?: string | null
           rol?: string | null
           telefono?: string | null
           tenant_id?: string | null
@@ -1456,12 +1483,18 @@ export type Database = {
           cedula?: string | null
           created_at?: string | null
           despacho_direccion?: string | null
+          direccion?: string | null
           email?: string | null
           estado?: string | null
+          estado_civil?: string | null
+          fecha_nacimiento?: string | null
           firma_digital_url?: string | null
           id?: string
+          lugar_nacimiento?: string | null
           matricula_card?: string | null
+          nacionalidad?: string | null
           nombre?: string
+          pasaporte?: string | null
           rol?: string | null
           telefono?: string | null
           tenant_id?: string | null
@@ -1755,12 +1788,17 @@ export type Database = {
           created_at: string | null
           email: string | null
           estado: string | null
+          estado_civil: string | null
+          fecha_nacimiento: string | null
           firma_digital_url: string | null
           id: string
           jurisdiccion: string | null
+          lugar_nacimiento: string | null
           matricula_cdn: string | null
+          nacionalidad: string | null
           nombre: string
           oficina_direccion: string | null
+          pasaporte: string | null
           telefono: string | null
           tenant_id: string | null
           updated_at: string | null
@@ -1772,12 +1810,17 @@ export type Database = {
           created_at?: string | null
           email?: string | null
           estado?: string | null
+          estado_civil?: string | null
+          fecha_nacimiento?: string | null
           firma_digital_url?: string | null
           id?: string
           jurisdiccion?: string | null
+          lugar_nacimiento?: string | null
           matricula_cdn?: string | null
+          nacionalidad?: string | null
           nombre: string
           oficina_direccion?: string | null
+          pasaporte?: string | null
           telefono?: string | null
           tenant_id?: string | null
           updated_at?: string | null
@@ -1789,12 +1832,17 @@ export type Database = {
           created_at?: string | null
           email?: string | null
           estado?: string | null
+          estado_civil?: string | null
+          fecha_nacimiento?: string | null
           firma_digital_url?: string | null
           id?: string
           jurisdiccion?: string | null
+          lugar_nacimiento?: string | null
           matricula_cdn?: string | null
+          nacionalidad?: string | null
           nombre?: string
           oficina_direccion?: string | null
+          pasaporte?: string | null
           telefono?: string | null
           tenant_id?: string | null
           updated_at?: string | null
@@ -2027,12 +2075,17 @@ export type Database = {
           email: string | null
           especialidad: string
           estado: string | null
+          estado_civil: string | null
+          fecha_nacimiento: string | null
           firma_digital_url: string | null
           id: string
           institucion: string | null
           jurisdiccion: string | null
+          lugar_nacimiento: string | null
           matricula: string | null
+          nacionalidad: string | null
           nombre: string
+          pasaporte: string | null
           telefono: string | null
           tenant_id: string | null
           updated_at: string | null
@@ -2046,12 +2099,17 @@ export type Database = {
           email?: string | null
           especialidad: string
           estado?: string | null
+          estado_civil?: string | null
+          fecha_nacimiento?: string | null
           firma_digital_url?: string | null
           id?: string
           institucion?: string | null
           jurisdiccion?: string | null
+          lugar_nacimiento?: string | null
           matricula?: string | null
+          nacionalidad?: string | null
           nombre: string
+          pasaporte?: string | null
           telefono?: string | null
           tenant_id?: string | null
           updated_at?: string | null
@@ -2065,12 +2123,17 @@ export type Database = {
           email?: string | null
           especialidad?: string
           estado?: string | null
+          estado_civil?: string | null
+          fecha_nacimiento?: string | null
           firma_digital_url?: string | null
           id?: string
           institucion?: string | null
           jurisdiccion?: string | null
+          lugar_nacimiento?: string | null
           matricula?: string | null
+          nacionalidad?: string | null
           nombre?: string
+          pasaporte?: string | null
           telefono?: string | null
           tenant_id?: string | null
           updated_at?: string | null
@@ -2413,11 +2476,16 @@ export type Database = {
           email: string | null
           especialidad: string | null
           estado: string | null
+          estado_civil: string | null
+          fecha_nacimiento: string | null
           firma_digital_url: string | null
           id: string
           jurisdiccion: string | null
+          lugar_nacimiento: string | null
           matricula: string | null
+          nacionalidad: string | null
           nombre: string
+          pasaporte: string | null
           telefono: string | null
           tenant_id: string | null
           updated_at: string | null
@@ -2431,11 +2499,16 @@ export type Database = {
           email?: string | null
           especialidad?: string | null
           estado?: string | null
+          estado_civil?: string | null
+          fecha_nacimiento?: string | null
           firma_digital_url?: string | null
           id?: string
           jurisdiccion?: string | null
+          lugar_nacimiento?: string | null
           matricula?: string | null
+          nacionalidad?: string | null
           nombre: string
+          pasaporte?: string | null
           telefono?: string | null
           tenant_id?: string | null
           updated_at?: string | null
@@ -2449,11 +2522,16 @@ export type Database = {
           email?: string | null
           especialidad?: string | null
           estado?: string | null
+          estado_civil?: string | null
+          fecha_nacimiento?: string | null
           firma_digital_url?: string | null
           id?: string
           jurisdiccion?: string | null
+          lugar_nacimiento?: string | null
           matricula?: string | null
+          nacionalidad?: string | null
           nombre?: string
+          pasaporte?: string | null
           telefono?: string | null
           tenant_id?: string | null
           updated_at?: string | null

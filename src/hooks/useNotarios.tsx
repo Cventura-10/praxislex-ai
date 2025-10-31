@@ -18,6 +18,11 @@ export interface Notario {
   estado?: string;
   created_at?: string;
   updated_at?: string;
+  nacionalidad?: string;
+  estado_civil?: string;
+  fecha_nacimiento?: string;
+  lugar_nacimiento?: string;
+  pasaporte?: string;
 }
 
 export function useNotarios() {

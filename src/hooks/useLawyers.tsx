@@ -8,6 +8,7 @@ export interface Lawyer {
   cedula: string | null;
   email: string | null;
   telefono: string | null;
+  direccion?: string | null;
   rol: string;
   estado: string;
   user_id: string;
@@ -17,6 +18,11 @@ export interface Lawyer {
   matricula_card: string | null;
   firma_digital_url: string | null;
   despacho_direccion: string | null;
+  nacionalidad?: string | null;
+  estado_civil?: string | null;
+  fecha_nacimiento?: string | null;
+  lugar_nacimiento?: string | null;
+  pasaporte?: string | null;
 }
 
 type CreateLawyerData = Omit<Lawyer, "id" | "created_at" | "updated_at" | "user_id" | "tenant_id" | "matricula_card" | "firma_digital_url" | "despacho_direccion"> & {
