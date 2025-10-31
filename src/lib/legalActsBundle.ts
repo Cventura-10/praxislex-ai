@@ -1,4 +1,4 @@
-import bundleData from '@/data/praxislex_bundle_v1_3_1.json';
+import bundleData from '@/data/praxislex_bundle_v1_3_2.json';
 
 export interface ActFieldSchema {
   name: string;
@@ -29,20 +29,31 @@ export interface LegalActBundle {
   plantilla_md: string;
 }
 
+export interface GeographyCatalog {
+  provincias: Array<{ id: string; nombre: string }>;
+  municipios: Array<{ id: string; nombre: string; provincia_id: string }>;
+  ciudades: Array<{ id: string; nombre: string; municipio_id: string }>;
+}
+
 export interface BundleData {
   version: string;
   generated_at: string;
   actos: LegalActBundle[];
   global_clauses: {
-    confidencialidad: string;
-    aml_155_17: string;
-    injection_policy: {
+    confidencialidad?: string;
+    aml_155_17?: string;
+    injection_policy?: {
       apply_to: string;
       except_slugs: string[];
       position: string;
     };
   };
   prompt_addendums: string[];
+  global_catalogs?: {
+    rd: GeographyCatalog;
+  };
+  global_ui_overrides?: any;
+  global_schema_overrides?: any;
 }
 
 export const praxisLexBundle: BundleData = bundleData as BundleData;

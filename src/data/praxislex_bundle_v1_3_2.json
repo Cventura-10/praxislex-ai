@@ -1,0 +1,388 @@
+{
+  "version": "1.3.2",
+  "generated_at": "2025-10-31T17:58:56.916037",
+  "actos": [],
+  "global_clauses": {},
+  "prompt_addendums": [
+    "## ADDENDUM v1.3.2 — Geografía RD + Autofill de Datos Civiles + Orden de Clientes\n\n1) **Desplegables de Geografía RD (en TODOS los actos):**\n   - `provincia_id` (select, source=`catalog:rd.provincias`, requerido).\n   - `municipio_id` (select dependiente de `provincia_id`, source=`catalog:rd.municipios`).\n   - `ciudad_id` (select dependiente de `municipio_id`, source=`catalog:rd.ciudades`).\n   - Si no hay catálogo cargado, habilitar `*_text` como fallback manual.\n\n2) **Autocompletado de datos civiles al elegir el cliente (party):**\n   - `nacionalidad` ← `person.nationality`\n   - `estado_civil` ← `person.marital_status` (opciones estándar)\n   - `profesion` ← `person.occupation`\n   - **Regla:** si el cliente se selecciona por cédula/RNC, no solicitar estos datos; mostrarlos precargados con opción de editar si procede.\n\n3) **Orden de clientes (UI):**\n   - En `partes[]`, incluir `orden` (select: “Primer cliente”, “Segundo”, “Tercero”, … “Más clientes…”).\n   - Mostrar `orden` solo para roles: contratante/contratado, arrendatario, comprador/vendedor, poderdante/poderhabiente, fiador.\n\n4) **Contratos de Alquiler (`contrato-alquiler-local-comercial-modelo-hd`):**\n   - Habilitar **múltiples inquilinos** (`arrendatario`) y **múltiples fiadores** (`fiador`) con `orden` visible.\n   - Validación mínima: `arrendador` ≥ 1, `arrendatario` ≥ 1, `fiador` ≥ 1.\n   - El preprocesador `normalizeMultiparty()` debe mapear campos legacy (`propietario_id`, `inquilino_id`, `fiador_id`) a `partes[]`.\n\n5) **Fidelidad al modelo intacta (v1.3.1):**\n   - El render sigue en **Template Fidelity Mode = STRICT**. Los nuevos campos solo alimentan placeholders/bloques permitidos; no alteran forma/estilo.\n"
+  ],
+  "global_catalogs": {
+    "rd": {
+      "provincias": [
+        {
+          "id": "DN",
+          "nombre": "Distrito Nacional"
+        },
+        {
+          "id": "SD",
+          "nombre": "Santo Domingo"
+        },
+        {
+          "id": "AZ",
+          "nombre": "Azua"
+        },
+        {
+          "id": "BH",
+          "nombre": "Bahoruco"
+        },
+        {
+          "id": "BR",
+          "nombre": "Barahona"
+        },
+        {
+          "id": "DA",
+          "nombre": "Dajabón"
+        },
+        {
+          "id": "DU",
+          "nombre": "Duarte"
+        },
+        {
+          "id": "EP",
+          "nombre": "Elías Piña"
+        },
+        {
+          "id": "ES",
+          "nombre": "El Seibo"
+        },
+        {
+          "id": "ESp",
+          "nombre": "Espaillat"
+        },
+        {
+          "id": "HMt",
+          "nombre": "Hato Mayor"
+        },
+        {
+          "id": "HM",
+          "nombre": "Hermanas Mirabal"
+        },
+        {
+          "id": "IN",
+          "nombre": "Independencia"
+        },
+        {
+          "id": "LA",
+          "nombre": "La Altagracia"
+        },
+        {
+          "id": "LR",
+          "nombre": "La Romana"
+        },
+        {
+          "id": "LV",
+          "nombre": "La Vega"
+        },
+        {
+          "id": "MTS",
+          "nombre": "María Trinidad Sánchez"
+        },
+        {
+          "id": "MN",
+          "nombre": "Monseñor Nouel"
+        },
+        {
+          "id": "MC",
+          "nombre": "Monte Cristi"
+        },
+        {
+          "id": "MP",
+          "nombre": "Monte Plata"
+        },
+        {
+          "id": "PD",
+          "nombre": "Pedernales"
+        },
+        {
+          "id": "PE",
+          "nombre": "Peravia"
+        },
+        {
+          "id": "PP",
+          "nombre": "Puerto Plata"
+        },
+        {
+          "id": "SM",
+          "nombre": "Samaná"
+        },
+        {
+          "id": "SC",
+          "nombre": "San Cristóbal"
+        },
+        {
+          "id": "SJO",
+          "nombre": "San José de Ocoa"
+        },
+        {
+          "id": "SJ",
+          "nombre": "San Juan"
+        },
+        {
+          "id": "SPM",
+          "nombre": "San Pedro de Macorís"
+        },
+        {
+          "id": "SR",
+          "nombre": "Sánchez Ramírez"
+        },
+        {
+          "id": "ST",
+          "nombre": "Santiago"
+        },
+        {
+          "id": "SRd",
+          "nombre": "Santiago Rodríguez"
+        },
+        {
+          "id": "VD",
+          "nombre": "Valverde"
+        }
+      ],
+      "municipios": [
+        {
+          "id": "DN-01",
+          "nombre": "Santo Domingo de Guzmán",
+          "provincia_id": "DN"
+        },
+        {
+          "id": "SD-01",
+          "nombre": "Santo Domingo Este",
+          "provincia_id": "SD"
+        },
+        {
+          "id": "SD-02",
+          "nombre": "Santo Domingo Norte",
+          "provincia_id": "SD"
+        },
+        {
+          "id": "SD-03",
+          "nombre": "Santo Domingo Oeste",
+          "provincia_id": "SD"
+        },
+        {
+          "id": "SD-04",
+          "nombre": "Boca Chica",
+          "provincia_id": "SD"
+        },
+        {
+          "id": "ST-01",
+          "nombre": "Santiago de los Caballeros",
+          "provincia_id": "ST"
+        },
+        {
+          "id": "SC-01",
+          "nombre": "San Cristóbal",
+          "provincia_id": "SC"
+        },
+        {
+          "id": "LV-01",
+          "nombre": "La Vega",
+          "provincia_id": "LV"
+        },
+        {
+          "id": "PP-01",
+          "nombre": "San Felipe de Puerto Plata",
+          "provincia_id": "PP"
+        },
+        {
+          "id": "SPM-01",
+          "nombre": "San Pedro de Macorís",
+          "provincia_id": "SPM"
+        },
+        {
+          "id": "LR-01",
+          "nombre": "La Romana",
+          "provincia_id": "LR"
+        },
+        {
+          "id": "LA-01",
+          "nombre": "Higüey (Salvaleón de Higüey)",
+          "provincia_id": "LA"
+        }
+      ],
+      "ciudades": [
+        {
+          "id": "DN-01-01",
+          "nombre": "Zona Colonial",
+          "municipio_id": "DN-01"
+        },
+        {
+          "id": "SD-01-01",
+          "nombre": "Los Mina",
+          "municipio_id": "SD-01"
+        },
+        {
+          "id": "SD-01-02",
+          "nombre": "Villa Duarte",
+          "municipio_id": "SD-01"
+        },
+        {
+          "id": "SD-02-01",
+          "nombre": "Villa Mella",
+          "municipio_id": "SD-02"
+        },
+        {
+          "id": "SD-03-01",
+          "nombre": "Herrera",
+          "municipio_id": "SD-03"
+        }
+      ]
+    }
+  },
+  "global_ui_overrides": {
+    "append_fields_all_forms": [
+      {
+        "name": "provincia_id",
+        "label": "Provincia",
+        "type": "select",
+        "source": "catalog:rd.provincias",
+        "required": true,
+        "fallback_text_field": "provincia_text"
+      },
+      {
+        "name": "municipio_id",
+        "label": "Municipio",
+        "type": "select",
+        "source": "catalog:rd.municipios",
+        "depends_on": "provincia_id",
+        "filter_by_parent": "provincia_id",
+        "required": true,
+        "fallback_text_field": "municipio_text"
+      },
+      {
+        "name": "ciudad_id",
+        "label": "Ciudad/Sección/Paraje",
+        "type": "select",
+        "source": "catalog:rd.ciudades",
+        "depends_on": "municipio_id",
+        "filter_by_parent": "municipio_id",
+        "required": false,
+        "fallback_text_field": "ciudad_text"
+      }
+    ],
+    "dependent_filters": true
+  },
+  "global_schema_overrides": {
+    "partes_field": {
+      "name": "partes",
+      "label": "Partes (múltiples)",
+      "type": "list",
+      "item_type": "object",
+      "schema": {
+        "fields": [
+          {
+            "name": "rol",
+            "label": "Rol procesal/contractual",
+            "type": "select",
+            "options": [
+              "demandante",
+              "demandado",
+              "requirente",
+              "requerido",
+              "impetrante",
+              "impetrado",
+              "contratante",
+              "contratado",
+              "poderdante",
+              "poderhabiente",
+              "vendedor",
+              "comprador",
+              "arrendador",
+              "arrendatario",
+              "fiador",
+              "querellante",
+              "querellado",
+              "actor_civil",
+              "tercero_interviniente"
+            ],
+            "required": true
+          },
+          {
+            "name": "persona_id",
+            "label": "Persona (ID/Cédula/RNC)",
+            "type": "party",
+            "required": true,
+            "autofill": "cedula|rnc"
+          },
+          {
+            "name": "representante_profesional_id",
+            "label": "Abogado representante (si aplica)",
+            "type": "professional",
+            "subtype": "abogado",
+            "source": "profesionales",
+            "required": false
+          },
+          {
+            "name": "calidad",
+            "label": "Calidad/Observaciones",
+            "type": "text",
+            "required": false
+          },
+          {
+            "name": "orden",
+            "label": "Orden (Cliente)",
+            "type": "select",
+            "options": [
+              "Primer cliente",
+              "Segundo cliente",
+              "Tercer cliente",
+              "Cuarto cliente",
+              "Quinto cliente",
+              "Sexto cliente",
+              "Séptimo cliente",
+              "Octavo cliente",
+              "Noveno cliente",
+              "Décimo cliente",
+              "Más clientes…"
+            ],
+            "required": false,
+            "show_if": {
+              "rol_in": [
+                "contratante",
+                "contratado",
+                "arrendatario",
+                "comprador",
+                "vendedor",
+                "poderdante",
+                "poderhabiente",
+                "fiador"
+              ]
+            }
+          },
+          {
+            "name": "nacionalidad",
+            "label": "Nacionalidad",
+            "type": "text",
+            "required": false,
+            "autofill": "person.nationality",
+            "override_allowed": true
+          },
+          {
+            "name": "estado_civil",
+            "label": "Estado civil",
+            "type": "select",
+            "options": [
+              "Soltero/a",
+              "Casado/a",
+              "Unión libre",
+              "Divorciado/a",
+              "Viudo/a"
+            ],
+            "required": false,
+            "autofill": "person.marital_status",
+            "override_allowed": true
+          },
+          {
+            "name": "profesion",
+            "label": "Profesión/Ocupación",
+            "type": "text",
+            "required": false,
+            "autofill": "person.occupation",
+            "override_allowed": true
+          }
+        ]
+      }
+    },
+    "extend_partes_with_ordinal_autofill": true
+  }
+}
