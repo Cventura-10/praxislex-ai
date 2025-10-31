@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -6,10 +6,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Combobox } from "@/components/ui/combobox";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { LegalActBundle, ActFieldSchema } from "@/lib/legalActsBundle";
-import { ChevronLeft, ChevronRight, FileText, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, FileText, Loader2, Plus, Trash2 } from "lucide-react";
 import { ClientSelector } from "./ClientSelector";
 import { TribunalSelector } from "./TribunalSelector";
 import { useClients } from "@/hooks/useClients";
@@ -19,6 +20,7 @@ import { useAlguaciles } from "@/hooks/useAlguaciles";
 import { usePeritos } from "@/hooks/usePeritos";
 import { useTasadores } from "@/hooks/useTasadores";
 import { Document, Packer, Paragraph, TextRun } from "docx";
+import bundleData from "@/data/praxislex_bundle_v1_3_2.json";
 
 interface BundleIntakeFormProps {
   actBundle: LegalActBundle;
@@ -73,6 +75,43 @@ export function BundleIntakeForm({ actBundle }: BundleIntakeFormProps) {
     currentList.splice(index, 1);
     setFormData(prev => ({ ...prev, [fieldName]: currentList }));
   };
+
+  // Handlers for complex list objects (like partes)
+  const handleObjectListAdd = (fieldName: string, defaultObj: any) => {
+    const currentList = formData[fieldName] || [];
+    setFormData(prev => ({ ...prev, [fieldName]: [...currentList, defaultObj] }));
+  };
+
+  const handleObjectListChange = (fieldName: string, index: number, subfield: string, value: any) => {
+    const currentList = [...(formData[fieldName] || [])];
+    currentList[index] = { ...currentList[index], [subfield]: value };
+    setFormData(prev => ({ ...prev, [fieldName]: currentList }));
+  };
+
+  const handleObjectListRemove = (fieldName: string, index: number) => {
+    const currentList = [...(formData[fieldName] || [])];
+    currentList.splice(index, 1);
+    setFormData(prev => ({ ...prev, [fieldName]: currentList }));
+  };
+
+  // Geographic data from bundle
+  const provincias = useMemo(() => bundleData.global_catalogs.rd.provincias, []);
+  const municipios = useMemo(() => bundleData.global_catalogs.rd.municipios, []);
+  const ciudades = useMemo(() => bundleData.global_catalogs.rd.ciudades, []);
+
+  // Filter municipios based on selected provincia
+  const filteredMunicipios = useMemo(() => {
+    const provinciaId = formData.provincia_id;
+    if (!provinciaId) return [];
+    return municipios.filter(m => m.provincia_id === provinciaId);
+  }, [formData.provincia_id, municipios]);
+
+  // Filter ciudades based on selected municipio
+  const filteredCiudades = useMemo(() => {
+    const municipioId = formData.municipio_id;
+    if (!municipioId) return [];
+    return ciudades.filter(c => c.municipio_id === municipioId);
+  }, [formData.municipio_id, ciudades]);
 
   const canProceedToNext = () => {
     return currentFields.every(field => {
@@ -157,6 +196,53 @@ export function BundleIntakeForm({ actBundle }: BundleIntakeFormProps) {
   const renderField = (field: ActFieldSchema) => {
     const value = formData[field.name];
 
+    // Handle geographic dropdowns
+    if (field.name === 'provincia_id') {
+      return (
+        <Combobox
+          options={provincias.map(p => ({ value: p.id, label: p.nombre }))}
+          value={value}
+          onValueChange={(val) => {
+            handleFieldChange(field.name, val);
+            // Reset dependent fields
+            handleFieldChange('municipio_id', '');
+            handleFieldChange('ciudad_id', '');
+          }}
+          placeholder="Seleccionar provincia..."
+          searchPlaceholder="Buscar provincia..."
+        />
+      );
+    }
+
+    if (field.name === 'municipio_id') {
+      return (
+        <Combobox
+          options={filteredMunicipios.map(m => ({ value: m.id, label: m.nombre }))}
+          value={value}
+          onValueChange={(val) => {
+            handleFieldChange(field.name, val);
+            handleFieldChange('ciudad_id', '');
+          }}
+          placeholder="Seleccionar municipio..."
+          searchPlaceholder="Buscar municipio..."
+          disabled={!formData.provincia_id}
+        />
+      );
+    }
+
+    if (field.name === 'ciudad_id') {
+      return (
+        <Combobox
+          options={filteredCiudades.map(c => ({ value: c.id, label: c.nombre }))}
+          value={value}
+          onValueChange={(val) => handleFieldChange(field.name, val)}
+          placeholder="Seleccionar ciudad..."
+          searchPlaceholder="Buscar ciudad..."
+          disabled={!formData.municipio_id}
+        />
+      );
+    }
+
     switch (field.type) {
       case 'party':
         return (
@@ -231,6 +317,62 @@ export function BundleIntakeForm({ actBundle }: BundleIntakeFormProps) {
         );
 
       case 'list':
+        // Check if this is a complex object list (like partes)
+        if (field.name === 'partes' || (field as any).item_type === 'object') {
+          const partesSchema = bundleData.global_schema_overrides.partes_field;
+          const partesList = value || [];
+          
+          return (
+            <div className="space-y-4">
+              {partesList.map((parte: any, idx: number) => (
+                <Card key={idx} className="border-2">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-sm">Parte #{idx + 1}</CardTitle>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => handleObjectListRemove(field.name, idx)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {partesSchema.schema.fields.map((subfield: any) => {
+                      // Check if field should be shown
+                      if (subfield.show_if) {
+                        const shouldShow = subfield.show_if.rol_in?.includes(parte.rol);
+                        if (!shouldShow) return null;
+                      }
+
+                      return (
+                        <div key={subfield.name} className="space-y-2">
+                          <Label>
+                            {subfield.label}
+                            {subfield.required && <span className="text-destructive ml-1">*</span>}
+                          </Label>
+                          {renderSubfield(subfield, field.name, idx, parte[subfield.name])}
+                        </div>
+                      );
+                    })}
+                  </CardContent>
+                </Card>
+              ))}
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => handleObjectListAdd(field.name, { rol: '', persona_id: '' })}
+                className="w-full"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Agregar Parte
+              </Button>
+            </div>
+          );
+        }
+
+        // Simple list (strings)
         const list = value || [];
         return (
           <div className="space-y-2">
@@ -241,13 +383,14 @@ export function BundleIntakeForm({ actBundle }: BundleIntakeFormProps) {
                   onChange={(e) => handleListChange(field.name, idx, e.target.value)}
                   placeholder={`${field.label} #${idx + 1}`}
                 />
-                <Button variant="destructive" size="sm" onClick={() => handleListRemove(field.name, idx)}>
-                  Eliminar
+                <Button variant="ghost" size="sm" onClick={() => handleListRemove(field.name, idx)}>
+                  <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
             ))}
             <Button variant="outline" size="sm" onClick={() => handleListAdd(field.name)}>
-              + Agregar {field.label}
+              <Plus className="mr-2 h-4 w-4" />
+              Agregar {field.label}
             </Button>
           </div>
         );
@@ -289,6 +432,86 @@ export function BundleIntakeForm({ actBundle }: BundleIntakeFormProps) {
             value={value || ''}
             onChange={(e) => handleFieldChange(field.name, e.target.value)}
             placeholder={field.label}
+          />
+        );
+    }
+  };
+
+  const renderSubfield = (subfield: any, parentFieldName: string, parentIndex: number, value: any) => {
+    switch (subfield.type) {
+      case 'party':
+        return (
+          <ClientSelector
+            label=""
+            fieldPrefix={`${parentFieldName}_${parentIndex}_${subfield.name.replace(/_id$/, '')}`}
+            value={value}
+            onChange={(val) => handleObjectListChange(parentFieldName, parentIndex, subfield.name, val)}
+            onFieldUpdate={(fields) => {
+              // Autofill related fields
+              if (fields.nacionalidad) {
+                handleObjectListChange(parentFieldName, parentIndex, 'nacionalidad', fields.nacionalidad);
+              }
+              if (fields.estado_civil) {
+                handleObjectListChange(parentFieldName, parentIndex, 'estado_civil', fields.estado_civil);
+              }
+              if (fields.profesion) {
+                handleObjectListChange(parentFieldName, parentIndex, 'profesion', fields.profesion);
+              }
+            }}
+            required={subfield.required}
+          />
+        );
+
+      case 'professional':
+        const profData = subfield.subtype === 'abogado' ? lawyers :
+                        subfield.subtype === 'notario' ? notarios :
+                        subfield.subtype === 'alguacil' ? alguaciles :
+                        subfield.subtype === 'perito' ? peritos :
+                        subfield.subtype === 'tasador' ? tasadores : [];
+        
+        return (
+          <Select 
+            value={value} 
+            onValueChange={(val) => handleObjectListChange(parentFieldName, parentIndex, subfield.name, val)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder={`Seleccionar ${subfield.subtype}`} />
+            </SelectTrigger>
+            <SelectContent className="bg-popover z-50">
+              {profData.map((prof: any) => (
+                <SelectItem key={prof.id} value={prof.id}>
+                  {prof.nombre} {prof.matricula ? `(${prof.matricula})` : ''}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        );
+
+      case 'select':
+        return (
+          <Select 
+            value={value} 
+            onValueChange={(val) => handleObjectListChange(parentFieldName, parentIndex, subfield.name, val)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Seleccionar..." />
+            </SelectTrigger>
+            <SelectContent className="bg-popover z-50">
+              {subfield.options?.map((opt: string) => (
+                <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        );
+
+      case 'text':
+      default:
+        return (
+          <Input
+            type="text"
+            value={value || ''}
+            onChange={(e) => handleObjectListChange(parentFieldName, parentIndex, subfield.name, e.target.value)}
+            placeholder={subfield.label}
           />
         );
     }

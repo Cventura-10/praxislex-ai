@@ -73,15 +73,15 @@ export function Combobox({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0 popover-content-width-full" align="start">
-        <Command>
-          <div className="flex items-center border-b px-3">
+      <PopoverContent className="w-full p-0 popover-content-width-full bg-popover z-50" align="start">
+        <Command className="bg-popover">
+          <div className="flex items-center border-b px-3 bg-popover">
             <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
-            <CommandInput placeholder={searchPlaceholder} className="h-9" />
+            <CommandInput placeholder={searchPlaceholder} className="h-9 bg-popover" />
           </div>
-          <ScrollArea className="h-[300px]">
-            <CommandEmpty>{emptyMessage}</CommandEmpty>
-            <CommandGroup>
+          <ScrollArea className="h-[300px] bg-popover">
+            <CommandEmpty className="py-6 text-center text-sm">{emptyMessage}</CommandEmpty>
+            <CommandGroup className="bg-popover">
               {options.map((option) => (
                 <CommandItem
                   key={option.value}
@@ -90,6 +90,7 @@ export function Combobox({
                     onValueChange(currentValue === value ? "" : currentValue)
                     setOpen(false)
                   }}
+                  className="cursor-pointer"
                 >
                   <Check
                     className={cn(
