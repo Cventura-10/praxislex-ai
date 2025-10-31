@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -101,7 +102,7 @@ export function BundleIntakeForm({ actBundle }: BundleIntakeFormProps) {
     const currentList = [...(formData[fieldName] || [])];
     currentList[index] = { ...currentList[index], [subfield]: value };
     
-    // Si es persona_id, realizar autofill
+    // v1.4.4 - Autofill completo: generales + domicilio
     if (subfield === 'persona_id' && value) {
       try {
         const clientData = await getClientById(value);
@@ -111,6 +112,11 @@ export function BundleIntakeForm({ actBundle }: BundleIntakeFormProps) {
             nacionalidad: clientData.nacionalidad || "",
             estado_civil: normalizeEstadoCivil(clientData.estado_civil),
             profesion: clientData.profesion || clientData.ocupacion || "",
+            // Domicilio (v1.4.4)
+            provincia_id: clientData.provincia_id || "",
+            municipio_id: clientData.municipio_id || "",
+            ciudad_id: clientData.ciudad_id || "",
+            direccion: clientData.direccion || "",
             autofill_fuente: "personas",
             autofill_ok: true,
             override: false
@@ -119,7 +125,7 @@ export function BundleIntakeForm({ actBundle }: BundleIntakeFormProps) {
           // Resetear modo edición para esta parte
           setPartesEditMode(prev => ({ ...prev, [index]: false }));
           
-          toast.success(`Datos civiles autocompletados para la parte #${index + 1}`);
+          toast.success(`Generales y domicilio autocompletados para ${currentList[index].rol || `parte #${index + 1}`}`);
         } else {
           currentList[index] = {
             ...currentList[index],
@@ -135,8 +141,22 @@ export function BundleIntakeForm({ actBundle }: BundleIntakeFormProps) {
       }
     }
     
+    // v1.4.4 - Cascada de geo: limpiar dependientes
+    if (subfield === 'provincia_id') {
+      currentList[index] = {
+        ...currentList[index],
+        municipio_id: "",
+        ciudad_id: ""
+      };
+    } else if (subfield === 'municipio_id') {
+      currentList[index] = {
+        ...currentList[index],
+        ciudad_id: ""
+      };
+    }
+    
     // Si estamos en modo override, marcarlo
-    if (partesEditMode[index] && ['nacionalidad', 'estado_civil', 'profesion'].includes(subfield)) {
+    if (partesEditMode[index] && ['nacionalidad', 'estado_civil', 'profesion', 'direccion'].includes(subfield)) {
       currentList[index] = {
         ...currentList[index],
         override: true
@@ -170,6 +190,17 @@ export function BundleIntakeForm({ actBundle }: BundleIntakeFormProps) {
     if (!municipioId) return [];
     return ciudades.filter(c => c.municipio_id === municipioId);
   }, [formData.municipio_id, ciudades]);
+
+  // v1.4.4 - Helpers para geo dependientes en partes[]
+  const getMunicipiosByProvincia = (provinciaId: string) => {
+    if (!provinciaId) return [];
+    return municipios.filter(m => m.provincia_id === provinciaId);
+  };
+
+  const getCiudadesByMunicipio = (municipioId: string) => {
+    if (!municipioId) return [];
+    return ciudades.filter(c => c.municipio_id === municipioId);
+  };
 
   const canProceedToNext = () => {
     return currentFields.every(field => {
@@ -418,7 +449,14 @@ export function BundleIntakeForm({ actBundle }: BundleIntakeFormProps) {
                       </Button>
                     </div>
                   </CardHeader>
-                  <CardContent className="space-y-3">
+                   <CardContent className="space-y-3">
+                    {/* v1.4.4 - Hint solo si NO hay autofill */}
+                    {!parte.autofill_ok && (
+                      <p className="text-xs text-muted-foreground bg-blue-50 p-2 rounded border border-blue-200">
+                        💡 Seleccione una persona por cédula/RNC para autocompletar generales y domicilio automáticamente
+                      </p>
+                    )}
+                    
                     {partesSchema.schema.fields.map((subfield: any) => {
                       // Check if field should be shown
                       if (subfield.show_if) {
@@ -426,8 +464,8 @@ export function BundleIntakeForm({ actBundle }: BundleIntakeFormProps) {
                         if (!shouldShow) return null;
                       }
 
-                      // Determinar si el campo debe estar readonly
-                      const isAutofilledField = ['nacionalidad', 'estado_civil', 'profesion'].includes(subfield.name);
+                      // v1.4.4 - Campos autofill: generales + domicilio
+                      const isAutofilledField = ['nacionalidad', 'estado_civil', 'profesion', 'direccion', 'provincia_id', 'municipio_id', 'ciudad_id'].includes(subfield.name);
                       const isReadonly = parte.autofill_ok && isAutofilledField && !partesEditMode[idx];
                       
                       return (
@@ -435,14 +473,9 @@ export function BundleIntakeForm({ actBundle }: BundleIntakeFormProps) {
                           <Label>
                             {subfield.label}
                             {subfield.required && <span className="text-destructive ml-1">*</span>}
-                            {isReadonly && <span className="text-xs text-muted-foreground ml-2">(autocompletado)</span>}
+                            {isReadonly && <span className="text-xs text-green-600 ml-2">✓ autocompletado</span>}
                           </Label>
-                          {renderSubfield(subfield, field.name, idx, parte[subfield.name], isReadonly)}
-                          {!parte.autofill_ok && isAutofilledField && (
-                            <p className="text-xs text-muted-foreground">
-                              💡 Ingrese manualmente o seleccione una persona registrada para autocompletar
-                            </p>
-                          )}
+                          {renderSubfield(subfield, field.name, idx, parte, isReadonly)}
                         </div>
                       );
                     })}
@@ -527,7 +560,9 @@ export function BundleIntakeForm({ actBundle }: BundleIntakeFormProps) {
     }
   };
 
-  const renderSubfield = (subfield: any, parentFieldName: string, parentIndex: number, value: any, isReadonly: boolean = false) => {
+  const renderSubfield = (subfield: any, parentFieldName: string, parentIndex: number, parte: any, isReadonly: boolean = false) => {
+    const value = parte[subfield.name];
+    
     switch (subfield.type) {
       case 'party':
         return (
@@ -536,18 +571,7 @@ export function BundleIntakeForm({ actBundle }: BundleIntakeFormProps) {
             fieldPrefix={`${parentFieldName}_${parentIndex}_${subfield.name.replace(/_id$/, '')}`}
             value={value}
             onChange={(val) => handleObjectListChange(parentFieldName, parentIndex, subfield.name, val)}
-            onFieldUpdate={(fields) => {
-              // Autofill related fields
-              if (fields.nacionalidad) {
-                handleObjectListChange(parentFieldName, parentIndex, 'nacionalidad', fields.nacionalidad);
-              }
-              if (fields.estado_civil) {
-                handleObjectListChange(parentFieldName, parentIndex, 'estado_civil', fields.estado_civil);
-              }
-              if (fields.profesion) {
-                handleObjectListChange(parentFieldName, parentIndex, 'profesion', fields.profesion);
-              }
-            }}
+            onFieldUpdate={() => {}} // El autofill lo maneja handleObjectListChange directamente
             required={subfield.required}
           />
         );
@@ -578,10 +602,67 @@ export function BundleIntakeForm({ actBundle }: BundleIntakeFormProps) {
         );
 
       case 'select':
+        // v1.4.4 - Geo en partes[] - Provincia
+        if (subfield.name === 'provincia_id' && subfield.source === 'catalog:rd.provincias') {
+          return (
+            <Combobox
+              options={provincias.map(p => ({ value: p.id, label: p.nombre }))}
+              value={value || ""}
+              onValueChange={(val) => handleObjectListChange(parentFieldName, parentIndex, subfield.name, val)}
+              placeholder="Seleccionar provincia..."
+              disabled={isReadonly}
+            />
+          );
+        }
+        
+        // v1.4.4 - Geo en partes[] - Municipio
+        if (subfield.name === 'municipio_id' && subfield.source === 'catalog:rd.municipios') {
+          const selectedProvincia = parte.provincia_id;
+          const municipiosList = getMunicipiosByProvincia(selectedProvincia);
+          
+          return (
+            <div className="space-y-1">
+              <Combobox
+                options={municipiosList.map(m => ({ value: m.id, label: m.nombre }))}
+                value={value || ""}
+                onValueChange={(val) => handleObjectListChange(parentFieldName, parentIndex, subfield.name, val)}
+                placeholder={selectedProvincia ? "Seleccionar municipio..." : "Primero seleccione provincia"}
+                disabled={!selectedProvincia || isReadonly}
+              />
+              {!selectedProvincia && (
+                <p className="text-xs text-amber-600">Debe seleccionar una provincia primero</p>
+              )}
+            </div>
+          );
+        }
+        
+        // v1.4.4 - Geo en partes[] - Ciudad
+        if (subfield.name === 'ciudad_id' && subfield.source === 'catalog:rd.ciudades') {
+          const selectedMunicipio = parte.municipio_id;
+          const ciudadesList = getCiudadesByMunicipio(selectedMunicipio);
+          
+          return (
+            <div className="space-y-1">
+              <Combobox
+                options={ciudadesList.map(c => ({ value: c.id, label: c.nombre }))}
+                value={value || ""}
+                onValueChange={(val) => handleObjectListChange(parentFieldName, parentIndex, subfield.name, val)}
+                placeholder={selectedMunicipio ? "Seleccionar ciudad..." : "Primero seleccione municipio"}
+                disabled={!selectedMunicipio || isReadonly}
+              />
+              {!selectedMunicipio && (
+                <p className="text-xs text-amber-600">Debe seleccionar un municipio primero</p>
+              )}
+            </div>
+          );
+        }
+        
+        // Otros selects
         return (
           <Select 
             value={value} 
             onValueChange={(val) => handleObjectListChange(parentFieldName, parentIndex, subfield.name, val)}
+            disabled={isReadonly}
           >
             <SelectTrigger>
               <SelectValue placeholder="Seleccionar..." />
@@ -594,6 +675,18 @@ export function BundleIntakeForm({ actBundle }: BundleIntakeFormProps) {
           </Select>
         );
 
+      case 'textarea':
+        return (
+          <Textarea
+            value={value || ''}
+            onChange={(e) => handleObjectListChange(parentFieldName, parentIndex, subfield.name, e.target.value)}
+            placeholder={subfield.label}
+            disabled={isReadonly}
+            className={isReadonly ? "bg-muted cursor-not-allowed" : ""}
+            rows={3}
+          />
+        );
+
       case 'text':
       default:
         return (
@@ -601,7 +694,7 @@ export function BundleIntakeForm({ actBundle }: BundleIntakeFormProps) {
             type="text"
             value={value || ''}
             onChange={(e) => handleObjectListChange(parentFieldName, parentIndex, subfield.name, e.target.value)}
-            placeholder={subfield.label}
+            placeholder={isReadonly ? "" : subfield.label}
             disabled={isReadonly}
             className={isReadonly ? "bg-muted cursor-not-allowed" : ""}
           />
