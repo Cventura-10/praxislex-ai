@@ -571,51 +571,93 @@ export type Database = {
         Row: {
           accepted_terms: boolean | null
           auth_user_id: string | null
+          cargo_representante: string | null
           cedula_rnc_encrypted: string | null
           created_at: string | null
           direccion: string | null
           email: string | null
+          empresa_empleador: string | null
+          estado_civil: string | null
+          fecha_nacimiento: string | null
           id: string
           invitation_token: string | null
           invited_at: string | null
+          lugar_nacimiento: string | null
+          matricula_card: string | null
+          matricula_profesional: string | null
+          nacionalidad: string | null
           nombre_completo: string
+          ocupacion: string | null
+          pasaporte: string | null
+          profesion: string | null
+          razon_social: string | null
+          representante_legal: string | null
           telefono: string | null
           tenant_id: string
           terms_accepted_at: string | null
+          tipo_persona: string | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
           accepted_terms?: boolean | null
           auth_user_id?: string | null
+          cargo_representante?: string | null
           cedula_rnc_encrypted?: string | null
           created_at?: string | null
           direccion?: string | null
           email?: string | null
+          empresa_empleador?: string | null
+          estado_civil?: string | null
+          fecha_nacimiento?: string | null
           id?: string
           invitation_token?: string | null
           invited_at?: string | null
+          lugar_nacimiento?: string | null
+          matricula_card?: string | null
+          matricula_profesional?: string | null
+          nacionalidad?: string | null
           nombre_completo: string
+          ocupacion?: string | null
+          pasaporte?: string | null
+          profesion?: string | null
+          razon_social?: string | null
+          representante_legal?: string | null
           telefono?: string | null
           tenant_id: string
           terms_accepted_at?: string | null
+          tipo_persona?: string | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
           accepted_terms?: boolean | null
           auth_user_id?: string | null
+          cargo_representante?: string | null
           cedula_rnc_encrypted?: string | null
           created_at?: string | null
           direccion?: string | null
           email?: string | null
+          empresa_empleador?: string | null
+          estado_civil?: string | null
+          fecha_nacimiento?: string | null
           id?: string
           invitation_token?: string | null
           invited_at?: string | null
+          lugar_nacimiento?: string | null
+          matricula_card?: string | null
+          matricula_profesional?: string | null
+          nacionalidad?: string | null
           nombre_completo?: string
+          ocupacion?: string | null
+          pasaporte?: string | null
+          profesion?: string | null
+          razon_social?: string | null
+          representante_legal?: string | null
           telefono?: string | null
           tenant_id?: string
           terms_accepted_at?: string | null
+          tipo_persona?: string | null
           updated_at?: string | null
           user_id?: string
         }

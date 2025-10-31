@@ -23,6 +23,17 @@ export interface ClientFullData {
   nacionalidad?: string;
   estado_civil?: string;
   profesion?: string;
+  fecha_nacimiento?: string;
+  lugar_nacimiento?: string;
+  pasaporte?: string;
+  ocupacion?: string;
+  empresa_empleador?: string;
+  matricula_card?: string;
+  matricula_profesional?: string;
+  tipo_persona?: string;
+  razon_social?: string;
+  representante_legal?: string;
+  cargo_representante?: string;
 }
 
 export function useClients() {
@@ -83,6 +94,17 @@ export function useClients() {
         nacionalidad: result.nacionalidad || '',
         estado_civil: result.estado_civil || '',
         profesion: result.profesion || '',
+        fecha_nacimiento: result.fecha_nacimiento || '',
+        lugar_nacimiento: result.lugar_nacimiento || '',
+        pasaporte: result.pasaporte || '',
+        ocupacion: result.ocupacion || '',
+        empresa_empleador: result.empresa_empleador || '',
+        matricula_card: result.matricula_card || '',
+        matricula_profesional: result.matricula_profesional || '',
+        tipo_persona: result.tipo_persona || 'fisica',
+        razon_social: result.razon_social || '',
+        representante_legal: result.representante_legal || '',
+        cargo_representante: result.cargo_representante || '',
       };
     } catch (error: any) {
       console.error("Error getting client data:", error);

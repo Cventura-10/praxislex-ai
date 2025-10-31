@@ -42,6 +42,13 @@ export function ClientSelector({
         [`${fieldPrefix}_profesion`]: "",
         [`${fieldPrefix}_email`]: "",
         [`${fieldPrefix}_telefono`]: "",
+        [`${fieldPrefix}_fecha_nacimiento`]: "",
+        [`${fieldPrefix}_lugar_nacimiento`]: "",
+        [`${fieldPrefix}_pasaporte`]: "",
+        [`${fieldPrefix}_ocupacion`]: "",
+        [`${fieldPrefix}_empresa_empleador`]: "",
+        [`${fieldPrefix}_matricula_card`]: "",
+        [`${fieldPrefix}_matricula_profesional`]: "",
       });
       return;
     }
@@ -58,6 +65,13 @@ export function ClientSelector({
         [`${fieldPrefix}_profesion`]: clientData.profesion || "",
         [`${fieldPrefix}_email`]: clientData.email || "",
         [`${fieldPrefix}_telefono`]: clientData.telefono || "",
+        [`${fieldPrefix}_fecha_nacimiento`]: clientData.fecha_nacimiento || "",
+        [`${fieldPrefix}_lugar_nacimiento`]: clientData.lugar_nacimiento || "",
+        [`${fieldPrefix}_pasaporte`]: clientData.pasaporte || "",
+        [`${fieldPrefix}_ocupacion`]: clientData.ocupacion || "",
+        [`${fieldPrefix}_empresa_empleador`]: clientData.empresa_empleador || "",
+        [`${fieldPrefix}_matricula_card`]: clientData.matricula_card || "",
+        [`${fieldPrefix}_matricula_profesional`]: clientData.matricula_profesional || "",
       });
       
       toast({
@@ -84,6 +98,13 @@ export function ClientSelector({
           [`${fieldPrefix}_profesion`]: clientData.profesion || "",
           [`${fieldPrefix}_email`]: clientData.email || "",
           [`${fieldPrefix}_telefono`]: clientData.telefono || "",
+          [`${fieldPrefix}_fecha_nacimiento`]: clientData.fecha_nacimiento || "",
+          [`${fieldPrefix}_lugar_nacimiento`]: clientData.lugar_nacimiento || "",
+          [`${fieldPrefix}_pasaporte`]: clientData.pasaporte || "",
+          [`${fieldPrefix}_ocupacion`]: clientData.ocupacion || "",
+          [`${fieldPrefix}_empresa_empleador`]: clientData.empresa_empleador || "",
+          [`${fieldPrefix}_matricula_card`]: clientData.matricula_card || "",
+          [`${fieldPrefix}_matricula_profesional`]: clientData.matricula_profesional || "",
         });
         
         toast({
