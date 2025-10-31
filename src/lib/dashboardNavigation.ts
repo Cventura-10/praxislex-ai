@@ -26,20 +26,20 @@ export interface DashboardNavigationEvent {
 
 // Route mappings for metrics
 const metricRoutes: Record<MetricKey, string> = {
-  NOTIFS: "/notificaciones?state=nuevo&assignee=current",
-  CASOS_ACTIVOS: "/casos?status=activo&owner=current",
-  VENCIMIENTOS: "/audiencias?view=list&filter=vencimientos&range=next7d",
-  AUDIENCIAS: "/audiencias?view=semana&owner=current",
-  DOCS: "/documentos?sort=created_desc&owner=current",
-  PENDIENTES: "/tareas?state=pendiente&assignee=current",
-  IMPORTANTES: "/notificaciones?priority=alta&due=today",
+  NOTIFS: "/audiencias", // Audiencias page shows deadlines and notifications
+  CASOS_ACTIVOS: "/casos",
+  VENCIMIENTOS: "/audiencias",
+  AUDIENCIAS: "/audiencias",
+  DOCS: "/documentos",
+  PENDIENTES: "/audiencias",
+  IMPORTANTES: "/audiencias",
 };
 
 // Route mappings for CTAs
 const ctaRoutes: Record<CTAKey, string> = {
-  NUEVO_CASO: "/casos/new",
-  NUEVO_ACTO: "/actos/new",
-  NUEVA_TAREA: "/tareas/new",
+  NUEVO_CASO: "/casos",
+  NUEVO_ACTO: "/redaccion-ia",
+  NUEVA_TAREA: "/audiencias",
 };
 
 export function getMetricRoute(key: MetricKey): string {
