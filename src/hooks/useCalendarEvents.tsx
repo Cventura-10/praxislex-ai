@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useTenant } from "@/hooks/useTenant";
 
 export type EventType = "Notificación" | "Audiencia" | "Plazo" | "Depósito" | "Firma" | "Entrega" | "Otro";
 export type EventStatus = "pendiente" | "en_curso" | "cumplido" | "vencido" | "reprogramado";
@@ -16,7 +17,7 @@ export interface CalendarEvent {
   descripcion?: string;
   ubicacion?: string;
   inicio: string; // ISO 8601
-  fin: string; // ISO 8601
+  fin: string; // ISO 8601;
   zona_horaria: string;
   recordatorios?: Array<{ minutos_antes: number }>;
   responsables?: string[];
@@ -26,17 +27,30 @@ export interface CalendarEvent {
   created_by?: string;
   created_at?: string;
   updated_at?: string;
+  user_id?: string;
+  tenant_id?: string | null;
 }
 
 export function useCalendarEvents() {
   const queryClient = useQueryClient();
+  const { tenant } = useTenant();
+
+  const getTenantId = async () => {
+    if (tenant?.id) return tenant.id;
+    const { data } = await supabase.from("current_user_tenant").select("id").maybeSingle();
+    return data?.id || null;
+  };
 
   const { data: events, isLoading } = useQuery({
     queryKey: ["calendar-events"],
     queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+
       const { data, error } = await supabase
         .from("calendar_events")
         .select("*")
+        .eq("user_id", user.id)
         .order("inicio", { ascending: true });
 
       if (error) throw error;
@@ -47,14 +61,31 @@ export function useCalendarEvents() {
   const createEvent = useMutation({
     mutationFn: async (event: CalendarEvent) => {
       const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not authenticated");
+
+      const tenantId = await getTenantId();
       
       const { data, error } = await supabase
         .from("calendar_events")
         .insert({
-          ...event,
-          user_id: user?.id,
-          created_by: user?.id,
+          acto_slug: event.acto_slug,
+          expediente_id: event.expediente_id,
+          materia: event.materia,
+          tipo_evento: event.tipo_evento,
+          titulo: event.titulo,
+          descripcion: event.descripcion,
+          ubicacion: event.ubicacion,
+          inicio: event.inicio,
+          fin: event.fin,
           zona_horaria: "America/Santo_Domingo",
+          recordatorios: event.recordatorios || [],
+          responsables: event.responsables || [],
+          partes_relacionadas: event.partes_relacionadas || [],
+          estado: event.estado,
+          prioridad: event.prioridad,
+          user_id: user.id,
+          created_by: user.id,
+          tenant_id: tenantId,
         })
         .select()
         .single();
@@ -157,7 +188,7 @@ export function deriveEventsFromAct(actSlug: string, actData: any): CalendarEven
         estado: "pendiente",
         prioridad: "alta",
         recordatorios: [{ minutos_antes: 1440 }],
-      });
+        });
       break;
 
     case "contrato-alquiler-local-comercial-modelo-hd":
