@@ -21,7 +21,12 @@ export function StatsCard({
   icon: Icon,
   trend,
   variant = "default",
-}: StatsCardProps) {
+  onClick,
+  tooltip,
+}: StatsCardProps & { 
+  onClick?: () => void; 
+  tooltip?: string;
+}) {
   const variantStyles = {
     default: "text-primary",
     warning: "text-warning",
@@ -30,7 +35,14 @@ export function StatsCard({
   };
 
   return (
-    <Card className="shadow-medium hover:shadow-strong transition-base">
+    <Card 
+      className={cn(
+        "shadow-medium hover:shadow-strong transition-base",
+        onClick && "cursor-pointer hover:border-primary/50"
+      )}
+      onClick={onClick}
+      title={tooltip}
+    >
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">
           {title}

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { StatsCard } from "@/components/dashboard/StatsCard";
+import { ActionDrawer } from "@/components/dashboard/ActionDrawer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +17,7 @@ import {
 } from "lucide-react";
 import { CaseStatusBadge } from "@/components/cases/CaseStatusBadge";
 import { useToast } from "@/hooks/use-toast";
+import { dashboardNavigate } from "@/lib/dashboardNavigation";
 
 const Dashboard = () => {
   const { toast } = useToast();
@@ -32,6 +34,8 @@ const Dashboard = () => {
   const [recentCases, setRecentCases] = useState<any[]>([]);
   const [userName, setUserName] = useState("");
   const [notifications, setNotifications] = useState<any[]>([]);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [selectedActionId, setSelectedActionId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchDashboardData();
@@ -213,28 +217,53 @@ const Dashboard = () => {
     return "low";
   };
 
+  const handleMetricClick = (key: string) => {
+    dashboardNavigate({ kind: "metric", key }, navigate);
+  };
+
+  const handleItemClick = (accionId: string) => {
+    setSelectedActionId(accionId);
+    setDrawerOpen(true);
+  };
+
+  const handleCTAClick = (key: string) => {
+    dashboardNavigate({ kind: "cta", key }, navigate);
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground mt-1">
-            {userName ? `Bienvenido/a, ${userName}. ` : "Bienvenido/a. "}
-            Resumen de tu práctica.
-          </p>
+    <>
+      <ActionDrawer
+        open={drawerOpen}
+        onOpenChange={setDrawerOpen}
+        actionId={selectedActionId}
+        onStatusChange={fetchDashboardData}
+      />
+      
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+            <p className="text-muted-foreground mt-1">
+              {userName ? `Bienvenido/a, ${userName}. ` : "Bienvenido/a. "}
+              Resumen de tu práctica.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            {notifications.length > 0 && (
+              <Badge 
+                variant="destructive" 
+                className="px-3 py-1 cursor-pointer"
+                onClick={() => handleMetricClick("NOTIFS")}
+              >
+                {notifications.length} {notifications.length === 1 ? 'notificación' : 'notificaciones'}
+              </Badge>
+            )}
+            <Button className="gap-2" onClick={() => handleCTAClick("NUEVO_CASO")}>
+              <Briefcase className="h-4 w-4" />
+              Nuevo caso
+            </Button>
+          </div>
         </div>
-        <div className="flex gap-2">
-          {notifications.length > 0 && (
-            <Badge variant="destructive" className="px-3 py-1">
-              {notifications.length} {notifications.length === 1 ? 'notificación' : 'notificaciones'}
-            </Badge>
-          )}
-          <Button className="gap-2" onClick={handleNewCase}>
-            <Briefcase className="h-4 w-4" />
-            Nuevo caso
-          </Button>
-        </div>
-      </div>
 
       {loading ? (
         <div className="text-center py-8">
@@ -247,6 +276,8 @@ const Dashboard = () => {
               title="Casos activos"
               value={stats.activeCases}
               icon={Briefcase}
+              onClick={() => handleMetricClick("CASOS_ACTIVOS")}
+              tooltip="Ver casos activos"
             />
             <StatsCard
               title="Vencimientos próximos"
@@ -254,18 +285,24 @@ const Dashboard = () => {
               icon={AlertTriangle}
               description="Pendientes"
               variant="warning"
+              onClick={() => handleMetricClick("VENCIMIENTOS")}
+              tooltip="Ver vencimientos próximos (7 días)"
             />
             <StatsCard
               title="Audiencias programadas"
               value={stats.upcomingHearings}
               icon={Calendar}
               variant="info"
+              onClick={() => handleMetricClick("AUDIENCIAS")}
+              tooltip="Ver audiencias de la semana"
             />
             <StatsCard
               title="Documentos generados"
               value={stats.generatedDocuments}
               icon={TrendingUp}
               variant="success"
+              onClick={() => handleMetricClick("DOCS")}
+              tooltip="Ver documentos recientes"
             />
           </div>
 
@@ -282,14 +319,15 @@ const Dashboard = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    {notifications.slice(0, 5).map((notif) => (
+                     {notifications.slice(0, 5).map((notif) => (
                       <div
                         key={notif.id}
-                        className={`flex items-start gap-3 p-3 rounded-lg border ${
+                        className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer ${
                           notif.priority === 'high' 
                             ? 'bg-destructive/5 border-destructive/20' 
                             : 'bg-card'
                         } hover:bg-accent/5 transition-base`}
+                        onClick={() => handleItemClick(notif.id)}
                       >
                         <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
                           notif.priority === 'high' ? 'bg-destructive/10' : 'bg-primary/10'
@@ -339,13 +377,14 @@ const Dashboard = () => {
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {deadlines.map((item) => {
+                     {deadlines.map((item) => {
                       const daysLeft = getDaysLeft(item.fecha_vencimiento);
                       const priority = getPriority(daysLeft);
                       return (
                         <div
                           key={item.id}
-                          className="flex items-start justify-between p-3 rounded-lg border bg-card hover:bg-accent/5 transition-base"
+                          className="flex items-start justify-between p-3 rounded-lg border bg-card hover:bg-accent/5 transition-base cursor-pointer"
+                          onClick={() => handleItemClick(`deadline-${item.id}`)}
                         >
                           <div className="flex-1">
                             <p className="font-medium text-sm">{item.caso}</p>
@@ -402,10 +441,11 @@ const Dashboard = () => {
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {hearings.map((item) => (
+                     {hearings.map((item) => (
                       <div
                         key={item.id}
-                        className="flex items-start gap-3 p-3 rounded-lg border bg-card hover:bg-accent/5 transition-base"
+                        className="flex items-start gap-3 p-3 rounded-lg border bg-card hover:bg-accent/5 transition-base cursor-pointer"
+                        onClick={() => handleItemClick(`hearing-${item.id}`)}
                       >
                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
                           <Clock className="h-5 w-5 text-primary" />
@@ -484,7 +524,8 @@ const Dashboard = () => {
           </Card>
         </>
       )}
-    </div>
+      </div>
+    </>
   );
 };
 
