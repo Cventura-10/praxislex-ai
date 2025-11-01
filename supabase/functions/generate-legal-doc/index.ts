@@ -435,98 +435,68 @@ ESTILO FORMAL Y TONO:
 FORMATO PROFESIONAL OBLIGATORIO (A4 - República Dominicana):
 ═══════════════════════════════════════════════════════════════
 
-**MÁRGENES Y DIMENSIONES:**
-- Margen IZQUIERDO: 3.0 cm (para encuadernación)
-- Margen DERECHO: 2.0 cm
-- Margen SUPERIOR: 2.5 cm
-- Margen INFERIOR: 2.5 cm
-- Tamaño papel: A4 (21 × 29.7 cm)
+**IMPORTANTE: GENERA HTML CON ESTILOS INLINE PARA CONVERSIÓN A WORD**
 
-**TIPOGRAFÍA Y FORMATO:**
-- Fuente base: Times New Roman 12 pt (obligatorio para cuerpo del texto)
-- Títulos principales: Times New Roman 14 pt NEGRITA MAYÚSCULAS CENTRADO
-- Subtítulos: Times New Roman 12 pt NEGRITA
-- Interlineado: 1.5 líneas (espacio y medio)
-- Alineación: JUSTIFICADA (texto corrido)
-- Alineación títulos: CENTRADA
-- Primera línea de cada párrafo: SIN sangría (párrafo bloque)
-- Espaciado entre párrafos: 6 pt después
-- Espaciado entre secciones: 12 pt después
+ESPECIFICACIONES DE FORMATO OBLIGATORIAS:
 
-**ESTRUCTURA Y ELEMENTOS:**
-- ENCABEZADO DEL ACTO: Centrado, mayúsculas, negrita, 14pt
-  Ejemplo: "DEMANDA EN COBRO DE PESOS"
-- Línea separadora: Línea simple centrada (———) o doble línea (═══)
-- NUMERACIÓN DE SECCIONES: Números romanos mayúsculas (I, II, III, IV)
-- Subsecciones: Letras mayúsculas (A, B, C)
-- Ítems detalle: Números arábigos (1, 2, 3)
-- PETITORIO/CONCLUSIONES: Numeración con números romanos, NEGRILLA, centrado
-- Nombres de partes: MAYÚSCULAS COMPLETAS en primera mención
-- Montos económicos: Números Y letras entre paréntesis
-  Ejemplo: "RD$150,000.00 (CIENTO CINCUENTA MIL PESOS EXACTOS)"
-- Fechas: Formato completo en letras
-  Ejemplo: "quince (15) días de mes de octubre del año dos mil veinticinco (2025)"
-- Plazos procesales: EN MAYÚSCULAS Y NEGRILLA
-  Ejemplo: "TREINTA (30) DÍAS"
+1. MÁRGENES (A4 - 21 x 29.7 cm):
+   - Izquierdo: 3.0 cm (encuadernación)
+   - Derecho: 2.0 cm
+   - Superior: 2.5 cm
+   - Inferior: 2.5 cm
 
-**SECCIONES ESPECÍFICAS:**
-- **Encabezado tribunal/jurisdicción**: Centrado, mayúsculas
-- **Identificación de partes**: Alineado a la izquierda, nombre en mayúsculas
-- **HECHOS/RESULTANDOS**: Numerados con romanos, justificado
-- **FUNDAMENTOS DE DERECHO/CONSIDERANDOS**: Numerados con romanos, justificado
-- **PETITORIO/DISPOSITIVO**: Centrado, negrilla, numerado con romanos
-- **Firma del abogado/notario/alguacil**: 
-  - Alineado a la derecha
-  - Nombre en mayúsculas
-  - Cédula/Matrícula debajo
-  - Dirección/Domicilio profesional
+2. TIPOGRAFÍA OBLIGATORIA:
+   - Fuente: Times New Roman 12pt (cuerpo)
+   - Títulos principales: Times New Roman 14pt NEGRITA MAYÚSCULAS
+   - Interlineado: 1.5 líneas (line-height: 1.5)
+   - Todos los elementos DEBEN tener: font-family: 'Times New Roman', serif
 
-**REGLAS DE ESTILO VISUAL:**
-- NO usar colores en texto
-- NO usar fuentes decorativas
-- NO usar cursivas salvo para citas textuales de leyes
-- NO usar subrayado salvo títulos de leyes
-- SÍ usar MAYÚSCULAS para énfasis legal
-- SÍ usar NEGRILLA para peticiones y conclusiones
-- SÍ usar separadores visuales (líneas simples/dobles)
+3. ALINEACIÓN ESTRICTA:
+   - Título principal: CENTRADO (text-align: center)
+   - Subtítulos de secciones: ALINEADOS A LA IZQUIERDA
+   - Cuerpo del texto: JUSTIFICADO (text-align: justify)
+   - Petitorio/conclusiones: CENTRADO
+   - Firmas: ALINEADAS A LA DERECHA (text-align: right)
 
-**EJEMPLO DE ESTRUCTURA VISUAL:**
+4. ESTRUCTURA HTML CON ESTILOS INLINE:
+   - TÍTULO: usar etiqueta h1 con style="font-family: 'Times New Roman', serif; font-size: 14pt; font-weight: bold; text-align: center; text-transform: uppercase; margin-bottom: 12pt;"
+   - SUBTÍTULO JURISDICCIÓN: etiqueta p con style="font-family: 'Times New Roman', serif; font-size: 12pt; text-align: center; font-style: italic; margin-bottom: 18pt;"
+   - SECCIONES: etiqueta h2 con style="font-family: 'Times New Roman', serif; font-size: 12pt; font-weight: bold; text-transform: uppercase; margin-top: 18pt; margin-bottom: 12pt;"
+   - PÁRRAFOS: etiqueta p con style="font-family: 'Times New Roman', serif; font-size: 12pt; line-height: 1.5; text-align: justify; margin-bottom: 6pt;"
+   - FIRMA: etiqueta p con style="text-align: right; margin-top: 36pt; margin-bottom: 6pt;"
 
-═══════════════════════════════════════════════════════════
-                    DEMANDA EN COBRO DE PESOS
-═══════════════════════════════════════════════════════════
+5. ESPACIADO:
+   - Entre párrafos: margin-bottom: 6pt
+   - Entre secciones: margin-top: 18pt; margin-bottom: 12pt
+   - Antes de firma: margin-top: 36pt
 
-AL JUZGADO DE PRIMERA INSTANCIA DEL DISTRITO JUDICIAL DE SANTO DOMINGO
+6. FORMATO ESPECIAL:
+   - NOMBRES DE PARTES: MAYÚSCULAS en primera mención
+   - NUMERACIÓN: Romanos para secciones (I, II, III)
+   - ÉNFASIS: usar etiqueta strong para negrilla
+   - MONTOS: Números Y letras: RD$150,000.00 (CIENTO CINCUENTA MIL PESOS)
+   - PLAZOS PROCESALES: MAYÚSCULAS Y NEGRILLA
 
-JUAN PÉREZ GARCÍA, dominicano, mayor de edad, portador de la cédula de identidad y electoral No. 001-1234567-8, domiciliado y residente en [dirección], en lo adelante EL DEMANDANTE, representado por el abogado Carlos Ventura, cédula No. 001-9876543-2, matrícula CARD No. 12345, con domicilio profesional en [dirección], tiene el honor de exponer:
+EJEMPLO DE ESTRUCTURA (sin las etiquetas literales):
+- Envolver todo en div con estilos base
+- Título principal centrado en negrita 14pt mayúsculas
+- Subtítulo República Dominicana centrado cursiva
+- Separador visual centrado
+- Párrafo introductorio justificado
+- Secciones numeradas en romanos mayúsculas
+- Contenido justificado con interlineado 1.5
+- Petitorio centrado y numerado
+- Firma alineada a la derecha
 
-I. HECHOS
-
-PRIMERO: [Texto justificado del primer hecho...]
-
-SEGUNDO: [Texto justificado del segundo hecho...]
-
-II. FUNDAMENTOS DE DERECHO
-
-PRIMERO: [Cita legal con artículos y leyes...]
-
-SEGUNDO: [Argumentación jurídica...]
-
-III. PETITORIO
-
-Por los motivos expuestos, respetuosamente solicitamos al honorable tribunal:
-
-    PRIMERO: Que declare válida y regular la presente demanda.
-    
-    SEGUNDO: Que condene al demandado al pago de la suma de RD$150,000.00 (CIENTO CINCUENTA MIL PESOS EXACTOS).
-    
-    TERCERO: Que condene al demandado al pago de las costas procesales.
-
-Santo Domingo, Distrito Nacional, quince (15) días del mes de octubre del año dos mil veinticinco (2025).
-
-                                                            CARLOS VENTURA
-                                                            Abogado - Mat. CARD 12345
-                                                            Cédula 001-9876543-2
+REGLAS CRÍTICAS:
+❌ NO uses CSS externo ni clases
+❌ NO uses colores
+❌ NO omitas estilos inline
+✅ SÍ usa Times New Roman en TODOS los elementos
+✅ SÍ justifica el cuerpo del texto
+✅ SÍ centra títulos y petitorio
+✅ SÍ usa interlineado 1.5
+✅ SÍ incluye font-family en CADA etiqueta
 
 ═══════════════════════════════════════════════════════════
 

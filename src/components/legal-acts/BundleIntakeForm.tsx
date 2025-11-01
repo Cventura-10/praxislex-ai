@@ -358,7 +358,7 @@ export function BundleIntakeForm({ actBundle }: BundleIntakeFormProps) {
             onValueChange={(val) => {
               handleFieldChange(field.name, val);
               // Autofill profesional seleccionado
-              const selectedProf = profData.find((p: any) => p.id === val);
+              const selectedProf: any = profData.find((p: any) => p.id === val);
               if (selectedProf) {
                 const prefix = field.subtype;
                 const updates: Record<string, any> = {};
@@ -633,13 +633,14 @@ export function BundleIntakeForm({ actBundle }: BundleIntakeFormProps) {
               if (selectedProf) {
                 const currentList = [...(formData[parentFieldName] || [])];
                 const prefix = subfield.name.replace(/_id$/, '');
+                const prof: any = selectedProf;
                 currentList[parentIndex] = {
                   ...currentList[parentIndex],
-                  [`${prefix}_nombre`]: selectedProf.nombre || '',
-                  [`${prefix}_cedula`]: selectedProf.cedula || selectedProf.cedula_encrypted || '',
-                  [`${prefix}_matricula`]: selectedProf.matricula || selectedProf.matricula_card || selectedProf.matricula_cdn || '',
-                  [`${prefix}_telefono`]: selectedProf.telefono || '',
-                  [`${prefix}_email`]: selectedProf.email || ''
+                  [`${prefix}_nombre`]: prof.nombre || '',
+                  [`${prefix}_cedula`]: prof.cedula || prof.cedula_encrypted || '',
+                  [`${prefix}_matricula`]: prof.matricula || prof.matricula_card || prof.matricula_cdn || '',
+                  [`${prefix}_telefono`]: prof.telefono || '',
+                  [`${prefix}_email`]: prof.email || ''
                 };
                 setFormData(prev => ({ ...prev, [parentFieldName]: currentList }));
                 toast.success(`Datos del ${subfield.subtype} autocompletados en parte #${parentIndex + 1}`);
