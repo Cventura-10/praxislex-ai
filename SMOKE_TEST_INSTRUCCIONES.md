@@ -26,10 +26,12 @@ La página `/test-hydration` es un **formulario de ejemplo completo** que implem
 
 ✅ **ClientSelector** con hidratación automática (primera y segunda parte)  
 ✅ **NotarioSelector** con hidratación automática  
+✅ **ContraparteManager** para gestionar demandados/contrapartes con autocompletado  
+✅ **AbogadoContrarioManager** para datos de abogados de la contraparte  
 ✅ **LocationSelect** con cascadas geográficas  
 ✅ **Validaciones** fail-fast  
 ✅ **Numeración automática** ACT-YYYY-###  
-✅ **Badges visuales** que confirman cada paso completado  
+✅ **Badges visuales** que confirman cada paso completado
 
 ---
 
@@ -63,6 +65,35 @@ La página `/test-hydration` es un **formulario de ejemplo completo** que implem
 **Validación Visual:**
 - Badge verde "Paso 2 Completo"
 - Datos del segundo cliente (no mezclados con el primero)
+
+---
+
+### ✅ NUEVO: Contrapartes / Demandados
+**Acción:**
+1. Haz clic en "Agregar contraparte"
+2. Selecciona un cliente en el selector
+3. Observa el autocompletado de todos los campos
+4. Cambia la provincia y verifica la cascada geográfica
+
+**Validación Visual:**
+- Card expandible para cada contraparte
+- Badge "Autocompletado" al seleccionar cliente
+- Campos de nombre, cédula, dirección, etc. completados
+- Cascada geográfica independiente funcionando
+
+---
+
+### ✅ NUEVO: Abogados de la Contraparte
+**Acción:**
+1. Haz clic en "Agregar abogado" (opcional)
+2. Completa manualmente: nombre, cédula, matrícula CARD
+3. Agrega email, teléfono, dirección
+4. Selecciona ubicación del bufete
+
+**Validación Visual:**
+- Card expandible para cada abogado
+- Validaciones en tiempo real (email válido, campos max length)
+- LocationSelect integrado para ubicación del bufete
 
 ---
 
@@ -248,6 +279,10 @@ Validaciones Visuales:
 □ PASO 2: Badge "Paso 2 Completo" verde ✅
 □ PASO 2: Datos independientes de primera parte ✅
 
+□ NUEVO: Contraparte agregada y autocompletada ✅
+□ NUEVO: Cascada geográfica en contraparte funciona ✅
+□ NUEVO: Abogado contrario agregado (opcional) ✅
+
 □ PASO 3: Badge "Paso 3 Completo" verde ✅
 □ PASO 3: Jurisdicción en formato "Municipio / Provincia" ✅
 □ PASO 3: Cédula enmascarada ***-#### ✅
@@ -277,9 +312,11 @@ Validaciones Técnicas:
 **¡FELICIDADES!** 🎊
 
 El sistema de hidratación automática está **100% funcional**:
-- ✅ Autollenado completo de clientes
+- ✅ Autollenado completo de clientes (Primera y Segunda Parte)
+- ✅ Autollenado de contrapartes/demandados con ClientSelector
+- ✅ Gestión de abogados contrarios con validaciones
 - ✅ Autollenado de notarios con jurisdicción
-- ✅ Cascadas geográficas robustas
+- ✅ Cascadas geográficas robustas (Primera, Segunda Parte, Contrapartes, Abogados)
 - ✅ Numeración automática confiable
 - ✅ Validaciones fail-fast efectivas
 - ✅ (Pendiente) Generación DOCX real

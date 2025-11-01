@@ -1,9 +1,11 @@
 import { useForm } from "react-hook-form";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ClientSelector } from "@/components/legal-acts/ClientSelector";
 import { NotarioSelector } from "@/components/legal-acts/NotarioSelector";
 import { LocationSelect } from "@/components/legal-acts/LocationSelect";
+import { ContraparteManager, ContraparteData } from "@/components/legal-acts/ContraparteManager";
+import { AbogadoContrarioManager, AbogadoContrarioData } from "@/components/legal-acts/AbogadoContrarioManager";
 import { resetGeoCascade } from "@/lib/formHydrate";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -80,6 +82,10 @@ export default function TestHydration() {
 
   const { watch, control, setValue, handleSubmit, reset } = form;
 
+  // Estados para contrapartes y abogados contrarios
+  const [contrapartes, setContrapartes] = useState<ContraparteData[]>([]);
+  const [abogadosContrarios, setAbogadosContrarios] = useState<AbogadoContrarioData[]>([]);
+
   // Cascada geográfica Primera Parte
   useEffect(() => {
     const subscription = watch((value, { name }) => {
@@ -133,6 +139,22 @@ export default function TestHydration() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No autenticado");
 
+      // Preparar contenido completo con contrapartes y abogados
+      const contenidoCompleto = JSON.stringify({
+        primera_parte: data.primera_parte,
+        segunda_parte: data.segunda_parte,
+        notario: data.notario,
+        contrato: data.contrato,
+        contrapartes: contrapartes,
+        abogados_contrarios: abogadosContrarios,
+      }, null, 2);
+
+      console.log("📄 Datos completos para generación:", {
+        ...data,
+        contrapartes_count: contrapartes.length,
+        abogados_contrarios_count: abogadosContrarios.length,
+      });
+
       // Insertar en generated_acts (trigger asignará numero_acto)
       const { data: newAct, error } = await supabase
         .from('generated_acts')
@@ -141,7 +163,7 @@ export default function TestHydration() {
           materia: 'civil',
           titulo: 'Contrato de Arrendamiento (TEST)',
           ciudad: 'Santo Domingo',
-          contenido: 'Contenido de prueba',
+          contenido: contenidoCompleto,
           user_id: user.id,
           tenant_id: (await supabase.from('tenant_users').select('tenant_id').eq('user_id', user.id).single()).data?.tenant_id,
           numero_folios: data.numero_folios,
@@ -327,6 +349,40 @@ export default function TestHydration() {
                 municipio: "Municipio (Segunda Parte)",
                 sector: "Sector (Segunda Parte)",
               }}
+            />
+          </CardContent>
+        </Card>
+
+        {/* NUEVO: Contrapartes / Demandados */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Contrapartes / Demandados</CardTitle>
+            <CardDescription>
+              Agrega las personas o entidades que actúan como contraparte (demandados, arrendatarios, etc.)
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ContraparteManager
+              contrapartes={contrapartes}
+              onChange={setContrapartes}
+              title="Demandados / Contrapartes"
+              description="Datos de las personas que actúan como contraparte en este acto jurídico"
+            />
+          </CardContent>
+        </Card>
+
+        {/* NUEVO: Abogados Contrarios */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Abogados de la Contraparte</CardTitle>
+            <CardDescription>
+              Opcional: Datos de los abogados que representan a la contraparte
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <AbogadoContrarioManager
+              abogados={abogadosContrarios}
+              onChange={setAbogadosContrarios}
             />
           </CardContent>
         </Card>
