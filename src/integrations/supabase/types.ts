@@ -118,6 +118,21 @@ export type Database = {
           },
         ]
       }
+      act_sequences: {
+        Row: {
+          current_number: number
+          year: number
+        }
+        Insert: {
+          current_number?: number
+          year: number
+        }
+        Update: {
+          current_number?: number
+          year?: number
+        }
+        Relationships: []
+      }
       act_types: {
         Row: {
           act_template_kind: string
@@ -1886,9 +1901,12 @@ export type Database = {
           formato_exportado: string | null
           id: string
           notario_id: string | null
+          numero_acta: string | null
+          numero_acto: string | null
           numero_protocolo: string | null
           objeto: string
           provincia: string | null
+          provincia_id: number | null
           tenant_id: string
           testigos: Json | null
           tipo_acto: string
@@ -1914,9 +1932,12 @@ export type Database = {
           formato_exportado?: string | null
           id?: string
           notario_id?: string | null
+          numero_acta?: string | null
+          numero_acto?: string | null
           numero_protocolo?: string | null
           objeto: string
           provincia?: string | null
+          provincia_id?: number | null
           tenant_id: string
           testigos?: Json | null
           tipo_acto: string
@@ -1942,9 +1963,12 @@ export type Database = {
           formato_exportado?: string | null
           id?: string
           notario_id?: string | null
+          numero_acta?: string | null
+          numero_acto?: string | null
           numero_protocolo?: string | null
           objeto?: string
           provincia?: string | null
+          provincia_id?: number | null
           tenant_id?: string
           testigos?: Json | null
           tipo_acto?: string
@@ -1993,6 +2017,13 @@ export type Database = {
             columns: ["notario_id"]
             isOneToOne: false
             referencedRelation: "v_notarios_complete"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notarial_acts_provincia_id_fkey"
+            columns: ["provincia_id"]
+            isOneToOne: false
+            referencedRelation: "provincias"
             referencedColumns: ["id"]
           },
         ]
@@ -3641,6 +3672,7 @@ export type Database = {
         Args: { p_notification_id: string }
         Returns: boolean
       }
+      next_act_number: { Args: { p_year: number }; Returns: string }
       refresh_search_index: { Args: never; Returns: undefined }
       reveal_client_pii: {
         Args: { p_client_id: string }
