@@ -7,6 +7,9 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Cache para plantillas (optimización de rendimiento)
+const templateCache = new Map<string, Uint8Array>();
+
 // Conversor de números a letras en español dominicano
 function numeroALetras(n: number): string {
   const unidades = ["cero","uno","dos","tres","cuatro","cinco","seis","siete","ocho","nueve"];
@@ -170,21 +173,38 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Descargar plantilla DOCX del Storage
-    console.log("📥 Descargando plantilla contrato_alquiler.docx...");
-    const { data, error } = await supabase
-      .storage
-      .from("templates")
-      .download("contrato_alquiler.docx");
-    
-    if (error) {
-      console.error("❌ Error descargando plantilla:", error);
-      throw new Error(`Error descargando plantilla: ${error.message}`);
-    }
+    // Determinar plantilla (soporte para múltiples plantillas)
+    const templateName = payload.template_slug 
+      ? `${payload.template_slug}.docx` 
+      : "contrato_alquiler.docx";
 
-    const arrayBuffer = await data.arrayBuffer();
-    const content = new Uint8Array(arrayBuffer);
-    console.log(`✅ Plantilla descargada: ${content.length} bytes`);
+    console.log(`📄 Usando plantilla: ${templateName}`);
+
+    // Intentar obtener plantilla de caché
+    let content = templateCache.get(templateName);
+
+    if (!content) {
+      // Descargar plantilla DOCX del Storage
+      console.log(`📥 Descargando plantilla ${templateName}...`);
+      const { data, error } = await supabase
+        .storage
+        .from("templates")
+        .download(templateName);
+      
+      if (error) {
+        console.error("❌ Error descargando plantilla:", error);
+        throw new Error(`Template not found: ${templateName}`);
+      }
+
+      const arrayBuffer = await data.arrayBuffer();
+      content = new Uint8Array(arrayBuffer);
+      
+      // Guardar en caché
+      templateCache.set(templateName, content);
+      console.log(`✅ Plantilla descargada y cacheada: ${content.length} bytes`);
+    } else {
+      console.log("⚡ Usando plantilla desde caché");
+    }
 
     // Normalizar datos
     const tplData = normalizaPayload(payload);
@@ -195,17 +215,22 @@ Deno.serve(async (req) => {
     const zip = new PizZip(content);
     const doc = new Docxtemplater(zip, { 
       paragraphLoop: true, 
-      linebreaks: true 
+      linebreaks: true,
+      nullGetter: () => "" // Manejar nulls de forma segura
     });
     
     doc.setData(tplData);
     doc.render();
     
-    const generatedBuffer = doc.getZip().generate({ type: "arraybuffer" });
+    const generatedBuffer = doc.getZip().generate({ 
+      type: "arraybuffer",
+      compression: "DEFLATE",
+      compressionOptions: { level: 9 } // Máxima compresión
+    });
     console.log(`✅ Documento generado: ${generatedBuffer.byteLength} bytes`);
 
     // Retornar DOCX binario
-    const filename = `contrato_alquiler_${tplData.NUMERO_ACTO || 'ACT'}.docx`;
+    const filename = `${payload.numero_acto || 'documento'}_${Date.now()}.docx`;
     console.log(`📄 Enviando archivo: ${filename}`);
     
     return new Response(generatedBuffer, {
@@ -213,7 +238,8 @@ Deno.serve(async (req) => {
       headers: {
         ...corsHeaders,
         "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        "Content-Disposition": `attachment; filename="${filename}"`
+        "Content-Disposition": `attachment; filename="${filename}"`,
+        "Content-Length": generatedBuffer.byteLength.toString()
       }
     });
     
