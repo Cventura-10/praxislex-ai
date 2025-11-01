@@ -6,18 +6,32 @@
 // ============= MATERIAS (Clasificación Corregida) =============
 
 export const MATERIAS_JUDICIALES = [
-  { value: "civil_comercial", label: "Civil y Comercial", categoria: "judicial" },
+  { value: "civil", label: "Civil", categoria: "judicial" },
   { value: "penal", label: "Penal", categoria: "judicial" },
   { value: "laboral", label: "Laboral", categoria: "judicial" },
   { value: "administrativo", label: "Administrativo", categoria: "judicial" },
-  { value: "inmobiliaria_tierras", label: "Inmobiliaria y Tierras", categoria: "judicial" },
-  { value: "juzgado_paz", label: "Juzgado de Paz (Competencia Ampliada)", categoria: "judicial" },
-  { value: "municipal_ambiental", label: "Municipal y Ambiental", categoria: "judicial" },
+  { value: "constitucional", label: "Constitucional", categoria: "judicial" },
+  { value: "inmobiliario", label: "Inmobiliario y Tierras", categoria: "judicial" },
+  { value: "familia", label: "Familia y Sucesiones", categoria: "judicial" },
+  { value: "comercial", label: "Comercial", categoria: "judicial" },
+  { value: "tributario", label: "Tributario", categoria: "judicial" },
+  { value: "transito", label: "Tránsito", categoria: "judicial" },
+  { value: "ambiental", label: "Ambiental", categoria: "judicial" },
+  { value: "nna", label: "Niños, Niñas y Adolescentes", categoria: "judicial" },
+  { value: "municipal", label: "Municipal", categoria: "judicial" },
 ] as const;
 
 export const MATERIAS_EXTRAJUDICIALES = [
-  { value: "notarial_corporativo", label: "Derecho Notarial y Corporativo", categoria: "extrajudicial" },
-  { value: "mediacion_conciliacion", label: "Manejo de Conflictos (Conciliación/Mediación)", categoria: "extrajudicial" },
+  { value: "notarial", label: "Notarial", categoria: "extrajudicial" },
+  { value: "corporativo", label: "Corporativo", categoria: "extrajudicial" },
+  { value: "contratos", label: "Contratos", categoria: "extrajudicial" },
+  { value: "alquiler", label: "Alquiler y Arrendamiento", categoria: "extrajudicial" },
+  { value: "compraventa", label: "Compraventa", categoria: "extrajudicial" },
+  { value: "mediacion", label: "Mediación y Conciliación", categoria: "extrajudicial" },
+  { value: "consultoria", label: "Consultoría Legal", categoria: "extrajudicial" },
+  { value: "tramites", label: "Trámites Administrativos", categoria: "extrajudicial" },
+  { value: "poderes", label: "Poderes y Mandatos", categoria: "extrajudicial" },
+  { value: "testamentos", label: "Testamentos y Sucesiones", categoria: "extrajudicial" },
 ] as const;
 
 export const TODAS_MATERIAS = [...MATERIAS_JUDICIALES, ...MATERIAS_EXTRAJUDICIALES];
@@ -25,21 +39,16 @@ export const TODAS_MATERIAS = [...MATERIAS_JUDICIALES, ...MATERIAS_EXTRAJUDICIAL
 // ============= TIPOS DE ACCIÓN (Por Materia - Lógica Condicional) =============
 
 export const ACCIONES_POR_MATERIA: Record<string, Array<{ value: string; label: string }>> = {
-  // CIVIL Y COMERCIAL
-  civil_comercial: [
-    { value: "demanda_civil_cobro_alquileres", label: "Demanda Civil en Cobro de Alquileres" },
-    { value: "demanda_danos_perjuicios", label: "Demanda en Daños y Perjuicios" },
-    { value: "demanda_reivindicacion", label: "Demanda en Reivindicación" },
-    { value: "demanda_nulidad_asamblea", label: "Demanda en Nulidad de Asamblea" },
-    { value: "cobro_pesos", label: "Cobro de Pesos" },
+  // CIVIL
+  civil: [
+    { value: "demanda_civil_cobro_pesos", label: "Cobro de Pesos" },
+    { value: "demanda_danos_perjuicios", label: "Daños y Perjuicios" },
+    { value: "demanda_reivindicacion", label: "Reivindicación" },
     { value: "accion_pauliana", label: "Acción Pauliana" },
-    { value: "rescision_contrato_alquiler", label: "Rescisión de Contrato de Alquiler por Falta de Pago" },
-    { value: "pago_orden_acreedores", label: "Pago al Orden de los Acreedores" },
     { value: "validez_embargo_retentivo", label: "Validez de Embargo Retentivo" },
     { value: "embargo_inmobiliario", label: "Embargo Inmobiliario" },
-    { value: "embargo_inmobiliario_abreviado", label: "Embargo Inmobiliario Abreviado" },
-    { value: "suspension_pagos", label: "Suspensión de Pagos" },
     { value: "referimiento", label: "Referimiento" },
+    { value: "desalojo", label: "Desalojo" },
   ],
 
   // PENAL
@@ -78,32 +87,96 @@ export const ACCIONES_POR_MATERIA: Record<string, Array<{ value: string; label: 
     { value: "demanda_reivindicacion_inmueble", label: "Demanda en Reivindicación de Inmueble" },
   ],
 
-  // JUZGADO DE PAZ
-  juzgado_paz: [
-    { value: "cobro_pesos_paz", label: "Cobro de Pesos (Juzgado de Paz)" },
-    { value: "desalojo_inquilino", label: "Demanda en Desalojo de Inquilino" },
-    { value: "cobro_alquileres_paz", label: "Cobro de Alquileres (Juzgado de Paz)" },
-    { value: "referimiento_paz", label: "Referimiento (Juzgado de Paz)" },
+  // COMERCIAL
+  comercial: [
+    { value: "demanda_nulidad_asamblea", label: "Nulidad de Asamblea" },
+    { value: "suspension_pagos", label: "Suspensión de Pagos" },
+    { value: "quiebra", label: "Declaratoria de Quiebra" },
+    { value: "cobro_cheque", label: "Cobro de Cheque" },
   ],
 
-  // MUNICIPAL Y AMBIENTAL
-  municipal_ambiental: [
-    { value: "demanda_ambiental", label: "Demanda Ambiental" },
-    { value: "recurso_municipal", label: "Recurso Municipal" },
+  // FAMILIA
+  familia: [
+    { value: "divorcio", label: "Divorcio" },
+    { value: "pension_alimenticia", label: "Pensión Alimenticia" },
+    { value: "guarda_custodia", label: "Guarda y Custodia" },
+    { value: "filiacion", label: "Filiación" },
+    { value: "particion_bienes", label: "Partición de Bienes" },
   ],
 
-  // NOTARIAL Y CORPORATIVO
-  notarial_corporativo: [
+  // NOTARIAL (Extrajudicial)
+  notarial: [
     { value: "acta_notarial", label: "Acta Notarial" },
-    { value: "constitucion_sociedad", label: "Constitución de Sociedad" },
-    { value: "compraventa_inmueble", label: "Compraventa de Inmueble" },
-    { value: "cancelacion_hipoteca", label: "Cancelación y Reducción de Hipoteca" },
+    { value: "protesto_cheque", label: "Protesto de Cheque" },
+    { value: "certificacion_firma", label: "Certificación de Firma" },
+    { value: "legalizacion_documentos", label: "Legalización de Documentos" },
   ],
 
-  // MEDIACIÓN Y CONCILIACIÓN
-  mediacion_conciliacion: [
+  // CORPORATIVO (Extrajudicial)
+  corporativo: [
+    { value: "constitucion_sociedad", label: "Constitución de Sociedad" },
+    { value: "modificacion_estatutos", label: "Modificación de Estatutos" },
+    { value: "disolucion_liquidacion", label: "Disolución y Liquidación" },
+    { value: "registro_mercantil", label: "Registro Mercantil" },
+  ],
+
+  // CONTRATOS (Extrajudicial)
+  contratos: [
+    { value: "redaccion_contrato", label: "Redacción de Contrato" },
+    { value: "revision_contrato", label: "Revisión de Contrato" },
+    { value: "negociacion_contrato", label: "Negociación de Contrato" },
+  ],
+
+  // ALQUILER (Extrajudicial)
+  alquiler: [
+    { value: "contrato_alquiler", label: "Contrato de Alquiler" },
+    { value: "renovacion_contrato", label: "Renovación de Contrato" },
+    { value: "terminacion_contrato", label: "Terminación de Contrato" },
+    { value: "actualizacion_canon", label: "Actualización de Canon" },
+  ],
+
+  // COMPRAVENTA (Extrajudicial)
+  compraventa: [
+    { value: "compraventa_inmueble", label: "Compraventa de Inmueble" },
+    { value: "compraventa_vehiculo", label: "Compraventa de Vehículo" },
+    { value: "compraventa_empresa", label: "Compraventa de Empresa" },
+    { value: "promesa_venta", label: "Promesa de Venta" },
+  ],
+
+  // MEDIACIÓN (Extrajudicial)
+  mediacion: [
     { value: "solicitud_mediacion", label: "Solicitud de Mediación" },
     { value: "solicitud_conciliacion", label: "Solicitud de Conciliación" },
+    { value: "acuerdo_extrajudicial", label: "Acuerdo Extrajudicial" },
+  ],
+
+  // CONSULTORÍA (Extrajudicial)
+  consultoria: [
+    { value: "opinion_legal", label: "Opinión Legal" },
+    { value: "due_diligence", label: "Due Diligence" },
+    { value: "asesoria_compliance", label: "Asesoría en Compliance" },
+  ],
+
+  // TRÁMITES (Extrajudicial)
+  tramites: [
+    { value: "apostilla", label: "Apostilla" },
+    { value: "registro_marca", label: "Registro de Marca" },
+    { value: "permiso_construccion", label: "Permiso de Construcción" },
+  ],
+
+  // PODERES (Extrajudicial)
+  poderes: [
+    { value: "poder_general", label: "Poder General" },
+    { value: "poder_especial", label: "Poder Especial" },
+    { value: "poder_irrevocable", label: "Poder Irrevocable" },
+  ],
+
+  // TESTAMENTOS (Extrajudicial)
+  testamentos: [
+    { value: "testamento_abierto", label: "Testamento Abierto" },
+    { value: "testamento_cerrado", label: "Testamento Cerrado" },
+    { value: "declaratoria_herederos", label: "Declaratoria de Herederos" },
+    { value: "inventario_bienes", label: "Inventario de Bienes" },
   ],
 };
 
