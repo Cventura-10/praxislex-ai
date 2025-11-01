@@ -687,13 +687,16 @@ export type Database = {
           lugar_nacimiento: string | null
           matricula_card: string | null
           matricula_profesional: string | null
+          municipio_id: string | null
           nacionalidad: string | null
           nombre_completo: string
           ocupacion: string | null
           pasaporte: string | null
           profesion: string | null
+          provincia_id: string | null
           razon_social: string | null
           representante_legal: string | null
+          sector_id: string | null
           telefono: string | null
           tenant_id: string
           terms_accepted_at: string | null
@@ -718,13 +721,16 @@ export type Database = {
           lugar_nacimiento?: string | null
           matricula_card?: string | null
           matricula_profesional?: string | null
+          municipio_id?: string | null
           nacionalidad?: string | null
           nombre_completo: string
           ocupacion?: string | null
           pasaporte?: string | null
           profesion?: string | null
+          provincia_id?: string | null
           razon_social?: string | null
           representante_legal?: string | null
+          sector_id?: string | null
           telefono?: string | null
           tenant_id: string
           terms_accepted_at?: string | null
@@ -749,13 +755,16 @@ export type Database = {
           lugar_nacimiento?: string | null
           matricula_card?: string | null
           matricula_profesional?: string | null
+          municipio_id?: string | null
           nacionalidad?: string | null
           nombre_completo?: string
           ocupacion?: string | null
           pasaporte?: string | null
           profesion?: string | null
+          provincia_id?: string | null
           razon_social?: string | null
           representante_legal?: string | null
+          sector_id?: string | null
           telefono?: string | null
           tenant_id?: string
           terms_accepted_at?: string | null
@@ -1212,6 +1221,13 @@ export type Database = {
             columns: ["notario_id"]
             isOneToOne: false
             referencedRelation: "notarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "generated_acts_notario_id_fkey"
+            columns: ["notario_id"]
+            isOneToOne: false
+            referencedRelation: "v_notarios_complete"
             referencedColumns: ["id"]
           },
           {
@@ -1864,6 +1880,13 @@ export type Database = {
             columns: ["notario_id"]
             isOneToOne: false
             referencedRelation: "notarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notarial_acts_notario_id_fkey"
+            columns: ["notario_id"]
+            isOneToOne: false
+            referencedRelation: "v_notarios_complete"
             referencedColumns: ["id"]
           },
         ]
@@ -3117,6 +3140,60 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "act_types"
             referencedColumns: ["slug"]
+          },
+        ]
+      }
+      v_notarios_complete: {
+        Row: {
+          cedula_mask: string | null
+          email: string | null
+          exequatur: string | null
+          id: string | null
+          jurisdiccion: string | null
+          nombre: string | null
+          oficina: string | null
+          telefono: string | null
+          tenant_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          cedula_mask?: never
+          email?: string | null
+          exequatur?: string | null
+          id?: string | null
+          jurisdiccion?: string | null
+          nombre?: string | null
+          oficina?: string | null
+          telefono?: string | null
+          tenant_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          cedula_mask?: never
+          email?: string | null
+          exequatur?: string | null
+          id?: string | null
+          jurisdiccion?: string | null
+          nombre?: string | null
+          oficina?: string | null
+          telefono?: string | null
+          tenant_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notarios_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "current_user_tenant"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notarios_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
           },
         ]
       }
