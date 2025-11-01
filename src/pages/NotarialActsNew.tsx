@@ -22,7 +22,8 @@ import {
   Building2,
   Download,
   Eye,
-  Trash2
+  Trash2,
+  AlertCircle
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -33,44 +34,30 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { useNotarialActs } from "@/hooks/useNotarialActs";
 
 export default function NotarialActsNew() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { acts, loading, deleteAct } = useNotarialActs();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterTipo, setFilterTipo] = useState<string>("all");
   const [filterEstado, setFilterEstado] = useState<string>("all");
-
-  // Datos de ejemplo (en producción vendrán de useNotarialActs)
-  const actosNotariales = [
-    {
-      id: "1",
-      numero_acto: "ACT-2025-001",
-      tipo_acto: "Compraventa",
-      acto_especifico: "Inmueble",
-      titulo: "Compraventa de Casa en Piantini",
-      ciudad: "Santo Domingo",
-      notario_nombre: "Dr. Juan Pérez",
-      fecha_actuacion: new Date("2025-01-15"),
-      firmado: true,
-      created_at: new Date("2025-01-10"),
-    },
-    {
-      id: "2",
-      numero_acto: "ACT-2025-002",
-      tipo_acto: "Arrendamiento",
-      acto_especifico: "Local Comercial",
-      titulo: "Contrato de Alquiler - Plaza Naco",
-      ciudad: "Santo Domingo",
-      notario_nombre: "Dra. María González",
-      fecha_actuacion: new Date("2025-01-20"),
-      firmado: false,
-      created_at: new Date("2025-01-18"),
-    },
-  ];
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedActId, setSelectedActId] = useState<string | null>(null);
 
   const handleCreateNew = () => {
     navigate("/legal-acts-generator");
@@ -91,18 +78,28 @@ export default function NotarialActsNew() {
   };
 
   const handleDeleteAct = (actId: string) => {
-    toast({
-      title: "Eliminar acto",
-      description: `¿Está seguro de eliminar el acto ${actId}?`,
-      variant: "destructive",
-    });
+    setSelectedActId(actId);
+    setDeleteDialogOpen(true);
   };
 
-  const filteredActos = actosNotariales.filter((acto) => {
+  const confirmDelete = async () => {
+    if (!selectedActId) return;
+    
+    try {
+      await deleteAct(selectedActId);
+      setDeleteDialogOpen(false);
+      setSelectedActId(null);
+    } catch (error) {
+      console.error("Error deleting act:", error);
+    }
+  };
+
+  const filteredActos = acts.filter((acto) => {
+    const searchLower = searchQuery.toLowerCase();
     const matchesSearch = 
-      acto.numero_acto.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      acto.titulo.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      acto.notario_nombre.toLowerCase().includes(searchQuery.toLowerCase());
+      acto.numero_protocolo?.toLowerCase().includes(searchLower) ||
+      acto.titulo.toLowerCase().includes(searchLower) ||
+      acto.acto_especifico?.toLowerCase().includes(searchLower);
 
     const matchesTipo = filterTipo === "all" || acto.tipo_acto === filterTipo;
     const matchesEstado = 
@@ -112,6 +109,26 @@ export default function NotarialActsNew() {
 
     return matchesSearch && matchesTipo && matchesEstado;
   });
+
+  const totalActos = acts.length;
+  const actosEst= acts.filter(a => a.firmado).length;
+  const actosEnBorrador = acts.filter(a => !a.firmado).length;
+  const actosEsteMes = acts.filter(a => {
+    const now = new Date();
+    const created = new Date(a.created_at);
+    return created.getMonth() === now.getMonth() && created.getFullYear() === now.getFullYear();
+  }).length;
+
+  if (loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center p-8">
+        <div className="text-center space-y-4">
+          <Scale className="h-12 w-12 mx-auto animate-pulse text-primary" />
+          <p className="text-muted-foreground">Cargando actos notariales...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 space-y-6 p-4 md:p-8 pt-6">
@@ -189,7 +206,7 @@ export default function NotarialActsNew() {
             <FileText className="h-5 w-5 text-primary" />
             <div>
               <p className="text-sm text-muted-foreground">Total Actos</p>
-              <p className="text-2xl font-bold">{actosNotariales.length}</p>
+              <p className="text-2xl font-bold">{totalActos}</p>
             </div>
           </div>
         </Card>
@@ -200,7 +217,7 @@ export default function NotarialActsNew() {
             <div>
               <p className="text-sm text-muted-foreground">Firmados</p>
               <p className="text-2xl font-bold text-green-600">
-                {actosNotariales.filter(a => a.firmado).length}
+                {actosEsteMes}
               </p>
             </div>
           </div>
@@ -212,7 +229,7 @@ export default function NotarialActsNew() {
             <div>
               <p className="text-sm text-muted-foreground">Borradores</p>
               <p className="text-2xl font-bold text-amber-600">
-                {actosNotariales.filter(a => !a.firmado).length}
+                {actosEnBorrador}
               </p>
             </div>
           </div>
@@ -224,11 +241,7 @@ export default function NotarialActsNew() {
             <div>
               <p className="text-sm text-muted-foreground">Este Mes</p>
               <p className="text-2xl font-bold text-blue-600">
-                {actosNotariales.filter(a => {
-                  const now = new Date();
-                  return a.created_at.getMonth() === now.getMonth() &&
-                         a.created_at.getFullYear() === now.getFullYear();
-                }).length}
+                {actosEsteMes}
               </p>
             </div>
           </div>
@@ -265,10 +278,9 @@ export default function NotarialActsNew() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Número</TableHead>
+                  <TableHead>Protocolo</TableHead>
                   <TableHead>Título</TableHead>
                   <TableHead>Tipo</TableHead>
-                  <TableHead>Notario</TableHead>
                   <TableHead>Ciudad</TableHead>
                   <TableHead>Fecha</TableHead>
                   <TableHead>Estado</TableHead>
@@ -279,7 +291,7 @@ export default function NotarialActsNew() {
                 {filteredActos.map((acto) => (
                   <TableRow key={acto.id} className="hover:bg-accent/5">
                     <TableCell className="font-mono text-sm">
-                      {acto.numero_acto}
+                      {acto.numero_protocolo || 'N/A'}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-start gap-2">
@@ -297,18 +309,12 @@ export default function NotarialActsNew() {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <Scale className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">{acto.notario_nombre}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
                         <Building2 className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm">{acto.ciudad}</span>
                       </div>
                     </TableCell>
                     <TableCell className="text-sm">
-                      {format(acto.fecha_actuacion, "dd MMM yyyy", { locale: es })}
+                      {format(new Date(acto.fecha_instrumentacion), "dd MMM yyyy", { locale: es })}
                     </TableCell>
                     <TableCell>
                       {acto.firmado ? (
@@ -352,6 +358,30 @@ export default function NotarialActsNew() {
           </div>
         )}
       </Card>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-destructive" />
+              ¿Eliminar acto notarial?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. El acto notarial será eliminado permanentemente del sistema.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
