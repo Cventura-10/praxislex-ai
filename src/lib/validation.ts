@@ -60,6 +60,13 @@ export const caseSchema = z.object({
     .max(100, "El número de expediente no puede exceder 100 caracteres")
     .optional()
     .or(z.literal('')),
+  tipo_caso: z
+    .string()
+    .refine(
+      (val) => ['judicial', 'extrajudicial'].includes(val),
+      "El tipo de caso debe ser 'judicial' o 'extrajudicial'"
+    )
+    .optional(),
   materia: z
     .string()
     .refine(
@@ -105,7 +112,20 @@ export const caseSchema = z.object({
     .optional()
     .or(z.literal("")),
   client_id: z.string().uuid("ID de cliente inválido").optional().nullable(),
-});
+}).refine(
+  (data) => {
+    // Si es judicial, juzgado y etapa_procesal son obligatorios
+    if (data.tipo_caso === 'judicial') {
+      return data.juzgado && data.juzgado.trim().length > 0 && 
+             data.etapa_procesal && data.etapa_procesal.trim().length > 0;
+    }
+    return true;
+  },
+  {
+    message: "Para casos judiciales, el juzgado y la etapa procesal son obligatorios",
+    path: ["juzgado"]
+  }
+);
 
 // Hearing validation schema
 export const hearingSchema = z.object({

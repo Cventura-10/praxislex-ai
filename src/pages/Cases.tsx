@@ -49,6 +49,7 @@ interface Case {
   id: string;
   numero_expediente: string;
   titulo: string;
+  tipo_caso: 'judicial' | 'extrajudicial';
   materia: string;
   juzgado: string | null;
   etapa_procesal: string | null;
@@ -81,6 +82,7 @@ const Cases = () => {
   const [newCase, setNewCase] = useState({
     numero_expediente: "", // Will be auto-generated if empty
     titulo: "",
+    tipo_caso: "judicial" as 'judicial' | 'extrajudicial',
     tipo_accion: "", // NEW: Para lógica condicional
     materia: "",
     juzgado: "",
@@ -124,7 +126,7 @@ const Cases = () => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setCases(data || []);
+      setCases((data as any) || []);
     } catch (error) {
       toast({
         title: "Error",
@@ -213,6 +215,7 @@ const Cases = () => {
       setNewCase({
         numero_expediente: "",
         titulo: "",
+        tipo_caso: "judicial",
         tipo_accion: "",
         materia: "",
         juzgado: "",
@@ -382,6 +385,39 @@ const Cases = () => {
                 
                 <div className="grid gap-4">
                   <div className="grid gap-2">
+                    <Label htmlFor="tipo_caso" className="text-sm font-medium">
+                      Tipo de Caso <span className="text-destructive">*</span>
+                    </Label>
+                    <Select 
+                      value={newCase.tipo_caso} 
+                      onValueChange={(value: 'judicial' | 'extrajudicial') => setNewCase({ 
+                        ...newCase, 
+                        tipo_caso: value,
+                        juzgado: value === 'extrajudicial' ? '' : newCase.juzgado,
+                        etapa_procesal: value === 'extrajudicial' ? '' : newCase.etapa_procesal,
+                      })}
+                    >
+                      <SelectTrigger className="h-11 bg-background">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-background">
+                        <SelectItem value="judicial">
+                          <div className="flex items-center gap-2">
+                            <Scale className="h-4 w-4" />
+                            <span>Judicial - Requiere juzgado y etapa procesal</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="extrajudicial">
+                          <div className="flex items-center gap-2">
+                            <ExternalLink className="h-4 w-4" />
+                            <span>Extrajudicial - Gestión sin tribunal</span>
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="grid gap-2">
                     <Label htmlFor="numero_expediente" className="text-sm font-medium">
                       Número de Expediente <span className="text-muted-foreground font-normal">(Opcional)</span>
                     </Label>
@@ -489,42 +525,46 @@ const Cases = () => {
                 </div>
               </div>
 
-              {/* Información Procesal */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium border-b pb-2">Información Procesal</h3>
-                
-                <div className="grid gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="juzgado" className="text-sm font-medium">
-                      Juzgado / Tribunal
-                    </Label>
-                    <Combobox
-                      options={TIPOS_JUZGADOS}
-                      value={newCase.juzgado}
-                      onValueChange={(value) => setNewCase({ ...newCase, juzgado: value })}
-                      placeholder="Seleccionar juzgado..."
-                      searchPlaceholder="Buscar juzgado... (ej: 'Tribunal de')"
-                      emptyMessage="No se encontró ningún juzgado."
-                      className="h-11"
-                    />
-                  </div>
+              {/* Información Procesal - Solo visible para casos judiciales */}
+              {newCase.tipo_caso === 'judicial' && (
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium border-b pb-2">
+                    Información Procesal <span className="text-destructive">*</span>
+                  </h3>
+                  
+                  <div className="grid gap-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="juzgado" className="text-sm font-medium">
+                        Juzgado / Tribunal <span className="text-destructive">*</span>
+                      </Label>
+                      <Combobox
+                        options={TIPOS_JUZGADOS}
+                        value={newCase.juzgado}
+                        onValueChange={(value) => setNewCase({ ...newCase, juzgado: value })}
+                        placeholder="Seleccionar juzgado..."
+                        searchPlaceholder="Buscar juzgado... (ej: 'Tribunal de')"
+                        emptyMessage="No se encontró ningún juzgado."
+                        className="h-11"
+                      />
+                    </div>
 
-                  <div className="grid gap-2">
-                    <Label htmlFor="etapa_procesal" className="text-sm font-medium">
-                      Etapa Procesal
-                    </Label>
-                    <Combobox
-                      options={ETAPAS_PROCESALES_DETALLADAS}
-                      value={newCase.etapa_procesal}
-                      onValueChange={(value) => setNewCase({ ...newCase, etapa_procesal: value })}
-                      placeholder="Seleccionar etapa..."
-                      searchPlaceholder="Buscar etapa..."
-                      emptyMessage="No se encontró ninguna etapa."
-                      className="h-11"
-                    />
+                    <div className="grid gap-2">
+                      <Label htmlFor="etapa_procesal" className="text-sm font-medium">
+                        Etapa Procesal <span className="text-destructive">*</span>
+                      </Label>
+                      <Combobox
+                        options={ETAPAS_PROCESALES_DETALLADAS}
+                        value={newCase.etapa_procesal}
+                        onValueChange={(value) => setNewCase({ ...newCase, etapa_procesal: value })}
+                        placeholder="Seleccionar etapa..."
+                        searchPlaceholder="Buscar etapa..."
+                        emptyMessage="No se encontró ninguna etapa."
+                        className="h-11"
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               {/* Responsables */}
               <div className="space-y-4">
@@ -653,7 +693,14 @@ const Cases = () => {
               <Button variant="outline" onClick={() => setShowNewCaseDialog(false)}>
                 Cancelar
               </Button>
-              <Button onClick={handleCreateCase} disabled={!newCase.titulo || !newCase.materia}>
+              <Button 
+                onClick={handleCreateCase} 
+                disabled={
+                  !newCase.titulo || 
+                  !newCase.materia || 
+                  (newCase.tipo_caso === 'judicial' && (!newCase.juzgado || !newCase.etapa_procesal))
+                }
+              >
                 Crear Caso
               </Button>
             </div>

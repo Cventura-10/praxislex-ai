@@ -498,6 +498,7 @@ export type Database = {
           numero_gedex: string | null
           responsable: string | null
           tenant_id: string
+          tipo_caso: string
           titulo: string
           tribunal_gedex: string | null
           updated_at: string | null
@@ -519,6 +520,7 @@ export type Database = {
           numero_gedex?: string | null
           responsable?: string | null
           tenant_id: string
+          tipo_caso?: string
           titulo: string
           tribunal_gedex?: string | null
           updated_at?: string | null
@@ -540,6 +542,7 @@ export type Database = {
           numero_gedex?: string | null
           responsable?: string | null
           tenant_id?: string
+          tipo_caso?: string
           titulo?: string
           tribunal_gedex?: string | null
           updated_at?: string | null
