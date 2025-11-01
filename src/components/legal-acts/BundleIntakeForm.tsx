@@ -22,6 +22,7 @@ import { usePeritos } from "@/hooks/usePeritos";
 import { useTasadores } from "@/hooks/useTasadores";
 import { Document, Packer, Paragraph, TextRun } from "docx";
 import bundleData from "@/data/praxislex_bundle_v1_3_2.json";
+import { LocationSelect } from "./LocationSelect";
 
 interface BundleIntakeFormProps {
   actBundle: LegalActBundle;
@@ -177,6 +178,66 @@ export function BundleIntakeForm({ actBundle }: BundleIntakeFormProps) {
   const municipios = useMemo(() => bundleData.global_catalogs.rd.municipios, []);
   const ciudades = useMemo(() => bundleData.global_catalogs.rd.ciudades, []);
 
+  // Autofill handlers for Primera Parte
+  const handlePrimeraParteClientSelect = (cliente: any) => {
+    if (!cliente) return;
+    setFormData(prev => ({
+      ...prev,
+      primera_parte: {
+        ...prev.primera_parte,
+        cliente_id: cliente.id,
+        nombre_completo: cliente.nombre_completo || '',
+        cedula_rnc: cliente.cedula_rnc_encrypted || '',
+        nacionalidad: cliente.nacionalidad || '',
+        estado_civil: cliente.estado_civil || '',
+        profesion: cliente.profesion || '',
+        provincia_id: cliente.provincia_id || '',
+        municipio_id: cliente.municipio_id || '',
+        sector_id: cliente.sector_id || '',
+        direccion: cliente.direccion || ''
+      }
+    }));
+  };
+
+  // Autofill handlers for Segunda Parte
+  const handleSegundaParteClientSelect = (cliente: any) => {
+    if (!cliente) return;
+    setFormData(prev => ({
+      ...prev,
+      segunda_parte: {
+        ...prev.segunda_parte,
+        cliente_id: cliente.id,
+        nombre_completo: cliente.nombre_completo || '',
+        cedula_rnc: cliente.cedula_rnc_encrypted || '',
+        nacionalidad: cliente.nacionalidad || '',
+        estado_civil: cliente.estado_civil || '',
+        profesion: cliente.profesion || '',
+        provincia_id: cliente.provincia_id || '',
+        municipio_id: cliente.municipio_id || '',
+        sector_id: cliente.sector_id || '',
+        direccion: cliente.direccion || ''
+      }
+    }));
+  };
+
+  // Autofill handler for Notario
+  const handleNotarioSelect = (notario: any) => {
+    if (!notario) return;
+    setFormData(prev => ({
+      ...prev,
+      notario: {
+        id: notario.id,
+        nombre_completo: notario.nombre || '',
+        exequatur: notario.exequatur || '',
+        cedula_mask: notario.cedula_mask || '',
+        oficina: notario.oficina || '',
+        jurisdiccion: notario.jurisdiccion || '',
+        telefono: notario.telefono || '',
+        email: notario.email || ''
+      }
+    }));
+  };
+
   // Filter municipios based on selected provincia
   const filteredMunicipios = useMemo(() => {
     const provinciaId = formData.provincia_id;
@@ -226,6 +287,32 @@ export function BundleIntakeForm({ actBundle }: BundleIntakeFormProps) {
   };
 
   const handleGenerate = async () => {
+    // v1.4.8 - Validar campos obligatorios
+    const requiredChecks: { path: string; label: string }[] = [
+      { path: 'primera_parte', label: 'Primera Parte' },
+      { path: 'segunda_parte', label: 'Segunda Parte' },
+    ];
+
+    // Contract-specific validations
+    if (actBundle.slug === 'contrato_alquiler' || actBundle.slug === 'CONTRATO_ALQUILER') {
+      requiredChecks.push(
+        { path: 'notario', label: 'Notario' },
+        { path: 'canon_monto', label: 'Canon de Arrendamiento' },
+        { path: 'plazo_meses', label: 'Plazo' }
+      );
+    }
+
+    // Check missing fields
+    const missing = requiredChecks.filter(check => {
+      const val = formData[check.path];
+      return !val || val === '' || (typeof val === 'object' && Object.keys(val).length === 0);
+    });
+
+    if (missing.length > 0) {
+      toast.error(`Faltan datos obligatorios: ${missing.map(m => m.label).join(', ')}`);
+      return;
+    }
+
     setIsGenerating(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -244,8 +331,21 @@ export function BundleIntakeForm({ actBundle }: BundleIntakeFormProps) {
 
       if (response.error) throw response.error;
       
-      setGeneratedDocument(response.data.content);
-      toast.success("Documento generado exitosamente");
+      // v1.4.8 - Handle DOCX binary response
+      if (response.data instanceof Blob) {
+        const url = window.URL.createObjectURL(response.data);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${actBundle.slug}_${Date.now()}.docx`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        toast.success("Documento descargado exitosamente");
+      } else {
+        setGeneratedDocument(response.data.content || response.data.contenido);
+        toast.success("Documento generado exitosamente");
+      }
     } catch (error: any) {
       console.error("Error generating document:", error);
       toast.error(error.message || "Error al generar el documento");

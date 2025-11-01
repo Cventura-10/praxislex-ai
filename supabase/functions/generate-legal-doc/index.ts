@@ -2,6 +2,7 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
+import { Document, Packer, Paragraph, TextRun, AlignmentType, HeadingLevel } from "https://esm.sh/docx@8.5.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -577,12 +578,92 @@ El documento debe ser procesalmente impecable y cumplir con todos los requisitos
     const aiData = await aiResponse.json();
     const generatedContent = aiData.choices[0]?.message?.content || '';
 
-    console.log('✅ Document generated successfully');
+    console.log('✅ Document generated, creating DOCX...');
 
-    return new Response(
-      JSON.stringify({ contenido: generatedContent }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    // v1.4.8 - Generate real DOCX binary
+    try {
+      // Parse content and create paragraphs
+      const lines = generatedContent.split('\n').filter((line: string) => line.trim());
+      const docParagraphs: any[] = [];
+      
+      // First line as title (centered and bold)
+      if (lines.length > 0) {
+        docParagraphs.push(
+          new Paragraph({
+            text: lines[0].replace(/<[^>]*>/g, ''),
+            heading: HeadingLevel.TITLE,
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 400 }
+          })
+        );
+      }
+      
+      // Rest as justified body
+      for (let i = 1; i < lines.length; i++) {
+        const cleanText = lines[i].replace(/<[^>]*>/g, '').trim();
+        if (cleanText) {
+          const isBold = lines[i].includes('<strong>') || lines[i].includes('<b>') || /^[A-Z\s]+:/.test(cleanText);
+          docParagraphs.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: cleanText,
+                  bold: isBold,
+                  font: 'Times New Roman',
+                  size: 24 // 12pt
+                })
+              ],
+              alignment: AlignmentType.JUSTIFIED,
+              spacing: { 
+                line: 360, // 1.5 spacing
+                before: 120,
+                after: 120
+              }
+            })
+          );
+        }
+      }
+      
+      // Create A4 document with proper margins
+      const doc = new Document({
+        sections: [{
+          properties: {
+            page: {
+              margin: {
+                top: 1417,    // 2.5 cm
+                right: 1134,  // 2.0 cm
+                bottom: 1417, // 2.5 cm
+                left: 1701    // 3.0 cm
+              }
+            }
+          },
+          children: docParagraphs
+        }]
+      });
+      
+      // Generate binary buffer
+      const buffer = await Packer.toBuffer(doc);
+      const fileName = `${actSlug}_${Date.now()}`;
+      
+      console.log('✅ DOCX created successfully', { size: buffer.length });
+      
+      return new Response(buffer, {
+        status: 200,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          'Content-Disposition': `attachment; filename="${fileName}.docx"`
+        }
+      });
+      
+    } catch (docxError) {
+      console.error('⚠️ Error creating DOCX, returning JSON:', docxError);
+      // Fallback to JSON
+      return new Response(
+        JSON.stringify({ contenido: generatedContent }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
   } catch (error) {
     console.error('❌ Error in generate-legal-doc:', error);
