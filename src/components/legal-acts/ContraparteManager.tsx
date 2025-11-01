@@ -3,21 +3,22 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { ClientSelector } from "./ClientSelector";
-import { Trash2, UserPlus, Users } from "lucide-react";
+import { LocationSelect } from "./LocationSelect";
+import { Trash2, UserPlus, Users, ChevronDown, ChevronUp } from "lucide-react";
 import { z } from "zod";
 
-// Schema de validación para contraparte
+// Schema de validación mejorado para contraparte
 const contraparteSchema = z.object({
-  cliente_id: z.string().min(1, "Debe seleccionar un cliente"),
-  nombre: z.string().trim().min(1, "Nombre requerido").max(200),
-  cedula: z.string().trim().max(50),
-  direccion: z.string().trim().max(500),
-  nacionalidad: z.string().trim().max(100),
-  estado_civil: z.string().trim().max(50),
-  profesion: z.string().trim().max(100),
-  provincia_id: z.number().nullable(),
-  municipio_id: z.number().nullable(),
-  sector_id: z.number().nullable(),
+  cliente_id: z.string().nullable().optional(),
+  nombre: z.string().trim().min(1, "Nombre requerido").max(200, "Máximo 200 caracteres"),
+  cedula: z.string().trim().max(20, "Máximo 20 caracteres").optional().or(z.literal("")),
+  direccion: z.string().trim().max(500, "Máximo 500 caracteres").optional().or(z.literal("")),
+  nacionalidad: z.string().trim().max(100, "Máximo 100 caracteres").optional().or(z.literal("")),
+  estado_civil: z.string().trim().max(50, "Máximo 50 caracteres").optional().or(z.literal("")),
+  profesion: z.string().trim().max(100, "Máximo 100 caracteres").optional().or(z.literal("")),
+  provincia_id: z.number().nullable().optional(),
+  municipio_id: z.number().nullable().optional(),
+  sector_id: z.number().nullable().optional(),
 });
 
 export interface ContraparteData {
@@ -133,18 +134,26 @@ export function ContraparteManager({
       ) : (
         <div className="space-y-3">
           {contrapartes.map((contraparte, index) => (
-            <Card key={contraparte.id} className="p-4">
-              <div className="flex items-start justify-between mb-3">
+            <Card key={contraparte.id} className="p-4 hover:bg-accent/5 transition-colors">
+              <div className="flex items-start justify-between mb-2">
                 <button
                   onClick={() => setExpandedIndex(expandedIndex === index ? null : index)}
-                  className="flex-1 text-left"
+                  className="flex-1 flex items-center justify-between gap-2 text-left hover:text-primary transition-colors"
                 >
-                  <p className="font-medium">
-                    Contraparte #{index + 1}
-                    {contraparte.nombre && `: ${contraparte.nombre}`}
-                  </p>
-                  {contraparte.cedula && (
-                    <p className="text-sm text-muted-foreground">Cédula: {contraparte.cedula}</p>
+                  <div>
+                    <p className="font-medium flex items-center gap-2">
+                      <Users className="h-4 w-4 text-primary" />
+                      Contraparte #{index + 1}
+                      {contraparte.nombre && `: ${contraparte.nombre}`}
+                    </p>
+                    {contraparte.cedula && (
+                      <p className="text-sm text-muted-foreground ml-6">Cédula: {contraparte.cedula}</p>
+                    )}
+                  </div>
+                  {expandedIndex === index ? (
+                    <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
                   )}
                 </button>
                 <Button
@@ -158,14 +167,49 @@ export function ContraparteManager({
               </div>
 
               {expandedIndex === index && (
-                <ClientSelector
-                  label={`Datos de Contraparte #${index + 1}`}
-                  fieldPrefix="contraparte"
-                  value={contraparte.cliente_id}
-                  onChange={(clientId) => handleClientSelect(index, clientId)}
-                  onFieldUpdate={(fields) => handleFieldUpdate(index, fields)}
-                  required
-                />
+                <div className="space-y-4 mt-4 pt-4 border-t border-border">
+                  <ClientSelector
+                    label={`Datos de Contraparte #${index + 1}`}
+                    fieldPrefix="contraparte"
+                    value={contraparte.cliente_id}
+                    onChange={(clientId) => handleClientSelect(index, clientId)}
+                    onFieldUpdate={(fields) => handleFieldUpdate(index, fields)}
+                    required
+                  />
+                  
+                  {/* LocationSelect adicional para contraparte */}
+                  <div className="pt-4 border-t border-border">
+                    <LocationSelect
+                      control={{
+                        register: () => ({}),
+                        unregister: () => {},
+                        getFieldState: () => ({ invalid: false, isDirty: false, isTouched: false, error: undefined }),
+                        _subjects: { state: { next: () => {}, subscribe: () => ({ unsubscribe: () => {} }) } },
+                        _formState: { isDirty: false, isSubmitting: false, isSubmitted: false, isValid: true },
+                      } as any}
+                      setValue={(name: string, value: any) => {
+                        const updated = [...contrapartes];
+                        if (name.includes('provincia_id')) {
+                          updated[index] = { ...updated[index], provincia_id: value };
+                        } else if (name.includes('municipio_id')) {
+                          updated[index] = { ...updated[index], municipio_id: value };
+                        } else if (name.includes('sector_id')) {
+                          updated[index] = { ...updated[index], sector_id: value };
+                        }
+                        onChange(updated);
+                      }}
+                      nameProvincia={`contraparte_${index}_provincia_id`}
+                      nameMunicipio={`contraparte_${index}_municipio_id`}
+                      nameSector={`contraparte_${index}_sector_id`}
+                      disabled={false}
+                      labels={{
+                        provincia: "Provincia de domicilio",
+                        municipio: "Municipio de domicilio",
+                        sector: "Sector de domicilio",
+                      }}
+                    />
+                  </div>
+                </div>
               )}
             </Card>
           ))}

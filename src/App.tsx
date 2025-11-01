@@ -54,6 +54,7 @@ const LawyersAdmin = lazy(() => import("./pages/LawyersAdmin"));
 const ClientMessages = lazy(() => import("./pages/ClientMessages"));
 const VirtualRoom = lazy(() => import("./pages/VirtualRoom"));
 const NotarialActs = lazy(() => import("./pages/NotarialActs"));
+const NotarialActsNew = lazy(() => import("./pages/NotarialActsNew"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // React Query Error Fallback
@@ -139,7 +140,8 @@ const App = () => (
                                 <Route path="/abogados" element={<LawyersAdmin />} />
                                 <Route path="/mensajes" element={<ClientMessages />} />
                                 <Route path="/sala-virtual" element={<VirtualRoom />} />
-                                <Route path="/actos-notariales" element={<NotarialActs />} />
+                                <Route path="/actos-notariales" element={<NotarialActsNew />} />
+                                <Route path="/actos-notariales-old" element={<NotarialActs />} />
                                 <Route path="/security-showcase" element={<SecurityShowcase />} />
                                 <Route path="*" element={<NotFound />} />
                               </Routes>
