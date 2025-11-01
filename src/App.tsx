@@ -27,6 +27,7 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import InvitationAccept from "./pages/InvitationAccept";
 import LegalActWizard from "./pages/LegalActWizard";
+import TestHydration from "./pages/TestHydration";
 
 // Lazy load all other routes for better performance
 const Cases = lazy(() => import("./pages/Cases"));
@@ -143,6 +144,7 @@ const App = () => (
                                 <Route path="/actos-notariales" element={<NotarialActsNew />} />
                                 <Route path="/actos-notariales-old" element={<NotarialActs />} />
                                 <Route path="/security-showcase" element={<SecurityShowcase />} />
+                                <Route path="/test-hydration" element={<TestHydration />} />
                                 <Route path="*" element={<NotFound />} />
                               </Routes>
                             </Suspense>
