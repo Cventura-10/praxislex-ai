@@ -37,12 +37,12 @@ export default function LegalActsGenerator() {
 
   const handleIntakeMode = () => {
     setIsDialogOpen(false);
-    navigate(`/redaccion-ia?acto=${selectedAct?.id}&mode=intake`);
+    navigate(`/redaccion-ia-new?acto=${selectedAct?.id}&mode=intake`);
   };
 
   const handleManualMode = () => {
     setIsDialogOpen(false);
-    navigate(`/redaccion-ia?acto=${selectedAct?.id}&mode=manual`);
+    navigate(`/redaccion-ia-new?acto=${selectedAct?.id}&mode=manual`);
   };
 
   const toggleMatter = (matterId: string) => {

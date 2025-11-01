@@ -29,6 +29,7 @@ import InvitationAccept from "./pages/InvitationAccept";
 import LegalActWizard from "./pages/LegalActWizard";
 import TestHydration from "./pages/TestHydration";
 import TestHydrationV2 from "./pages/TestHydrationV2";
+import LegalActWizardNew from "./pages/LegalActWizardNew";
 
 // Lazy load all other routes for better performance
 const Cases = lazy(() => import("./pages/Cases"));
@@ -50,7 +51,8 @@ const Upgrade = lazy(() => import("./pages/Upgrade"));
 const Security = lazy(() => import("./pages/Security"));
 const Analytics = lazy(() => import("./pages/Analytics"));
 const LegalModels = lazy(() => import("./pages/LegalModels"));
-const LegalActsGenerator = lazy(() => import("./pages/LegalActsGenerator"));
+// Eager load for legal acts generator to prevent 404
+import LegalActsGenerator from "./pages/LegalActsGenerator";
 const SecurityShowcase = lazy(() => import("./pages/SecurityShowcase"));
 const LawyersAdmin = lazy(() => import("./pages/LawyersAdmin"));
 const ClientMessages = lazy(() => import("./pages/ClientMessages"));
@@ -139,6 +141,7 @@ const App = () => (
                                 <Route path="/modelos-juridicos" element={<LegalModels />} />
                                 <Route path="/generador-actos" element={<LegalActsGenerator />} />
                                 <Route path="/redaccion-ia" element={<LegalActWizard />} />
+                                <Route path="/redaccion-ia-new" element={<LegalActWizardNew />} />
                                 <Route path="/abogados" element={<LawyersAdmin />} />
                                 <Route path="/mensajes" element={<ClientMessages />} />
                                 <Route path="/sala-virtual" element={<VirtualRoom />} />
