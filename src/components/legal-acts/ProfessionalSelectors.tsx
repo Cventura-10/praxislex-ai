@@ -1,8 +1,8 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-import { Loader2, User, Gavel, UserCog, DollarSign } from "lucide-react";
-import { useNotarios, type Notario } from "@/hooks/useNotarios";
+import { Loader2, User, Gavel, UserCog, DollarSign, UserPlus } from "lucide-react";
+import { useNotariosView } from "@/hooks/useNotariosView";
 import { useAlguaciles, type Alguacil } from "@/hooks/useAlguaciles";
 import { usePeritos, type Perito } from "@/hooks/usePeritos";
 import { useTasadores, type Tasador } from "@/hooks/useTasadores";
@@ -70,30 +70,42 @@ export function LawyerSelector({ value, onChange, onFieldUpdate }: LawyerSelecto
 
 interface NotarioSelectorProps {
   value: string | null;
-  onChange: (notario: Notario | null) => void;
-  onFieldUpdate: (fields: Record<string, string>) => void;
+  onChange: (notarioId: string | null) => void;
+  onFieldUpdate: (fields: Record<string, any>) => void;
+  required?: boolean;
 }
 
-export function NotarioSelector({ value, onChange, onFieldUpdate }: NotarioSelectorProps) {
-  const { notarios, loading } = useNotarios();
+export function NotarioSelector({ value, onChange, onFieldUpdate, required = false }: NotarioSelectorProps) {
+  const { data: notarios = [], isLoading: loading } = useNotariosView();
 
   const handleSelection = (notarioId: string) => {
+    if (notarioId === "manual") {
+      onChange(null);
+      onFieldUpdate({
+        notario_nombre: "",
+        notario_exequatur: "",
+        notario_cedula_mask: "",
+        notario_oficina: "",
+        notario_jurisdiccion: "",
+        notario_telefono: "",
+        notario_email: "",
+      });
+      return;
+    }
+
     const notario = notarios.find(n => n.id === notarioId);
     if (notario) {
-      onChange(notario);
+      onChange(notarioId);
       onFieldUpdate({
         notario_nombre: notario.nombre,
-        notario_cedula: notario.cedula_encrypted || '',
-        notario_matricula: notario.matricula_cdn || '',
-        notario_oficina: notario.oficina_direccion || '',
-        notario_jurisdiccion: notario.jurisdiccion || '',
-        notario_telefono: notario.telefono || '',
-        notario_email: notario.email || '',
-        notario_nacionalidad: notario.nacionalidad || '',
-        notario_estado_civil: notario.estado_civil || '',
-        notario_fecha_nacimiento: notario.fecha_nacimiento || '',
-        notario_lugar_nacimiento: notario.lugar_nacimiento || '',
-        notario_pasaporte: notario.pasaporte || '',
+        notario_exequatur: notario.exequatur,
+        notario_cedula_mask: notario.cedula_mask,
+        notario_oficina: notario.oficina,
+        notario_jurisdiccion: [notario.municipio_nombre, notario.provincia_nombre]
+          .filter(Boolean)
+          .join(' / ') || notario.jurisdiccion || '',
+        notario_telefono: notario.telefono,
+        notario_email: notario.email,
       });
     }
   };
@@ -107,23 +119,40 @@ export function NotarioSelector({ value, onChange, onFieldUpdate }: NotarioSelec
   }
 
   return (
-    <div className="space-y-2">
-      <Label className="flex items-center gap-2">
-        <Gavel className="h-4 w-4 text-primary" />
+    <div className="space-y-3 p-4 border border-border rounded-lg bg-card">
+      <Label className="flex items-center gap-2 text-base font-semibold">
+        <Gavel className="h-5 w-5 text-primary" />
         Notario Público
+        {required && <span className="text-destructive">*</span>}
       </Label>
       <Select value={value || ""} onValueChange={handleSelection}>
         <SelectTrigger>
           <SelectValue placeholder="Seleccionar notario..." />
         </SelectTrigger>
         <SelectContent>
+          <SelectItem value="manual">
+            <div className="flex items-center gap-2">
+              <UserPlus className="h-4 w-4" />
+              <span>Ingresar datos manualmente</span>
+            </div>
+          </SelectItem>
           {notarios.map((notario) => (
             <SelectItem key={notario.id} value={notario.id}>
-              {notario.nombre} {notario.matricula_cdn ? `(Mat. ${notario.matricula_cdn})` : ''}
+              <div className="flex flex-col">
+                <span className="font-medium">{notario.nombre}</span>
+                {notario.exequatur && (
+                  <span className="text-xs text-muted-foreground">
+                    Exequátur: {notario.exequatur}
+                  </span>
+                )}
+              </div>
             </SelectItem>
           ))}
         </SelectContent>
       </Select>
+      <p className="text-xs text-muted-foreground">
+        💡 Selecciona un notario para autocompletar exequátur, oficina y jurisdicción
+      </p>
     </div>
   );
 }

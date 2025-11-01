@@ -12,7 +12,7 @@ interface ClientSelectorProps {
   fieldPrefix: string; // ej: "demandante", "primera_parte", "vendedor"
   value: string | null;
   onChange: (clientId: string | null) => void;
-  onFieldUpdate: (fields: Record<string, string>) => void;
+  onFieldUpdate: (fields: Record<string, any>) => void; // Cambio a 'any' para incluir numbers
   required?: boolean;
 }
 
@@ -36,10 +36,13 @@ export function ClientSelector({
       onFieldUpdate({
         [`${fieldPrefix}_nombre`]: "",
         [`${fieldPrefix}_cedula`]: "",
-        [`${fieldPrefix}_domicilio`]: "",
+        [`${fieldPrefix}_direccion`]: "",
         [`${fieldPrefix}_nacionalidad`]: "",
         [`${fieldPrefix}_estado_civil`]: "",
         [`${fieldPrefix}_profesion`]: "",
+        [`${fieldPrefix}_provincia_id`]: null,
+        [`${fieldPrefix}_municipio_id`]: null,
+        [`${fieldPrefix}_sector_id`]: null,
         [`${fieldPrefix}_email`]: "",
         [`${fieldPrefix}_telefono`]: "",
         [`${fieldPrefix}_fecha_nacimiento`]: "",
@@ -59,10 +62,13 @@ export function ClientSelector({
       onFieldUpdate({
         [`${fieldPrefix}_nombre`]: clientData.nombre_completo,
         [`${fieldPrefix}_cedula`]: clientData.cedula_rnc,
-        [`${fieldPrefix}_domicilio`]: clientData.direccion || "",
+        [`${fieldPrefix}_direccion`]: clientData.direccion || "",
         [`${fieldPrefix}_nacionalidad`]: clientData.nacionalidad || "",
         [`${fieldPrefix}_estado_civil`]: clientData.estado_civil || "",
         [`${fieldPrefix}_profesion`]: clientData.profesion || "",
+        [`${fieldPrefix}_provincia_id`]: clientData.provincia_id || null,
+        [`${fieldPrefix}_municipio_id`]: clientData.municipio_id || null,
+        [`${fieldPrefix}_sector_id`]: clientData.sector_id || null,
         [`${fieldPrefix}_email`]: clientData.email || "",
         [`${fieldPrefix}_telefono`]: clientData.telefono || "",
         [`${fieldPrefix}_fecha_nacimiento`]: clientData.fecha_nacimiento || "",
@@ -92,10 +98,13 @@ export function ClientSelector({
         onFieldUpdate({
           [`${fieldPrefix}_nombre`]: clientData.nombre_completo,
           [`${fieldPrefix}_cedula`]: clientData.cedula_rnc,
-          [`${fieldPrefix}_domicilio`]: clientData.direccion || "",
+          [`${fieldPrefix}_direccion`]: clientData.direccion || "",
           [`${fieldPrefix}_nacionalidad`]: clientData.nacionalidad || "",
           [`${fieldPrefix}_estado_civil`]: clientData.estado_civil || "",
           [`${fieldPrefix}_profesion`]: clientData.profesion || "",
+          [`${fieldPrefix}_provincia_id`]: clientData.provincia_id || null,
+          [`${fieldPrefix}_municipio_id`]: clientData.municipio_id || null,
+          [`${fieldPrefix}_sector_id`]: clientData.sector_id || null,
           [`${fieldPrefix}_email`]: clientData.email || "",
           [`${fieldPrefix}_telefono`]: clientData.telefono || "",
           [`${fieldPrefix}_fecha_nacimiento`]: clientData.fecha_nacimiento || "",

@@ -113,10 +113,10 @@ export function BundleIntakeForm({ actBundle }: BundleIntakeFormProps) {
             nacionalidad: clientData.nacionalidad || "",
             estado_civil: normalizeEstadoCivil(clientData.estado_civil),
             profesion: clientData.profesion || clientData.ocupacion || "",
-            // Domicilio (v1.4.4)
-            provincia_id: clientData.provincia_id || "",
-            municipio_id: clientData.municipio_id || "",
-            ciudad_id: clientData.ciudad_id || "",
+            // Domicilio (v2.0 FASE 2)
+            provincia_id: clientData.provincia_id || null,
+            municipio_id: clientData.municipio_id || null,
+            sector_id: clientData.sector_id || null,
             direccion: clientData.direccion || "",
             autofill_fuente: "personas",
             autofill_ok: true,

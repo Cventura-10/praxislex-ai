@@ -34,10 +34,10 @@ export interface ClientFullData {
   razon_social?: string;
   representante_legal?: string;
   cargo_representante?: string;
-  // v1.4.4 - Campos de domicilio geo RD
-  provincia_id?: string;
-  municipio_id?: string;
-  ciudad_id?: string;
+  // v2.0 FASE 2 - Campos de domicilio geo RD (int IDs)
+  provincia_id?: number | null;
+  municipio_id?: number | null;
+  sector_id?: number | null;
 }
 
 export function useClients() {
@@ -109,10 +109,10 @@ export function useClients() {
         razon_social: result.razon_social || '',
         representante_legal: result.representante_legal || '',
         cargo_representante: result.cargo_representante || '',
-        // v1.4.4 - Domicilio geo RD
-        provincia_id: result.provincia_id || '',
-        municipio_id: result.municipio_id || '',
-        ciudad_id: result.ciudad_id || '',
+        // v2.0 FASE 2 - Domicilio geo RD
+        provincia_id: result.provincia_id || null,
+        municipio_id: result.municipio_id || null,
+        sector_id: result.sector_id || null,
       };
     } catch (error: any) {
       console.error("Error getting client data:", error);
