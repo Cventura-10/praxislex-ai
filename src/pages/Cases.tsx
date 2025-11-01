@@ -624,12 +624,14 @@ const Cases = () => {
                 </div>
               </div>
 
-              {/* Integración GEDEX - Poder Judicial */}
-              <div className="space-y-4 border-t pt-4">
-                <h3 className="text-lg font-medium flex items-center gap-2">
-                  <Scale className="h-5 w-5 text-primary" />
-                  Integración Poder Judicial (GEDEX)
-                </h3>
+              {/* Integración GEDEX - Solo para casos judiciales */}
+              {newCase.tipo_caso === 'judicial' && (
+                <div className="space-y-4 border-t pt-4">
+                  <h3 className="text-lg font-medium flex items-center gap-2">
+                    <Scale className="h-5 w-5 text-primary" />
+                    Integración Poder Judicial (GEDEX)
+                    <span className="text-xs text-muted-foreground font-normal ml-2">(Opcional)</span>
+                  </h3>
                 
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="grid gap-2">
@@ -688,6 +690,7 @@ const Cases = () => {
                   </div>
                 </div>
               </div>
+              )}
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setShowNewCaseDialog(false)}>
@@ -697,7 +700,7 @@ const Cases = () => {
                 onClick={handleCreateCase} 
                 disabled={
                   !newCase.titulo || 
-                  !newCase.materia || 
+                  !newCase.materia ||
                   (newCase.tipo_caso === 'judicial' && (!newCase.juzgado || !newCase.etapa_procesal))
                 }
               >
