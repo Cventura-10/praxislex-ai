@@ -1,10 +1,11 @@
 import { useForm, FormProvider } from 'react-hook-form';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { LegalActBundle } from '@/lib/legalActsBundle';
 import { useActPartyRoles } from '@/hooks/useActPartyRoles';
 import { DynamicPartiesManager } from './DynamicPartiesManager';
 import { AbogadoContrarioManager } from './AbogadoContrarioManager';
 import { NotarioSelector } from './NotarioSelector';
+import { DocumentVersionHistory } from './DocumentVersionHistory';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -53,6 +54,7 @@ interface ParteData {
 }
 
 interface FormData {
+  id?: string;
   numero_acto: string;
   numero_acta: string;
   numero_folios: number;
@@ -77,9 +79,11 @@ interface UniversalIntakeFormProps {
  */
 export function UniversalIntakeForm({ acto, onSuccess }: UniversalIntakeFormProps) {
   const partyConfig = useActPartyRoles(acto);
+  const [isGenerating, setIsGenerating] = useState(false);
   
   const form = useForm<FormData>({
     defaultValues: {
+      id: undefined,
       numero_acto: '',
       numero_acta: '',
       numero_folios: 1,
@@ -167,11 +171,12 @@ export function UniversalIntakeForm({ acto, onSuccess }: UniversalIntakeFormProp
       if (error) throw error;
 
       if (row) {
+        form.setValue('id', row.id);
         form.setValue('numero_acto', row.numero_acto || '');
         toast.success(`Acto generado exitosamente: ${row.numero_acto}`);
         
         if (onSuccess) {
-          onSuccess({ ...data, numero_acto: row.numero_acto });
+          onSuccess({ ...data, id: row.id, numero_acto: row.numero_acto });
         }
       } else {
         toast.error('No se pudo crear el acto');
@@ -185,7 +190,14 @@ export function UniversalIntakeForm({ acto, onSuccess }: UniversalIntakeFormProp
   const handleGenerateDocx = async () => {
     const data = form.getValues();
     
+    if (!data.id) {
+      toast.error('Debe guardar el acto antes de generar el documento');
+      return;
+    }
+    
     try {
+      setIsGenerating(true);
+      
       const response = await supabase.functions.invoke('generate-legal-doc', {
         body: data
       });
@@ -197,19 +209,54 @@ export function UniversalIntakeForm({ acto, onSuccess }: UniversalIntakeFormProp
         type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
       });
       
+      const fileName = `${acto.slug}_${data.numero_acto || 'ACT'}.docx`;
+      
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `contrato_${data.numero_acto || 'ACT'}.docx`;
+      a.download = fileName;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
       
-      toast.success('Documento DOCX generado exitosamente');
+      // Guardar versión en storage
+      const { data: user } = await supabase.auth.getUser();
+      if (user?.user && data.id) {
+        const storagePath = `${user.user.id}/${data.id}/${Date.now()}_${fileName}`;
+        
+        // Subir a storage
+        const { error: uploadError } = await supabase.storage
+          .from('generated_documents')
+          .upload(storagePath, blob);
+
+        if (!uploadError) {
+          // Obtener siguiente versión
+          const { data: nextVersion } = await supabase.rpc('get_next_document_version', {
+            p_act_id: data.id
+          });
+
+          if (nextVersion) {
+            // Crear registro de versión
+            await supabase.from('document_versions').insert({
+              generated_act_id: data.id,
+              user_id: user.user.id,
+              version_number: nextVersion,
+              storage_path: storagePath,
+              file_name: fileName,
+              file_size: blob.size,
+              metadata: { generated_at: new Date().toISOString() }
+            });
+          }
+        }
+      }
+      
+      toast.success('Documento DOCX generado y guardado exitosamente');
     } catch (error: any) {
       console.error('Error generando DOCX:', error);
       toast.error(`Error: ${error.message}`);
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -369,12 +416,19 @@ export function UniversalIntakeForm({ acto, onSuccess }: UniversalIntakeFormProp
             size="lg" 
             className="flex-1"
             onClick={handleGenerateDocx}
-            disabled={!form.watch('numero_acto')}
+            disabled={!form.watch('numero_acto') || isGenerating}
           >
-            Descargar DOCX
+            {isGenerating ? 'Generando...' : 'Descargar DOCX'}
           </Button>
         </div>
       </form>
+
+      {/* Historial de versiones */}
+      {form.watch('id') && (
+        <div className="mt-6">
+          <DocumentVersionHistory actId={form.watch('id')!} />
+        </div>
+      )}
     </FormProvider>
   );
 }

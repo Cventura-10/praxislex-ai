@@ -1012,6 +1012,113 @@ export type Database = {
           },
         ]
       }
+      document_templates: {
+        Row: {
+          activo: boolean | null
+          campos_adicionales: Json | null
+          categoria: string
+          created_at: string | null
+          descripcion: string | null
+          id: string
+          metadata: Json | null
+          nombre: string
+          requiere_contrato: boolean | null
+          requiere_notario: boolean | null
+          roles_partes: Json | null
+          slug: string
+          storage_path: string
+          updated_at: string | null
+          version: string | null
+        }
+        Insert: {
+          activo?: boolean | null
+          campos_adicionales?: Json | null
+          categoria: string
+          created_at?: string | null
+          descripcion?: string | null
+          id?: string
+          metadata?: Json | null
+          nombre: string
+          requiere_contrato?: boolean | null
+          requiere_notario?: boolean | null
+          roles_partes?: Json | null
+          slug: string
+          storage_path: string
+          updated_at?: string | null
+          version?: string | null
+        }
+        Update: {
+          activo?: boolean | null
+          campos_adicionales?: Json | null
+          categoria?: string
+          created_at?: string | null
+          descripcion?: string | null
+          id?: string
+          metadata?: Json | null
+          nombre?: string
+          requiere_contrato?: boolean | null
+          requiere_notario?: boolean | null
+          roles_partes?: Json | null
+          slug?: string
+          storage_path?: string
+          updated_at?: string | null
+          version?: string | null
+        }
+        Relationships: []
+      }
+      document_versions: {
+        Row: {
+          created_at: string | null
+          file_name: string
+          file_size: number | null
+          generated_act_id: string | null
+          id: string
+          metadata: Json | null
+          mime_type: string | null
+          storage_path: string
+          tenant_id: string | null
+          updated_at: string | null
+          user_id: string
+          version_number: number
+        }
+        Insert: {
+          created_at?: string | null
+          file_name: string
+          file_size?: number | null
+          generated_act_id?: string | null
+          id?: string
+          metadata?: Json | null
+          mime_type?: string | null
+          storage_path: string
+          tenant_id?: string | null
+          updated_at?: string | null
+          user_id: string
+          version_number?: number
+        }
+        Update: {
+          created_at?: string | null
+          file_name?: string
+          file_size?: number | null
+          generated_act_id?: string | null
+          id?: string
+          metadata?: Json | null
+          mime_type?: string | null
+          storage_path?: string
+          tenant_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_versions_generated_act_id_fkey"
+            columns: ["generated_act_id"]
+            isOneToOne: false
+            referencedRelation: "generated_acts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       error_codes: {
         Row: {
           code: string
@@ -3615,6 +3722,7 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_next_document_version: { Args: { p_act_id: string }; Returns: number }
       get_security_validation: {
         Args: never
         Returns: {
