@@ -19,11 +19,37 @@ interface NotarioData {
   exequatur?: string;
   oficina?: string;
   jurisdiccion?: string;
+  cedula_mask?: string;
 }
 
-interface DatosEspecificos {
+interface ContratoData {
   monto?: number;
   plazo_meses?: number;
+  canon_monto?: number;
+  inmueble_descripcion?: string;
+  uso?: string;
+}
+
+interface ParteData {
+  cliente_id?: string;
+  nombre_completo?: string;
+  cedula_rnc?: string;
+  nacionalidad?: string;
+  estado_civil?: string;
+  profesion?: string;
+  ocupacion?: string;
+  email?: string;
+  telefono?: string;
+  direccion?: string;
+  provincia_id?: number | null;
+  municipio_id?: number | null;
+  sector_id?: number | null;
+  provincia_nombre?: string;
+  municipio_nombre?: string;
+  sector_nombre?: string;
+  tipo_persona?: 'fisica' | 'juridica';
+  razon_social?: string;
+  genero?: 'f' | 'm';
 }
 
 interface FormData {
@@ -31,10 +57,13 @@ interface FormData {
   numero_acta: string;
   numero_folios: number;
   ciudad: string;
-  partes: Record<string, any[]>;
+  fecha: string;
+  partes: Record<string, ParteData[]>;
+  primera_parte?: ParteData;
+  segunda_parte?: ParteData;
   abogados_contrarios: any[];
   notario: NotarioData;
-  datos_especificos: DatosEspecificos;
+  contrato: ContratoData;
 }
 
 interface UniversalIntakeFormProps {
@@ -55,10 +84,13 @@ export function UniversalIntakeForm({ acto, onSuccess }: UniversalIntakeFormProp
       numero_acta: '',
       numero_folios: 1,
       ciudad: 'SANTO DOMINGO',
+      fecha: new Date().toISOString().split('T')[0],
       partes: {},
+      primera_parte: {},
+      segunda_parte: {},
       abogados_contrarios: [],
       notario: {},
-      datos_especificos: {},
+      contrato: {},
     },
     shouldUnregister: false,
   });
@@ -150,6 +182,37 @@ export function UniversalIntakeForm({ acto, onSuccess }: UniversalIntakeFormProp
     }
   };
 
+  const handleGenerateDocx = async () => {
+    const data = form.getValues();
+    
+    try {
+      const response = await supabase.functions.invoke('generate-legal-doc', {
+        body: data
+      });
+
+      if (response.error) throw response.error;
+
+      // El response.data es el binario del DOCX
+      const blob = new Blob([response.data], {
+        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      });
+      
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `contrato_${data.numero_acto || 'ACT'}.docx`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      toast.success('Documento DOCX generado exitosamente');
+    } catch (error: any) {
+      console.error('Error generando DOCX:', error);
+      toast.error(`Error: ${error.message}`);
+    }
+  };
+
   return (
     <FormProvider {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
@@ -187,6 +250,10 @@ export function UniversalIntakeForm({ acto, onSuccess }: UniversalIntakeFormProp
               <div>
                 <Label>Ciudad</Label>
                 <Input {...form.register('ciudad')} />
+              </div>
+              <div className="md:col-span-4">
+                <Label>Fecha</Label>
+                <Input type="date" {...form.register('fecha')} />
               </div>
             </div>
           </CardContent>
@@ -247,26 +314,43 @@ export function UniversalIntakeForm({ acto, onSuccess }: UniversalIntakeFormProp
           </Card>
         )}
 
-        {/* Datos Específicos del Acto (se puede extender dinámicamente) */}
+        {/* Datos Específicos del Contrato */}
         {acto.is_contrato && (
           <Card>
             <CardHeader>
               <CardTitle>Datos del Contrato</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Monto (RD$)</Label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <Label>Descripción del Inmueble*</Label>
                   <Input
-                    type="number"
-                    {...form.register('datos_especificos.monto', { valueAsNumber: true })}
+                    {...form.register('contrato.inmueble_descripcion')}
+                    placeholder="Ej: Casa de dos niveles ubicada en..."
                   />
                 </div>
                 <div>
-                  <Label>Plazo (meses)</Label>
+                  <Label>Uso del Inmueble</Label>
+                  <Input
+                    {...form.register('contrato.uso')}
+                    placeholder="Residencial, Comercial, etc."
+                    defaultValue="Residencial"
+                  />
+                </div>
+                <div>
+                  <Label>Canon Mensual (RD$)*</Label>
                   <Input
                     type="number"
-                    {...form.register('datos_especificos.plazo_meses', { valueAsNumber: true })}
+                    {...form.register('contrato.canon_monto', { valueAsNumber: true })}
+                    placeholder="15000.00"
+                  />
+                </div>
+                <div>
+                  <Label>Plazo (meses)*</Label>
+                  <Input
+                    type="number"
+                    {...form.register('contrato.plazo_meses', { valueAsNumber: true })}
+                    placeholder="12"
                   />
                 </div>
               </div>
@@ -279,8 +363,15 @@ export function UniversalIntakeForm({ acto, onSuccess }: UniversalIntakeFormProp
           <Button type="submit" size="lg" className="flex-1">
             Guardar y Asignar Número
           </Button>
-          <Button type="button" variant="outline" size="lg" className="flex-1">
-            Generar DOCX
+          <Button 
+            type="button" 
+            variant="outline" 
+            size="lg" 
+            className="flex-1"
+            onClick={handleGenerateDocx}
+            disabled={!form.watch('numero_acto')}
+          >
+            Descargar DOCX
           </Button>
         </div>
       </form>
