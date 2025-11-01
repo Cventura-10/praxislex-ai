@@ -353,14 +353,54 @@ export function BundleIntakeForm({ actBundle }: BundleIntakeFormProps) {
                         field.subtype === 'tasador' ? tasadores : [];
         
         return (
-          <Select value={value} onValueChange={(val) => handleFieldChange(field.name, val)}>
+          <Select 
+            value={value} 
+            onValueChange={(val) => {
+              handleFieldChange(field.name, val);
+              // Autofill profesional seleccionado
+              const selectedProf = profData.find((p: any) => p.id === val);
+              if (selectedProf) {
+                const prefix = field.subtype;
+                const updates: Record<string, any> = {};
+                updates[`${prefix}_nombre`] = selectedProf.nombre || '';
+                updates[`${prefix}_cedula`] = selectedProf.cedula || selectedProf.cedula_encrypted || '';
+                updates[`${prefix}_matricula`] = selectedProf.matricula || selectedProf.matricula_card || selectedProf.matricula_cdn || '';
+                updates[`${prefix}_telefono`] = selectedProf.telefono || '';
+                updates[`${prefix}_email`] = selectedProf.email || '';
+                updates[`${prefix}_nacionalidad`] = selectedProf.nacionalidad || '';
+                updates[`${prefix}_estado_civil`] = normalizeEstadoCivil(selectedProf.estado_civil);
+                
+                // Campos específicos por tipo
+                if (field.subtype === 'abogado') {
+                  updates[`${prefix}_despacho`] = selectedProf.despacho_direccion || '';
+                  updates[`${prefix}_direccion`] = selectedProf.direccion || selectedProf.despacho_direccion || '';
+                } else if (field.subtype === 'notario') {
+                  updates[`${prefix}_oficina`] = selectedProf.oficina_direccion || '';
+                  updates[`${prefix}_jurisdiccion`] = selectedProf.jurisdiccion || '';
+                } else if (field.subtype === 'alguacil') {
+                  updates[`${prefix}_jurisdiccion`] = selectedProf.jurisdiccion || '';
+                  updates[`${prefix}_direccion`] = selectedProf.direccion_notificaciones || '';
+                } else if (field.subtype === 'perito') {
+                  updates[`${prefix}_especialidad`] = selectedProf.especialidad || '';
+                  updates[`${prefix}_institucion`] = selectedProf.institucion || '';
+                  updates[`${prefix}_jurisdiccion`] = selectedProf.jurisdiccion || '';
+                } else if (field.subtype === 'tasador') {
+                  updates[`${prefix}_especialidad`] = selectedProf.especialidad || '';
+                  updates[`${prefix}_direccion`] = selectedProf.direccion || '';
+                }
+                
+                setFormData(prev => ({ ...prev, ...updates }));
+                toast.success(`Datos del ${field.subtype} autocompletados`);
+              }
+            }}
+          >
             <SelectTrigger>
               <SelectValue placeholder={`Seleccionar ${field.subtype}`} />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-popover z-50">
               {profData.map((prof: any) => (
                 <SelectItem key={prof.id} value={prof.id}>
-                  {prof.nombre} {prof.matricula ? `(${prof.matricula})` : ''}
+                  {prof.nombre} {prof.matricula || prof.matricula_card || prof.matricula_cdn ? `(${prof.matricula || prof.matricula_card || prof.matricula_cdn})` : ''}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -586,7 +626,25 @@ export function BundleIntakeForm({ actBundle }: BundleIntakeFormProps) {
         return (
           <Select 
             value={value} 
-            onValueChange={(val) => handleObjectListChange(parentFieldName, parentIndex, subfield.name, val)}
+            onValueChange={(val) => {
+              handleObjectListChange(parentFieldName, parentIndex, subfield.name, val);
+              // Autofill profesional en partes[]
+              const selectedProf = profData.find((p: any) => p.id === val);
+              if (selectedProf) {
+                const currentList = [...(formData[parentFieldName] || [])];
+                const prefix = subfield.name.replace(/_id$/, '');
+                currentList[parentIndex] = {
+                  ...currentList[parentIndex],
+                  [`${prefix}_nombre`]: selectedProf.nombre || '',
+                  [`${prefix}_cedula`]: selectedProf.cedula || selectedProf.cedula_encrypted || '',
+                  [`${prefix}_matricula`]: selectedProf.matricula || selectedProf.matricula_card || selectedProf.matricula_cdn || '',
+                  [`${prefix}_telefono`]: selectedProf.telefono || '',
+                  [`${prefix}_email`]: selectedProf.email || ''
+                };
+                setFormData(prev => ({ ...prev, [parentFieldName]: currentList }));
+                toast.success(`Datos del ${subfield.subtype} autocompletados en parte #${parentIndex + 1}`);
+              }
+            }}
           >
             <SelectTrigger>
               <SelectValue placeholder={`Seleccionar ${subfield.subtype}`} />
@@ -594,7 +652,7 @@ export function BundleIntakeForm({ actBundle }: BundleIntakeFormProps) {
             <SelectContent className="bg-popover z-50">
               {profData.map((prof: any) => (
                 <SelectItem key={prof.id} value={prof.id}>
-                  {prof.nombre} {prof.matricula ? `(${prof.matricula})` : ''}
+                  {prof.nombre} {prof.matricula || prof.matricula_card || prof.matricula_cdn ? `(${prof.matricula || prof.matricula_card || prof.matricula_cdn})` : ''}
                 </SelectItem>
               ))}
             </SelectContent>
