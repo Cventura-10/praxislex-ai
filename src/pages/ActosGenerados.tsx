@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -58,17 +59,82 @@ export default function ActosGenerados() {
     navigate("/generador-actos");
   };
 
-  const handleViewAct = (actId: string) => {
-    toast({
-      title: "Visualizar acto",
-      description: `Funcionalidad en desarrollo`,
-    });
+  const handleViewAct = async (actId: string) => {
+    const act = acts.find(a => a.id === actId);
+    if (!act) return;
+
+    // Buscar la última versión del documento
+    const { data: versions } = await supabase
+      .from('document_versions')
+      .select('*')
+      .eq('generated_act_id', actId)
+      .order('version_number', { ascending: false })
+      .limit(1);
+
+    if (versions && versions.length > 0) {
+      const latestVersion = versions[0];
+      const { data } = supabase.storage
+        .from('generated_documents')
+        .getPublicUrl(latestVersion.storage_path);
+      
+      window.open(data.publicUrl, '_blank');
+    } else {
+      toast({
+        title: "No hay versiones",
+        description: "Este acto no tiene documentos generados aún",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleDownloadAct = (actId: string) => {
+  const handleDownloadAct = async (actId: string) => {
+    const act = acts.find(a => a.id === actId);
+    if (!act) return;
+
+    // Buscar la última versión del documento
+    const { data: versions, error: versionError } = await supabase
+      .from('document_versions')
+      .select('*')
+      .eq('generated_act_id', actId)
+      .order('version_number', { ascending: false })
+      .limit(1);
+
+    if (versionError || !versions || versions.length === 0) {
+      toast({
+        title: "No hay versiones",
+        description: "Este acto no tiene documentos generados para descargar",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const latestVersion = versions[0];
+    
+    const { data: fileData, error: downloadError } = await supabase.storage
+      .from('generated_documents')
+      .download(latestVersion.storage_path);
+
+    if (downloadError || !fileData) {
+      toast({
+        title: "Error al descargar",
+        description: "No se pudo descargar el documento",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const url = window.URL.createObjectURL(fileData);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = latestVersion.file_name;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+
     toast({
-      title: "Descargar acto",
-      description: `Funcionalidad en desarrollo`,
+      title: "Descarga completada",
+      description: `${latestVersion.file_name} descargado exitosamente`,
     });
   };
 
@@ -89,31 +155,35 @@ export default function ActosGenerados() {
     }
   };
 
-  const filteredActos = acts.filter((acto) => {
-    const searchLower = searchQuery.toLowerCase();
-    const matchesSearch = 
-      acto.numero_acto?.toLowerCase().includes(searchLower) ||
-      acto.titulo.toLowerCase().includes(searchLower) ||
-      acto.tipo_acto.toLowerCase().includes(searchLower) ||
-      (acto.clients?.nombre_completo || "").toLowerCase().includes(searchLower);
+  const filteredActos = useMemo(() => {
+    return acts.filter((acto) => {
+      const searchLower = searchQuery.toLowerCase();
+      const matchesSearch = 
+        acto.numero_acto?.toLowerCase().includes(searchLower) ||
+        acto.titulo.toLowerCase().includes(searchLower) ||
+        acto.tipo_acto.toLowerCase().includes(searchLower) ||
+        (acto.clients?.nombre_completo || "").toLowerCase().includes(searchLower);
 
-    const matchesMateria = filterMateria === "all" || acto.materia === filterMateria;
-    const matchesEstado = 
-      filterEstado === "all" || 
-      (filterEstado === "firmado" && acto.firmado) ||
-      (filterEstado === "borrador" && !acto.firmado);
+      const matchesMateria = filterMateria === "all" || acto.materia === filterMateria;
+      const matchesEstado = 
+        filterEstado === "all" || 
+        (filterEstado === "firmado" && acto.firmado) ||
+        (filterEstado === "borrador" && !acto.firmado);
 
-    return matchesSearch && matchesMateria && matchesEstado;
-  });
+      return matchesSearch && matchesMateria && matchesEstado;
+    });
+  }, [acts, searchQuery, filterMateria, filterEstado]);
 
-  const totalActos = acts.length;
-  const actosFirmados = acts.filter(a => a.firmado).length;
-  const actosEnBorrador = acts.filter(a => !a.firmado).length;
-  const actosEsteMes = acts.filter(a => {
-    const now = new Date();
-    const created = new Date(a.created_at);
-    return created.getMonth() === now.getMonth() && created.getFullYear() === now.getFullYear();
-  }).length;
+  const stats = useMemo(() => ({
+    totalActos: acts.length,
+    actosFirmados: acts.filter(a => a.firmado).length,
+    actosEnBorrador: acts.filter(a => !a.firmado).length,
+    actosEsteMes: acts.filter(a => {
+      const now = new Date();
+      const created = new Date(a.created_at);
+      return created.getMonth() === now.getMonth() && created.getFullYear() === now.getFullYear();
+    }).length,
+  }), [acts]);
 
   if (loading) {
     return (
@@ -157,7 +227,7 @@ export default function ActosGenerados() {
             <div>
               <p className="text-sm text-muted-foreground">Total Actos</p>
               <p className="text-2xl font-bold text-primary">
-                {totalActos}
+                {stats.totalActos}
               </p>
             </div>
             <FileText className="h-8 w-8 text-muted-foreground/50" />
@@ -169,7 +239,7 @@ export default function ActosGenerados() {
             <div>
               <p className="text-sm text-muted-foreground">Firmados</p>
               <p className="text-2xl font-bold text-green-600">
-                {actosFirmados}
+                {stats.actosFirmados}
               </p>
             </div>
             <Scale className="h-8 w-8 text-green-600/50" />
@@ -181,7 +251,7 @@ export default function ActosGenerados() {
             <div>
               <p className="text-sm text-muted-foreground">En Borrador</p>
               <p className="text-2xl font-bold text-orange-600">
-                {actosEnBorrador}
+                {stats.actosEnBorrador}
               </p>
             </div>
             <FileText className="h-8 w-8 text-orange-600/50" />
@@ -193,7 +263,7 @@ export default function ActosGenerados() {
             <div>
               <p className="text-sm text-muted-foreground">Este Mes</p>
               <p className="text-2xl font-bold text-blue-600">
-                {actosEsteMes}
+                {stats.actosEsteMes}
               </p>
             </div>
           </div>
