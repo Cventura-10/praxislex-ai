@@ -1196,6 +1196,9 @@ export type Database = {
           id: string
           materia: string
           notario_id: string | null
+          numero_acta: string | null
+          numero_acto: string | null
+          numero_folios: number | null
           perito_id: string | null
           provincia: string | null
           tasador_id: string | null
@@ -1225,6 +1228,9 @@ export type Database = {
           id?: string
           materia: string
           notario_id?: string | null
+          numero_acta?: string | null
+          numero_acto?: string | null
+          numero_folios?: number | null
           perito_id?: string | null
           provincia?: string | null
           tasador_id?: string | null
@@ -1254,6 +1260,9 @@ export type Database = {
           id?: string
           materia?: string
           notario_id?: string | null
+          numero_acta?: string | null
+          numero_acto?: string | null
+          numero_folios?: number | null
           perito_id?: string | null
           provincia?: string | null
           tasador_id?: string | null
@@ -1903,6 +1912,7 @@ export type Database = {
           notario_id: string | null
           numero_acta: string | null
           numero_acto: string | null
+          numero_folios: number | null
           numero_protocolo: string | null
           objeto: string
           provincia: string | null
@@ -1934,6 +1944,7 @@ export type Database = {
           notario_id?: string | null
           numero_acta?: string | null
           numero_acto?: string | null
+          numero_folios?: number | null
           numero_protocolo?: string | null
           objeto: string
           provincia?: string | null
@@ -1965,6 +1976,7 @@ export type Database = {
           notario_id?: string | null
           numero_acta?: string | null
           numero_acto?: string | null
+          numero_folios?: number | null
           numero_protocolo?: string | null
           objeto?: string
           provincia?: string | null

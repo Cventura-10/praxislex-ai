@@ -1,4 +1,7 @@
-import { UseFormReturn } from 'react-hook-form';
+/**
+ * Helper único de autollenado (una sola fuente de verdad)
+ * Hidrata formularios con datos de clientes, notarios y abogados
+ */
 
 type Domicilio = { 
   provincia_id?: number | null; 
@@ -20,7 +23,7 @@ type Contacto = {
   telefono?: string | null;
 };
 
-type Cliente = Civiles & Domicilio & Contacto & {
+export type Cliente = Civiles & Domicilio & Contacto & {
   id: string; 
   nombre_completo?: string | null; 
   cedula_rnc?: string | null; 
@@ -32,7 +35,7 @@ type Cliente = Civiles & Domicilio & Contacto & {
   matricula_profesional?: string | null;
 };
 
-type NotarioView = {
+export type NotarioView = {
   id: string; 
   nombre?: string | null;
   nombre_completo?: string | null; 
@@ -47,7 +50,7 @@ type NotarioView = {
   email?: string | null;
 };
 
-type AbogadoView = {
+export type AbogadoView = {
   id: string;
   nombre?: string | null;
   cedula?: string | null;
@@ -59,106 +62,100 @@ type AbogadoView = {
 
 /**
  * Hidrata (autollena) todos los campos de un cliente en el formulario
- * @param f - React Hook Form instance
+ * @param setValue - Función setValue de react-hook-form
  * @param base - Path base del formulario (ej: 'primera_parte', 'segunda_parte', 'contraparte.0')
  * @param c - Datos del cliente
  */
-export function hydrateClient<Form extends Record<string, any>>(
-  f: UseFormReturn<Form>, 
+export function hydrateClient(
+  setValue: (name: string, value: any) => void,
   base: string, 
   c: Cliente
 ) {
-  const set = f.setValue;
-  
   // Identificación
-  set(`${base}.cliente_id` as any, c.id);
-  set(`${base}.nombre_completo` as any, c.nombre_completo ?? '');
-  set(`${base}.cedula_rnc` as any, c.cedula_rnc ?? '');
-  set(`${base}.tipo_persona` as any, c.tipo_persona ?? 'fisica');
+  setValue(`${base}.cliente_id`, c.id);
+  setValue(`${base}.nombre_completo`, c.nombre_completo ?? '');
+  setValue(`${base}.cedula_rnc`, c.cedula_rnc ?? '');
+  setValue(`${base}.tipo_persona`, c.tipo_persona ?? 'fisica');
   
   // Datos civiles
-  set(`${base}.nacionalidad` as any, c.nacionalidad ?? '');
-  set(`${base}.estado_civil` as any, c.estado_civil ?? '');
-  set(`${base}.profesion` as any, c.profesion ?? c.ocupacion ?? '');
+  setValue(`${base}.nacionalidad`, c.nacionalidad ?? '');
+  setValue(`${base}.estado_civil`, c.estado_civil ?? '');
+  setValue(`${base}.profesion`, c.profesion ?? c.ocupacion ?? '');
   
   // Domicilio y geografía
-  set(`${base}.provincia_id` as any, c.provincia_id ?? null);
-  set(`${base}.municipio_id` as any, c.municipio_id ?? null);
-  set(`${base}.sector_id` as any, c.sector_id ?? null);
-  set(`${base}.direccion` as any, c.direccion ?? '');
-  set(`${base}.ciudad` as any, c.ciudad ?? '');
+  setValue(`${base}.provincia_id`, c.provincia_id ?? null);
+  setValue(`${base}.municipio_id`, c.municipio_id ?? null);
+  setValue(`${base}.sector_id`, c.sector_id ?? null);
+  setValue(`${base}.direccion`, c.direccion ?? '');
+  setValue(`${base}.ciudad`, c.ciudad ?? '');
   
   // Contacto
-  set(`${base}.email` as any, c.email ?? '');
-  set(`${base}.telefono` as any, c.telefono ?? '');
+  setValue(`${base}.email`, c.email ?? '');
+  setValue(`${base}.telefono`, c.telefono ?? '');
   
   // Persona jurídica (si aplica)
-  set(`${base}.razon_social` as any, c.razon_social ?? '');
-  set(`${base}.representante_legal` as any, c.representante_legal ?? '');
-  set(`${base}.cargo_representante` as any, c.cargo_representante ?? '');
+  setValue(`${base}.razon_social`, c.razon_social ?? '');
+  setValue(`${base}.representante_legal`, c.representante_legal ?? '');
+  setValue(`${base}.cargo_representante`, c.cargo_representante ?? '');
   
   // Profesionales (si aplica)
-  set(`${base}.matricula_card` as any, c.matricula_card ?? '');
-  set(`${base}.matricula_profesional` as any, c.matricula_profesional ?? '');
+  setValue(`${base}.matricula_card`, c.matricula_card ?? '');
+  setValue(`${base}.matricula_profesional`, c.matricula_profesional ?? '');
 }
 
 /**
  * Hidrata (autollena) todos los campos de un notario en el formulario
- * @param f - React Hook Form instance
+ * @param setValue - Función setValue de react-hook-form
  * @param n - Datos del notario
  */
-export function hydrateNotario<Form extends Record<string, any>>(
-  f: UseFormReturn<Form>, 
+export function hydrateNotario(
+  setValue: (name: string, value: any) => void,
   n: NotarioView
 ) {
-  const set = f.setValue;
-  
-  set('notario.id' as any, n.id);
-  set('notario.nombre_completo' as any, n.nombre_completo ?? n.nombre ?? '');
-  set('notario.exequatur' as any, n.exequatur ?? '');
-  set('notario.cedula_mask' as any, n.cedula_mask ?? '');
-  set('notario.oficina' as any, n.oficina ?? n.oficina_direccion ?? '');
-  set('notario.telefono' as any, n.telefono ?? '');
-  set('notario.email' as any, n.email ?? '');
+  setValue('notario.id', n.id);
+  setValue('notario.nombre_completo', n.nombre_completo ?? n.nombre ?? '');
+  setValue('notario.exequatur', n.exequatur ?? '');
+  setValue('notario.cedula_mask', n.cedula_mask ?? '');
+  setValue('notario.oficina', n.oficina ?? n.oficina_direccion ?? '');
+  setValue('notario.telefono', n.telefono ?? '');
+  setValue('notario.email', n.email ?? '');
   
   // Jurisdicción compuesta
   const jurisd = n.jurisdiccion ?? [n.municipio_nombre, n.provincia_nombre]
     .filter(Boolean)
     .join(' / ');
-  set('notario.jurisdiccion' as any, jurisd);
+  setValue('notario.jurisdiccion', jurisd);
 }
 
 /**
  * Hidrata (autollena) todos los campos de un abogado en el formulario
- * @param f - React Hook Form instance
+ * @param setValue - Función setValue de react-hook-form
  * @param base - Path base del formulario (ej: 'abogado', 'abogado_contrario.0')
  * @param a - Datos del abogado
  */
-export function hydrateAbogado<Form extends Record<string, any>>(
-  f: UseFormReturn<Form>, 
+export function hydrateAbogado(
+  setValue: (name: string, value: any) => void,
   base: string, 
   a: AbogadoView
 ) {
-  const set = f.setValue;
-  
-  set(`${base}.id` as any, a.id);
-  set(`${base}.nombre` as any, a.nombre ?? '');
-  set(`${base}.cedula` as any, a.cedula ?? '');
-  set(`${base}.matricula_card` as any, a.matricula_card ?? '');
-  set(`${base}.email` as any, a.email ?? '');
-  set(`${base}.telefono` as any, a.telefono ?? '');
-  set(`${base}.despacho_direccion` as any, a.despacho_direccion ?? '');
+  setValue(`${base}.id`, a.id);
+  setValue(`${base}.nombre`, a.nombre ?? '');
+  setValue(`${base}.cedula`, a.cedula ?? '');
+  setValue(`${base}.matricula_card`, a.matricula_card ?? '');
+  setValue(`${base}.email`, a.email ?? '');
+  setValue(`${base}.telefono`, a.telefono ?? '');
+  setValue(`${base}.despacho_direccion`, a.despacho_direccion ?? '');
 }
 
 /**
  * Resetea cascada de municipio y sector cuando cambia la provincia
- * @param f - React Hook Form instance
+ * @param resetField - Función resetField de react-hook-form
  * @param base - Path base del formulario
  */
-export function resetGeoCascade<Form extends Record<string, any>>(
-  f: UseFormReturn<Form>,
+export function resetGeoCascade(
+  resetField: (name: string) => void,
   base: string
 ) {
-  f.resetField(`${base}.municipio_id` as any);
-  f.resetField(`${base}.sector_id` as any);
+  resetField(`${base}.municipio_id`);
+  resetField(`${base}.sector_id`);
 }
