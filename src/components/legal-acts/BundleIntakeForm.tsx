@@ -14,6 +14,9 @@ import { LegalActBundle, ActFieldSchema } from "@/lib/legalActsBundle";
 import { ChevronLeft, ChevronRight, FileText, Loader2, Plus, Trash2 } from "lucide-react";
 import { ClientSelector } from "./ClientSelector";
 import { TribunalSelector } from "./TribunalSelector";
+import { LocationSelect } from "./LocationSelect";
+import { ContraparteManager, type ContraparteData } from "./ContraparteManager";
+import { AbogadoContrarioManager, type AbogadoContrarioData } from "./AbogadoContrarioManager";
 import { useClients } from "@/hooks/useClients";
 import { useLawyers } from "@/hooks/useLawyers";
 import { useNotarios } from "@/hooks/useNotarios";
@@ -21,8 +24,8 @@ import { useAlguaciles } from "@/hooks/useAlguaciles";
 import { usePeritos } from "@/hooks/usePeritos";
 import { useTasadores } from "@/hooks/useTasadores";
 import { Document, Packer, Paragraph, TextRun, AlignmentType } from "docx";
+import { validateBeforeGeneration, validateMontos, validateDomicilio } from "@/lib/forms/validation";
 import bundleData from "@/data/praxislex_bundle_v1_3_2.json";
-import { LocationSelect } from "./LocationSelect";
 
 interface BundleIntakeFormProps {
   actBundle: LegalActBundle;
@@ -34,6 +37,10 @@ export function BundleIntakeForm({ actBundle }: BundleIntakeFormProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedDocument, setGeneratedDocument] = useState<string>("");
   const [partesEditMode, setPartesEditMode] = useState<Record<number, boolean>>({});
+  
+  // v2.0 FASE 3 - Estados para contrapartes y abogados contrarios
+  const [contrapartes, setContrapartes] = useState<ContraparteData[]>([]);
+  const [abogadosContrarios, setAbogadosContrarios] = useState<AbogadoContrarioData[]>([]);
 
   const { clients, getClientById } = useClients();
   const { lawyers } = useLawyers();
@@ -287,30 +294,47 @@ export function BundleIntakeForm({ actBundle }: BundleIntakeFormProps) {
   };
 
   const handleGenerate = async () => {
-    // v1.4.8 - Validar campos obligatorios
-    const requiredChecks: { path: string; label: string }[] = [
-      { path: 'primera_parte', label: 'Primera Parte' },
-      { path: 'segunda_parte', label: 'Segunda Parte' },
-    ];
+    // v2.0 FASE 4 - Validaciones fail-fast
+    const validationErrors: string[] = [];
 
-    // Contract-specific validations
-    if (actBundle.slug === 'contrato_alquiler' || actBundle.slug === 'CONTRATO_ALQUILER') {
-      requiredChecks.push(
-        { path: 'notario', label: 'Notario' },
-        { path: 'canon_monto', label: 'Canon de Arrendamiento' },
-        { path: 'plazo_meses', label: 'Plazo' }
-      );
-    }
-
-    // Check missing fields
-    const missing = requiredChecks.filter(check => {
-      const val = formData[check.path];
-      return !val || val === '' || (typeof val === 'object' && Object.keys(val).length === 0);
+    // 1. Validar datos básicos con schema Zod
+    const schemaErrors = validateBeforeGeneration({
+      primera_parte: formData.primera_parte,
+      segunda_parte: formData.segunda_parte,
+      notario: formData.notario,
+      contrato: formData.contrato,
     });
 
-    if (missing.length > 0) {
-      toast.error(`Faltan datos obligatorios: ${missing.map(m => m.label).join(', ')}`);
-      return;
+    if (schemaErrors) {
+      validationErrors.push(...schemaErrors);
+    }
+
+    // 2. Validar montos (evitar RD$0.00)
+    const montosErrors = validateMontos(formData);
+    if (montosErrors.length > 0) {
+      validationErrors.push(...montosErrors);
+    }
+
+    // 3. Validar domicilios completos
+    if (formData.primera_parte) {
+      const domicilioErrors = validateDomicilio(formData.primera_parte, "Primera Parte");
+      validationErrors.push(...domicilioErrors);
+    }
+
+    if (formData.segunda_parte) {
+      const domicilioErrors = validateDomicilio(formData.segunda_parte, "Segunda Parte");
+      validationErrors.push(...domicilioErrors);
+    }
+
+    // 4. Mostrar errores y bloquear generación
+    if (validationErrors.length > 0) {
+      toast.error("Datos incompletos", {
+        description: validationErrors.slice(0, 3).join("\n") + 
+          (validationErrors.length > 3 ? `\n...y ${validationErrors.length - 3} más` : ""),
+        duration: 5000,
+      });
+      console.error("Errores de validación:", validationErrors);
+      return; // FAIL-FAST: No continuar
     }
 
     setIsGenerating(true);
@@ -318,10 +342,31 @@ export function BundleIntakeForm({ actBundle }: BundleIntakeFormProps) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Usuario no autenticado");
 
+      // Preparar datos completos incluyendo contrapartes
+      const completeFormData = {
+        ...formData,
+        contrapartes: contrapartes.map(c => ({
+          nombre: c.nombre,
+          cedula: c.cedula,
+          nacionalidad: c.nacionalidad,
+          estado_civil: c.estado_civil,
+          profesion: c.profesion,
+          direccion: c.direccion,
+        })),
+        abogados_contrarios: abogadosContrarios.map(a => ({
+          nombre: a.nombre,
+          cedula: a.cedula,
+          matricula_card: a.matricula_card,
+          email: a.email,
+          telefono: a.telefono,
+          direccion: a.direccion,
+        })),
+      };
+
       const response = await supabase.functions.invoke("generate-legal-doc", {
         body: {
           actSlug: actBundle.slug,
-          formData,
+          formData: completeFormData,
           template: actBundle.plantilla_md,
           materia: actBundle.materia,
           naturaleza: actBundle.naturaleza,
@@ -331,7 +376,7 @@ export function BundleIntakeForm({ actBundle }: BundleIntakeFormProps) {
 
       if (response.error) throw response.error;
       
-      // v1.4.8 - Generate DOCX directly, DO NOT show preview
+      // v2.0 - Generate DOCX directly, DO NOT show preview
       const content = response.data.contenido || response.data.content;
       
       if (!content) {

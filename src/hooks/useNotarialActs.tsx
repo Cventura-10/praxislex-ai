@@ -68,7 +68,7 @@ export function useNotarialActs() {
       const { data: tenantData } = await supabase
         .from("current_user_tenant")
         .select("id")
-        .single();
+        .maybeSingle(); // Usar maybeSingle en lugar de single
       
       if (!tenantData) throw new Error("No se encontró el tenant del usuario");
 

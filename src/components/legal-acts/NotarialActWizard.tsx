@@ -82,13 +82,11 @@ export function NotarialActWizard({ template, onCancel, onSuccess }: NotarialAct
         return;
       }
 
-      // Crear el acto notarial
       const actData = {
         tipo_acto: template.tipo_acto,
         acto_especifico: template.actId,
         titulo: formData.titulo || template.titulo,
-        numero_acto: formData.numero_acto,
-        numero_protocolo: formData.numero_protocolo || formData.numero_acta,
+        numero_protocolo: formData.numero_protocolo || formData.numero_acta || formData.numero_acto,
         folios: formData.folios ? parseInt(formData.folios) : 1,
         fecha_instrumentacion: formData.fecha_instrumentacion || formData.fecha || new Date().toISOString().split('T')[0],
         ciudad: formData.ciudad,
