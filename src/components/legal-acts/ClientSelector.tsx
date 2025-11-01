@@ -1,11 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Loader2, User, Search, UserPlus } from "lucide-react";
-import { useClients, type ClientFullData } from "@/hooks/useClients";
+import { Loader2, User, Search, UserPlus, CheckCircle2 } from "lucide-react";
+import { useClients } from "@/hooks/useClients";
 import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
 
 interface ClientSelectorProps {
   label: string;
@@ -28,11 +29,13 @@ export function ClientSelector({
   const { toast } = useToast();
   const [searchCedula, setSearchCedula] = useState("");
   const [searching, setSearching] = useState(false);
+  const [isAutofilled, setIsAutofilled] = useState(false);
 
   const handleSelection = async (clientId: string) => {
     if (clientId === "manual") {
       // Limpiar campos para entrada manual
       onChange(null);
+      setIsAutofilled(false);
       onFieldUpdate({
         [`${fieldPrefix}_nombre`]: "",
         [`${fieldPrefix}_cedula`]: "",
@@ -59,6 +62,7 @@ export function ClientSelector({
     const clientData = await getClientById(clientId);
     if (clientData) {
       onChange(clientId);
+      setIsAutofilled(true);
       onFieldUpdate({
         [`${fieldPrefix}_nombre`]: clientData.nombre_completo,
         [`${fieldPrefix}_cedula`]: clientData.cedula_rnc,
@@ -66,9 +70,9 @@ export function ClientSelector({
         [`${fieldPrefix}_nacionalidad`]: clientData.nacionalidad || "",
         [`${fieldPrefix}_estado_civil`]: clientData.estado_civil || "",
         [`${fieldPrefix}_profesion`]: clientData.profesion || "",
-        [`${fieldPrefix}_provincia_id`]: clientData.provincia_id || null,
-        [`${fieldPrefix}_municipio_id`]: clientData.municipio_id || null,
-        [`${fieldPrefix}_sector_id`]: clientData.sector_id || null,
+        [`${fieldPrefix}_provincia_id`]: clientData.provincia_id ? Number(clientData.provincia_id) : null,
+        [`${fieldPrefix}_municipio_id`]: clientData.municipio_id ? Number(clientData.municipio_id) : null,
+        [`${fieldPrefix}_sector_id`]: clientData.sector_id ? Number(clientData.sector_id) : null,
         [`${fieldPrefix}_email`]: clientData.email || "",
         [`${fieldPrefix}_telefono`]: clientData.telefono || "",
         [`${fieldPrefix}_fecha_nacimiento`]: clientData.fecha_nacimiento || "",
@@ -81,8 +85,8 @@ export function ClientSelector({
       });
       
       toast({
-        title: "Cliente cargado",
-        description: `Datos de ${clientData.nombre_completo} autocompletados`,
+        title: "✓ Cliente cargado",
+        description: `Datos de ${clientData.nombre_completo} autocompletados exitosamente`,
       });
     }
   };
@@ -95,6 +99,7 @@ export function ClientSelector({
       const clientData = await searchClientByCedula(searchCedula);
       if (clientData) {
         onChange(clientData.id);
+        setIsAutofilled(true);
         onFieldUpdate({
           [`${fieldPrefix}_nombre`]: clientData.nombre_completo,
           [`${fieldPrefix}_cedula`]: clientData.cedula_rnc,
@@ -102,9 +107,9 @@ export function ClientSelector({
           [`${fieldPrefix}_nacionalidad`]: clientData.nacionalidad || "",
           [`${fieldPrefix}_estado_civil`]: clientData.estado_civil || "",
           [`${fieldPrefix}_profesion`]: clientData.profesion || "",
-          [`${fieldPrefix}_provincia_id`]: clientData.provincia_id || null,
-          [`${fieldPrefix}_municipio_id`]: clientData.municipio_id || null,
-          [`${fieldPrefix}_sector_id`]: clientData.sector_id || null,
+          [`${fieldPrefix}_provincia_id`]: clientData.provincia_id ? Number(clientData.provincia_id) : null,
+          [`${fieldPrefix}_municipio_id`]: clientData.municipio_id ? Number(clientData.municipio_id) : null,
+          [`${fieldPrefix}_sector_id`]: clientData.sector_id ? Number(clientData.sector_id) : null,
           [`${fieldPrefix}_email`]: clientData.email || "",
           [`${fieldPrefix}_telefono`]: clientData.telefono || "",
           [`${fieldPrefix}_fecha_nacimiento`]: clientData.fecha_nacimiento || "",
@@ -118,12 +123,12 @@ export function ClientSelector({
         
         toast({
           title: "✓ Cliente encontrado",
-          description: `Datos de ${clientData.nombre_completo} autocompletados`,
+          description: `Datos de ${clientData.nombre_completo} autocompletados exitosamente`,
         });
         setSearchCedula("");
       } else {
         toast({
-          title: "Cliente no encontrado",
+          title: "⚠️ Cliente no encontrado",
           description: "No existe un cliente con esa cédula. Puedes ingresarlo manualmente.",
           variant: "destructive",
         });
@@ -148,12 +153,20 @@ export function ClientSelector({
   }
 
   return (
-    <div className="space-y-3 p-4 border border-border rounded-lg bg-card">
-      <Label className="flex items-center gap-2 text-base font-semibold">
-        <User className="h-5 w-5 text-primary" />
-        {label}
-        {required && <span className="text-destructive">*</span>}
-      </Label>
+    <div className="space-y-3 p-4 border border-border rounded-lg bg-card/50">
+      <div className="flex items-center justify-between">
+        <Label className="flex items-center gap-2 text-base font-semibold">
+          <User className="h-5 w-5 text-primary" />
+          {label}
+          {required && <span className="text-destructive ml-1">*</span>}
+        </Label>
+        {isAutofilled && (
+          <Badge variant="secondary" className="gap-1">
+            <CheckCircle2 className="h-3 w-3" />
+            Autocompletado
+          </Badge>
+        )}
+      </div>
       
       {/* Búsqueda rápida por cédula */}
       <div className="flex gap-2">
@@ -205,9 +218,11 @@ export function ClientSelector({
         </SelectContent>
       </Select>
       
-      <p className="text-xs text-muted-foreground">
-        💡 Selecciona un cliente existente para autocompletar todos sus datos
-      </p>
+      {!value && (
+        <p className="text-xs text-muted-foreground flex items-center gap-1">
+          💡 <span>Selecciona un cliente existente para autocompletar todos sus datos automáticamente</span>
+        </p>
+      )}
     </div>
   );
 }
