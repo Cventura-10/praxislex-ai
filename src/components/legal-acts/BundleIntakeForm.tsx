@@ -331,14 +331,17 @@ export function BundleIntakeForm({ actBundle }: BundleIntakeFormProps) {
 
       if (response.error) throw response.error;
       
-      // v1.4.8 - Generate DOCX from content on client side
+      // v1.4.8 - Generate DOCX directly, DO NOT show preview
       const content = response.data.contenido || response.data.content;
-      setGeneratedDocument(content);
       
-      // Auto-generate DOCX with A4 format
+      if (!content) {
+        throw new Error("No se generó contenido");
+      }
+      
+      // Generate and download DOCX immediately
       await generateAndDownloadDocx(content, actBundle.slug);
       
-      toast.success("Documento generado y descargado");
+      toast.success("Documento generado y descargado exitosamente");
     } catch (error: any) {
       console.error("Error generating document:", error);
       toast.error(error.message || "Error al generar el documento");
