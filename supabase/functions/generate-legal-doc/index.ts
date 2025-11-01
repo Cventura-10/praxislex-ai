@@ -101,7 +101,9 @@ serve(async (req) => {
       ciudad_actuacion: z.string().max(100).optional(),
       legislacion: z.string().max(5000).optional(),
       jurisprudencia: z.string().max(5000).optional(),
-    }).strict();
+      contrapartes: z.array(z.any()).max(50).optional(),
+      abogados_contrarios: z.array(z.any()).max(20).optional(),
+    }).passthrough();
     
     try {
       RequestSchema.parse(requestBody);
