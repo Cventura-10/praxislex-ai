@@ -20,7 +20,7 @@ import { useNotarios } from "@/hooks/useNotarios";
 import { useAlguaciles } from "@/hooks/useAlguaciles";
 import { usePeritos } from "@/hooks/usePeritos";
 import { useTasadores } from "@/hooks/useTasadores";
-import { Document, Packer, Paragraph, TextRun } from "docx";
+import { Document, Packer, Paragraph, TextRun, AlignmentType } from "docx";
 import bundleData from "@/data/praxislex_bundle_v1_3_2.json";
 import { LocationSelect } from "./LocationSelect";
 
@@ -331,26 +331,97 @@ export function BundleIntakeForm({ actBundle }: BundleIntakeFormProps) {
 
       if (response.error) throw response.error;
       
-      // v1.4.8 - Handle DOCX binary response
-      if (response.data instanceof Blob) {
-        const url = window.URL.createObjectURL(response.data);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `${actBundle.slug}_${Date.now()}.docx`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-        toast.success("Documento descargado exitosamente");
-      } else {
-        setGeneratedDocument(response.data.content || response.data.contenido);
-        toast.success("Documento generado exitosamente");
-      }
+      // v1.4.8 - Generate DOCX from content on client side
+      const content = response.data.contenido || response.data.content;
+      setGeneratedDocument(content);
+      
+      // Auto-generate DOCX with A4 format
+      await generateAndDownloadDocx(content, actBundle.slug);
+      
+      toast.success("Documento generado y descargado");
     } catch (error: any) {
       console.error("Error generating document:", error);
       toast.error(error.message || "Error al generar el documento");
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const generateAndDownloadDocx = async (content: string, slug: string) => {
+    try {
+      const lines = content.split('\n').filter(line => line.trim());
+      const paragraphs: any[] = [];
+
+      // Title (first line, centered and bold)
+      if (lines.length > 0) {
+        paragraphs.push(
+          new Paragraph({
+            text: lines[0].replace(/<[^>]*>/g, ''),
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 400 },
+            children: [
+              new TextRun({
+                text: lines[0].replace(/<[^>]*>/g, ''),
+                bold: true,
+                font: 'Times New Roman',
+                size: 24
+              })
+            ]
+          })
+        );
+      }
+
+      // Body (justified)
+      for (let i = 1; i < lines.length; i++) {
+        const cleanText = lines[i].replace(/<[^>]*>/g, '').trim();
+        if (cleanText) {
+          const isBold = lines[i].includes('<strong>') || lines[i].includes('<b>') || /^[A-Z\s]+:/.test(cleanText);
+          paragraphs.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: cleanText,
+                  bold: isBold,
+                  font: 'Times New Roman',
+                  size: 24
+                })
+              ],
+              alignment: AlignmentType.JUSTIFIED,
+              spacing: { line: 360, before: 120, after: 120 }
+            })
+          );
+        }
+      }
+
+      // Create A4 document
+      const doc = new Document({
+        sections: [{
+          properties: {
+            page: {
+              margin: {
+                top: 1417,    // 2.5 cm
+                right: 1134,  // 2.0 cm
+                bottom: 1417, // 2.5 cm
+                left: 1701    // 3.0 cm
+              }
+            }
+          },
+          children: paragraphs
+        }]
+      });
+
+      const blob = await Packer.toBlob(doc);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${slug}_${Date.now()}.docx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error generating DOCX:', error);
+      toast.error("Error al generar el archivo DOCX");
     }
   };
 
