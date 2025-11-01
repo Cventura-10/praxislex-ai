@@ -55,6 +55,69 @@ export type Database = {
           },
         ]
       }
+      act_parties: {
+        Row: {
+          acto_slug: string | null
+          created_at: string | null
+          created_by: string | null
+          expediente_id: string | null
+          id: string
+          persona_id: string | null
+          professional_id: string | null
+          rol: string
+          side: string
+          snapshot: Json | null
+          tenant_id: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          acto_slug?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          expediente_id?: string | null
+          id?: string
+          persona_id?: string | null
+          professional_id?: string | null
+          rol: string
+          side: string
+          snapshot?: Json | null
+          tenant_id?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          acto_slug?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          expediente_id?: string | null
+          id?: string
+          persona_id?: string | null
+          professional_id?: string | null
+          rol?: string
+          side?: string
+          snapshot?: Json | null
+          tenant_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "act_parties_persona_id_fkey"
+            columns: ["persona_id"]
+            isOneToOne: false
+            referencedRelation: "client_portal_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "act_parties_persona_id_fkey"
+            columns: ["persona_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       act_types: {
         Row: {
           act_template_kind: string
@@ -1227,6 +1290,13 @@ export type Database = {
             foreignKeyName: "generated_acts_notario_id_fkey"
             columns: ["notario_id"]
             isOneToOne: false
+            referencedRelation: "v_notarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "generated_acts_notario_id_fkey"
+            columns: ["notario_id"]
+            isOneToOne: false
             referencedRelation: "v_notarios_complete"
             referencedColumns: ["id"]
           },
@@ -1768,6 +1838,35 @@ export type Database = {
         }
         Relationships: []
       }
+      municipios: {
+        Row: {
+          created_at: string | null
+          id: number
+          nombre: string
+          provincia_id: number
+        }
+        Insert: {
+          created_at?: string | null
+          id?: number
+          nombre: string
+          provincia_id: number
+        }
+        Update: {
+          created_at?: string | null
+          id?: number
+          nombre?: string
+          provincia_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "municipios_provincia_id_fkey"
+            columns: ["provincia_id"]
+            isOneToOne: false
+            referencedRelation: "provincias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notarial_acts: {
         Row: {
           acto_especifico: string
@@ -1886,6 +1985,13 @@ export type Database = {
             foreignKeyName: "notarial_acts_notario_id_fkey"
             columns: ["notario_id"]
             isOneToOne: false
+            referencedRelation: "v_notarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notarial_acts_notario_id_fkey"
+            columns: ["notario_id"]
+            isOneToOne: false
             referencedRelation: "v_notarios_complete"
             referencedColumns: ["id"]
           },
@@ -1899,12 +2005,14 @@ export type Database = {
           email: string | null
           estado: string | null
           estado_civil: string | null
+          exequatur: string | null
           fecha_nacimiento: string | null
           firma_digital_url: string | null
           id: string
           jurisdiccion: string | null
           lugar_nacimiento: string | null
           matricula_cdn: string | null
+          municipio_id: number | null
           nacionalidad: string | null
           nombre: string
           oficina_direccion: string | null
@@ -1921,12 +2029,14 @@ export type Database = {
           email?: string | null
           estado?: string | null
           estado_civil?: string | null
+          exequatur?: string | null
           fecha_nacimiento?: string | null
           firma_digital_url?: string | null
           id?: string
           jurisdiccion?: string | null
           lugar_nacimiento?: string | null
           matricula_cdn?: string | null
+          municipio_id?: number | null
           nacionalidad?: string | null
           nombre: string
           oficina_direccion?: string | null
@@ -1943,12 +2053,14 @@ export type Database = {
           email?: string | null
           estado?: string | null
           estado_civil?: string | null
+          exequatur?: string | null
           fecha_nacimiento?: string | null
           firma_digital_url?: string | null
           id?: string
           jurisdiccion?: string | null
           lugar_nacimiento?: string | null
           matricula_cdn?: string | null
+          municipio_id?: number | null
           nacionalidad?: string | null
           nombre?: string
           oficina_direccion?: string | null
@@ -1959,6 +2071,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "notarios_municipio_id_fkey"
+            columns: ["municipio_id"]
+            isOneToOne: false
+            referencedRelation: "municipios"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "notarios_tenant_id_fkey"
             columns: ["tenant_id"]
@@ -2400,6 +2519,24 @@ export type Database = {
         }
         Relationships: []
       }
+      provincias: {
+        Row: {
+          created_at: string | null
+          id: number
+          nombre: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: number
+          nombre: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: number
+          nombre?: string
+        }
+        Relationships: []
+      }
       reminders: {
         Row: {
           channels: string[] | null
@@ -2543,6 +2680,35 @@ export type Database = {
           window_start?: string
         }
         Relationships: []
+      }
+      sectores: {
+        Row: {
+          created_at: string | null
+          id: number
+          municipio_id: number
+          nombre: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: number
+          municipio_id: number
+          nombre: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: number
+          municipio_id?: number
+          nombre?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sectores_municipio_id_fkey"
+            columns: ["municipio_id"]
+            isOneToOne: false
+            referencedRelation: "municipios"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       signature_envelopes: {
         Row: {
@@ -3140,6 +3306,54 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "act_types"
             referencedColumns: ["slug"]
+          },
+        ]
+      }
+      v_notarios: {
+        Row: {
+          cedula_mask: string | null
+          email: string | null
+          exequatur: string | null
+          id: string | null
+          jurisdiccion: string | null
+          municipio_id: number | null
+          municipio_nombre: string | null
+          nombre: string | null
+          oficina: string | null
+          provincia_id: number | null
+          provincia_nombre: string | null
+          telefono: string | null
+          tenant_id: string | null
+          user_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "municipios_provincia_id_fkey"
+            columns: ["provincia_id"]
+            isOneToOne: false
+            referencedRelation: "provincias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notarios_municipio_id_fkey"
+            columns: ["municipio_id"]
+            isOneToOne: false
+            referencedRelation: "municipios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notarios_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "current_user_tenant"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notarios_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
           },
         ]
       }
