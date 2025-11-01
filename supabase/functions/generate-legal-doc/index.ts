@@ -71,7 +71,14 @@ serve(async (req) => {
     
     const FormDataSchema = z.record(
       z.string().max(100, "Nombre de campo demasiado largo"),
-      SpanishLegalTextSchema
+      z.union([
+        SpanishLegalTextSchema,
+        z.number(),
+        z.boolean(),
+        z.array(z.any()),
+        z.object({}).passthrough(),
+        z.null()
+      ])
     );
     
     const RequestSchema = z.object({
@@ -85,6 +92,7 @@ serve(async (req) => {
       hechos: z.string().max(10000).optional(),
       fundamentacion_juridica: z.string().max(10000).optional(),
       petitorio: z.string().max(5000).optional(),
+      pretension: z.string().max(5000).optional(),
       pruebas: z.array(z.string()).max(50).optional(),
       lugar_ciudad: z.string().max(100).optional(),
       jurisdiccion: z.string().max(100).optional(),
@@ -92,9 +100,9 @@ serve(async (req) => {
       abogado_nombre: z.string().max(200).optional(),
       abogado_cedula: z.string().max(50).optional(),
       abogado_matricula: z.string().max(100).optional(),
-      demandante: z.string().max(200).optional(),
-      demandado: z.string().max(200).optional(),
-      compareciente: z.string().max(200).optional(),
+      demandante: z.union([z.string().max(200), z.object({}).passthrough()]).optional(),
+      demandado: z.union([z.string().max(200), z.object({}).passthrough()]).optional(),
+      compareciente: z.union([z.string().max(200), z.object({}).passthrough()]).optional(),
       numero_expediente: z.string().max(100).optional(),
       tribunal: z.string().max(200).optional(),
       juzgado: z.string().max(200).optional(),
@@ -212,7 +220,7 @@ serve(async (req) => {
     
     const hechos = normalizeText(requestBody.hechos);
     const fundamentacion_juridica = normalizeText(requestBody.fundamentacion_juridica);
-    const petitorio = normalizeText(requestBody.petitorio);
+    const petitorio = normalizeText(requestBody.petitorio || requestBody.pretension);
     
     // Integrar información de la firma del abogado si está disponible
     if (lawFirmInfo) {
