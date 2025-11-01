@@ -76,7 +76,7 @@ export function UniversalIntakeForm({ acto, onSuccess }: UniversalIntakeFormProp
     return () => subscription.unsubscribe();
   }, [watch, form]);
 
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (data: FormData) => {
     try {
       // Validación básica
       const missingRoles = partyConfig.roles.filter(role => {
@@ -94,29 +94,55 @@ export function UniversalIntakeForm({ acto, onSuccess }: UniversalIntakeFormProp
         return;
       }
 
+      // Obtener usuario autenticado
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('Usuario no autenticado');
+        return;
+      }
+
+      // Obtener tenant_id
+      const { data: tenantData } = await supabase
+        .from('current_user_tenant')
+        .select('id')
+        .maybeSingle();
+
+      if (!tenantData?.id) {
+        toast.error('No se pudo obtener el tenant');
+        return;
+      }
+
       // Insertar en generated_acts con numeración automática
+      const insertData: any = {
+        user_id: user.id,
+        tenant_id: tenantData.id,
+        tipo_acto: acto.naturaleza,
+        materia: acto.materia,
+        titulo: acto.title || acto.slug,
+        ciudad: data.ciudad,
+        numero_acta: data.numero_acta || null,
+        numero_folios: data.numero_folios || 1,
+        contenido: `${acto.title || acto.slug}\n\nDatos: ${JSON.stringify(data, null, 2)}`,
+        notario_id: data.notario?.id || null,
+      };
+
       const { data: row, error } = await supabase
         .from('generated_acts')
-        .insert({
-          tipo_acto: acto.naturaleza,
-          materia: acto.materia,
-          titulo: `${acto.title || acto.slug} - ${acto.materia}`,
-          ciudad: data.ciudad,
-          numero_acta: data.numero_acta || null,
-          numero_folios: data.numero_folios || 1,
-          contenido: `Acto: ${acto.slug}\n\nDatos: ${JSON.stringify(data, null, 2)}`,
-          notario_id: data.notario?.id || null,
-        })
+        .insert(insertData)
         .select('id, numero_acto')
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 
-      form.setValue('numero_acto', row?.numero_acto);
-      toast.success(`Acto generado exitosamente: ${row?.numero_acto}`);
-      
-      if (onSuccess) {
-        onSuccess({ ...data, numero_acto: row?.numero_acto });
+      if (row) {
+        form.setValue('numero_acto', row.numero_acto || '');
+        toast.success(`Acto generado exitosamente: ${row.numero_acto}`);
+        
+        if (onSuccess) {
+          onSuccess({ ...data, numero_acto: row.numero_acto });
+        }
+      } else {
+        toast.error('No se pudo crear el acto');
       }
     } catch (error: any) {
       console.error('Error guardando acto:', error);
