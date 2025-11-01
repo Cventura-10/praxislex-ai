@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { UseFormReturn } from "react-hook-form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -7,13 +8,15 @@ import { Loader2, Scale, Search, UserPlus, CheckCircle2, Building2 } from "lucid
 import { useNotariosView } from "@/hooks/useNotariosView";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { hydrateNotario } from "@/lib/formHydrate";
 
 interface NotarioSelectorProps {
   label?: string;
   fieldPrefix?: string;
   value: string | null;
   onChange: (notarioId: string | null) => void;
-  onFieldUpdate: (fields: Record<string, any>) => void;
+  onFieldUpdate?: (fields: Record<string, any>) => void; // Legacy - opcional
+  form?: UseFormReturn<any>; // Nuevo: pasar form directamente
   required?: boolean;
 }
 
@@ -23,6 +26,7 @@ export function NotarioSelector({
   value, 
   onChange, 
   onFieldUpdate,
+  form,
   required = false
 }: NotarioSelectorProps) {
   const { data: notarios = [], isLoading } = useNotariosView();
@@ -33,21 +37,22 @@ export function NotarioSelector({
 
   const handleSelection = (notarioId: string) => {
     if (notarioId === "manual") {
-      // Limpiar campos para entrada manual
       onChange(null);
       setIsAutofilled(false);
-      onFieldUpdate({
-        [`${fieldPrefix}_id`]: null,
-        [`${fieldPrefix}_nombre`]: "",
-        [`${fieldPrefix}_exequatur`]: "",
-        [`${fieldPrefix}_telefono`]: "",
-        [`${fieldPrefix}_email`]: "",
-        [`${fieldPrefix}_oficina`]: "",
-        [`${fieldPrefix}_provincia_id`]: null,
-        [`${fieldPrefix}_municipio_id`]: null,
-        [`${fieldPrefix}_jurisdiccion`]: "",
-        [`${fieldPrefix}_cedula`]: "",
-      });
+      
+      // Limpiar solo si hay callback legacy
+      if (onFieldUpdate) {
+        onFieldUpdate({
+          [`${fieldPrefix}_id`]: null,
+          [`${fieldPrefix}_nombre`]: "",
+          [`${fieldPrefix}_exequatur`]: "",
+          [`${fieldPrefix}_telefono`]: "",
+          [`${fieldPrefix}_email`]: "",
+          [`${fieldPrefix}_oficina`]: "",
+          [`${fieldPrefix}_jurisdiccion`]: "",
+          [`${fieldPrefix}_cedula`]: "",
+        });
+      }
       return;
     }
 
@@ -55,18 +60,38 @@ export function NotarioSelector({
     if (notarioData) {
       onChange(notarioId);
       setIsAutofilled(true);
-      onFieldUpdate({
-        [`${fieldPrefix}_id`]: notarioData.id,
-        [`${fieldPrefix}_nombre`]: notarioData.nombre || "",
-        [`${fieldPrefix}_exequatur`]: notarioData.exequatur || "",
-        [`${fieldPrefix}_telefono`]: notarioData.telefono || "",
-        [`${fieldPrefix}_email`]: notarioData.email || "",
-        [`${fieldPrefix}_oficina`]: notarioData.oficina || "",
-        [`${fieldPrefix}_provincia_id`]: notarioData.provincia_id || null,
-        [`${fieldPrefix}_municipio_id`]: notarioData.municipio_id || null,
-        [`${fieldPrefix}_jurisdiccion`]: notarioData.jurisdiccion || "",
-        [`${fieldPrefix}_cedula`]: notarioData.cedula_mask || "",
-      });
+      
+      // Usar helper centralizado si hay form
+      if (form) {
+        hydrateNotario(form, {
+          id: notarioData.id,
+          nombre_completo: notarioData.nombre,
+          nombre: notarioData.nombre,
+          exequatur: notarioData.exequatur,
+          cedula_mask: notarioData.cedula_mask,
+          oficina: notarioData.oficina,
+          oficina_direccion: notarioData.oficina,
+          municipio_nombre: notarioData.municipio_nombre,
+          provincia_nombre: notarioData.provincia_nombre,
+          jurisdiccion: notarioData.jurisdiccion,
+          telefono: notarioData.telefono,
+          email: notarioData.email,
+        });
+      } else if (onFieldUpdate) {
+        // Fallback legacy
+        onFieldUpdate({
+          [`${fieldPrefix}_id`]: notarioData.id,
+          [`${fieldPrefix}_nombre`]: notarioData.nombre || "",
+          [`${fieldPrefix}_exequatur`]: notarioData.exequatur || "",
+          [`${fieldPrefix}_telefono`]: notarioData.telefono || "",
+          [`${fieldPrefix}_email`]: notarioData.email || "",
+          [`${fieldPrefix}_oficina`]: notarioData.oficina || "",
+          [`${fieldPrefix}_provincia_id`]: notarioData.provincia_id || null,
+          [`${fieldPrefix}_municipio_id`]: notarioData.municipio_id || null,
+          [`${fieldPrefix}_jurisdiccion`]: notarioData.jurisdiccion || "",
+          [`${fieldPrefix}_cedula`]: notarioData.cedula_mask || "",
+        });
+      }
       
       toast({
         title: "✓ Notario cargado",
@@ -90,18 +115,38 @@ export function NotarioSelector({
       if (notarioData) {
         onChange(notarioData.id);
         setIsAutofilled(true);
-        onFieldUpdate({
-          [`${fieldPrefix}_id`]: notarioData.id,
-          [`${fieldPrefix}_nombre`]: notarioData.nombre || "",
-          [`${fieldPrefix}_exequatur`]: notarioData.exequatur || "",
-          [`${fieldPrefix}_telefono`]: notarioData.telefono || "",
-          [`${fieldPrefix}_email`]: notarioData.email || "",
-          [`${fieldPrefix}_oficina`]: notarioData.oficina || "",
-          [`${fieldPrefix}_provincia_id`]: notarioData.provincia_id || null,
-          [`${fieldPrefix}_municipio_id`]: notarioData.municipio_id || null,
-          [`${fieldPrefix}_jurisdiccion`]: notarioData.jurisdiccion || "",
-          [`${fieldPrefix}_cedula`]: notarioData.cedula_mask || "",
-        });
+        
+        // Usar helper centralizado
+        if (form) {
+          hydrateNotario(form, {
+            id: notarioData.id,
+            nombre_completo: notarioData.nombre,
+            nombre: notarioData.nombre,
+            exequatur: notarioData.exequatur,
+            cedula_mask: notarioData.cedula_mask,
+            oficina: notarioData.oficina,
+            oficina_direccion: notarioData.oficina,
+            municipio_nombre: notarioData.municipio_nombre,
+            provincia_nombre: notarioData.provincia_nombre,
+            jurisdiccion: notarioData.jurisdiccion,
+            telefono: notarioData.telefono,
+            email: notarioData.email,
+          });
+        } else if (onFieldUpdate) {
+          // Fallback legacy
+          onFieldUpdate({
+            [`${fieldPrefix}_id`]: notarioData.id,
+            [`${fieldPrefix}_nombre`]: notarioData.nombre || "",
+            [`${fieldPrefix}_exequatur`]: notarioData.exequatur || "",
+            [`${fieldPrefix}_telefono`]: notarioData.telefono || "",
+            [`${fieldPrefix}_email`]: notarioData.email || "",
+            [`${fieldPrefix}_oficina`]: notarioData.oficina || "",
+            [`${fieldPrefix}_provincia_id`]: notarioData.provincia_id || null,
+            [`${fieldPrefix}_municipio_id`]: notarioData.municipio_id || null,
+            [`${fieldPrefix}_jurisdiccion`]: notarioData.jurisdiccion || "",
+            [`${fieldPrefix}_cedula`]: notarioData.cedula_mask || "",
+          });
+        }
         
         toast({
           title: "✓ Notario encontrado",

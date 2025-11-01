@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { UseFormReturn } from "react-hook-form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -7,13 +8,15 @@ import { Loader2, User, Search, UserPlus, CheckCircle2 } from "lucide-react";
 import { useClients } from "@/hooks/useClients";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { hydrateClient } from "@/lib/formHydrate";
 
 interface ClientSelectorProps {
   label: string;
   fieldPrefix: string; // ej: "demandante", "primera_parte", "vendedor"
   value: string | null;
   onChange: (clientId: string | null) => void;
-  onFieldUpdate: (fields: Record<string, any>) => void; // Cambio a 'any' para incluir numbers
+  onFieldUpdate?: (fields: Record<string, any>) => void; // Legacy - opcional
+  form?: UseFormReturn<any>; // Nuevo: pasar form directamente
   required?: boolean;
 }
 
@@ -23,6 +26,7 @@ export function ClientSelector({
   value, 
   onChange, 
   onFieldUpdate,
+  form,
   required = false
 }: ClientSelectorProps) {
   const { clients, loading, getClientById, searchClientByCedula } = useClients();
@@ -33,29 +37,25 @@ export function ClientSelector({
 
   const handleSelection = async (clientId: string) => {
     if (clientId === "manual") {
-      // Limpiar campos para entrada manual
       onChange(null);
       setIsAutofilled(false);
-      onFieldUpdate({
-        [`${fieldPrefix}_nombre`]: "",
-        [`${fieldPrefix}_cedula`]: "",
-        [`${fieldPrefix}_direccion`]: "",
-        [`${fieldPrefix}_nacionalidad`]: "",
-        [`${fieldPrefix}_estado_civil`]: "",
-        [`${fieldPrefix}_profesion`]: "",
-        [`${fieldPrefix}_provincia_id`]: null,
-        [`${fieldPrefix}_municipio_id`]: null,
-        [`${fieldPrefix}_sector_id`]: null,
-        [`${fieldPrefix}_email`]: "",
-        [`${fieldPrefix}_telefono`]: "",
-        [`${fieldPrefix}_fecha_nacimiento`]: "",
-        [`${fieldPrefix}_lugar_nacimiento`]: "",
-        [`${fieldPrefix}_pasaporte`]: "",
-        [`${fieldPrefix}_ocupacion`]: "",
-        [`${fieldPrefix}_empresa_empleador`]: "",
-        [`${fieldPrefix}_matricula_card`]: "",
-        [`${fieldPrefix}_matricula_profesional`]: "",
-      });
+      
+      // Limpiar solo si hay callback legacy
+      if (onFieldUpdate) {
+        onFieldUpdate({
+          [`${fieldPrefix}_nombre`]: "",
+          [`${fieldPrefix}_cedula`]: "",
+          [`${fieldPrefix}_direccion`]: "",
+          [`${fieldPrefix}_nacionalidad`]: "",
+          [`${fieldPrefix}_estado_civil`]: "",
+          [`${fieldPrefix}_profesion`]: "",
+          [`${fieldPrefix}_provincia_id`]: null,
+          [`${fieldPrefix}_municipio_id`]: null,
+          [`${fieldPrefix}_sector_id`]: null,
+          [`${fieldPrefix}_email`]: "",
+          [`${fieldPrefix}_telefono`]: "",
+        });
+      }
       return;
     }
 
@@ -63,26 +63,47 @@ export function ClientSelector({
     if (clientData) {
       onChange(clientId);
       setIsAutofilled(true);
-      onFieldUpdate({
-        [`${fieldPrefix}_nombre`]: clientData.nombre_completo,
-        [`${fieldPrefix}_cedula`]: clientData.cedula_rnc,
-        [`${fieldPrefix}_direccion`]: clientData.direccion || "",
-        [`${fieldPrefix}_nacionalidad`]: clientData.nacionalidad || "",
-        [`${fieldPrefix}_estado_civil`]: clientData.estado_civil || "",
-        [`${fieldPrefix}_profesion`]: clientData.profesion || "",
-        [`${fieldPrefix}_provincia_id`]: clientData.provincia_id ? Number(clientData.provincia_id) : null,
-        [`${fieldPrefix}_municipio_id`]: clientData.municipio_id ? Number(clientData.municipio_id) : null,
-        [`${fieldPrefix}_sector_id`]: clientData.sector_id ? Number(clientData.sector_id) : null,
-        [`${fieldPrefix}_email`]: clientData.email || "",
-        [`${fieldPrefix}_telefono`]: clientData.telefono || "",
-        [`${fieldPrefix}_fecha_nacimiento`]: clientData.fecha_nacimiento || "",
-        [`${fieldPrefix}_lugar_nacimiento`]: clientData.lugar_nacimiento || "",
-        [`${fieldPrefix}_pasaporte`]: clientData.pasaporte || "",
-        [`${fieldPrefix}_ocupacion`]: clientData.ocupacion || "",
-        [`${fieldPrefix}_empresa_empleador`]: clientData.empresa_empleador || "",
-        [`${fieldPrefix}_matricula_card`]: clientData.matricula_card || "",
-        [`${fieldPrefix}_matricula_profesional`]: clientData.matricula_profesional || "",
-      });
+      
+      // Usar helper centralizado si hay form
+      if (form) {
+        hydrateClient(form, fieldPrefix, {
+          id: clientData.id,
+          nombre_completo: clientData.nombre_completo,
+          cedula_rnc: clientData.cedula_rnc,
+          nacionalidad: clientData.nacionalidad,
+          estado_civil: clientData.estado_civil,
+          profesion: clientData.profesion,
+          ocupacion: clientData.ocupacion,
+          provincia_id: clientData.provincia_id ? Number(clientData.provincia_id) : null,
+          municipio_id: clientData.municipio_id ? Number(clientData.municipio_id) : null,
+          sector_id: clientData.sector_id ? Number(clientData.sector_id) : null,
+          direccion: clientData.direccion,
+          ciudad: clientData.lugar_nacimiento,
+          email: clientData.email,
+          telefono: clientData.telefono,
+          tipo_persona: (clientData as any).tipo_persona || 'fisica',
+          razon_social: (clientData as any).razon_social,
+          representante_legal: (clientData as any).representante_legal,
+          cargo_representante: (clientData as any).cargo_representante,
+          matricula_card: clientData.matricula_card,
+          matricula_profesional: clientData.matricula_profesional,
+        });
+      } else if (onFieldUpdate) {
+        // Fallback legacy
+        onFieldUpdate({
+          [`${fieldPrefix}_nombre`]: clientData.nombre_completo,
+          [`${fieldPrefix}_cedula`]: clientData.cedula_rnc,
+          [`${fieldPrefix}_direccion`]: clientData.direccion || "",
+          [`${fieldPrefix}_nacionalidad`]: clientData.nacionalidad || "",
+          [`${fieldPrefix}_estado_civil`]: clientData.estado_civil || "",
+          [`${fieldPrefix}_profesion`]: clientData.profesion || "",
+          [`${fieldPrefix}_provincia_id`]: clientData.provincia_id ? Number(clientData.provincia_id) : null,
+          [`${fieldPrefix}_municipio_id`]: clientData.municipio_id ? Number(clientData.municipio_id) : null,
+          [`${fieldPrefix}_sector_id`]: clientData.sector_id ? Number(clientData.sector_id) : null,
+          [`${fieldPrefix}_email`]: clientData.email || "",
+          [`${fieldPrefix}_telefono`]: clientData.telefono || "",
+        });
+      }
       
       toast({
         title: "✓ Cliente cargado",
@@ -100,26 +121,47 @@ export function ClientSelector({
       if (clientData) {
         onChange(clientData.id);
         setIsAutofilled(true);
-        onFieldUpdate({
-          [`${fieldPrefix}_nombre`]: clientData.nombre_completo,
-          [`${fieldPrefix}_cedula`]: clientData.cedula_rnc,
-          [`${fieldPrefix}_direccion`]: clientData.direccion || "",
-          [`${fieldPrefix}_nacionalidad`]: clientData.nacionalidad || "",
-          [`${fieldPrefix}_estado_civil`]: clientData.estado_civil || "",
-          [`${fieldPrefix}_profesion`]: clientData.profesion || "",
-          [`${fieldPrefix}_provincia_id`]: clientData.provincia_id ? Number(clientData.provincia_id) : null,
-          [`${fieldPrefix}_municipio_id`]: clientData.municipio_id ? Number(clientData.municipio_id) : null,
-          [`${fieldPrefix}_sector_id`]: clientData.sector_id ? Number(clientData.sector_id) : null,
-          [`${fieldPrefix}_email`]: clientData.email || "",
-          [`${fieldPrefix}_telefono`]: clientData.telefono || "",
-          [`${fieldPrefix}_fecha_nacimiento`]: clientData.fecha_nacimiento || "",
-          [`${fieldPrefix}_lugar_nacimiento`]: clientData.lugar_nacimiento || "",
-          [`${fieldPrefix}_pasaporte`]: clientData.pasaporte || "",
-          [`${fieldPrefix}_ocupacion`]: clientData.ocupacion || "",
-          [`${fieldPrefix}_empresa_empleador`]: clientData.empresa_empleador || "",
-          [`${fieldPrefix}_matricula_card`]: clientData.matricula_card || "",
-          [`${fieldPrefix}_matricula_profesional`]: clientData.matricula_profesional || "",
-        });
+        
+        // Usar helper centralizado
+        if (form) {
+          hydrateClient(form, fieldPrefix, {
+            id: clientData.id,
+            nombre_completo: clientData.nombre_completo,
+            cedula_rnc: clientData.cedula_rnc,
+            nacionalidad: clientData.nacionalidad,
+            estado_civil: clientData.estado_civil,
+            profesion: clientData.profesion,
+            ocupacion: clientData.ocupacion,
+            provincia_id: clientData.provincia_id ? Number(clientData.provincia_id) : null,
+            municipio_id: clientData.municipio_id ? Number(clientData.municipio_id) : null,
+            sector_id: clientData.sector_id ? Number(clientData.sector_id) : null,
+            direccion: clientData.direccion,
+            ciudad: clientData.lugar_nacimiento,
+            email: clientData.email,
+            telefono: clientData.telefono,
+            tipo_persona: (clientData as any).tipo_persona || 'fisica',
+            razon_social: (clientData as any).razon_social,
+            representante_legal: (clientData as any).representante_legal,
+            cargo_representante: (clientData as any).cargo_representante,
+            matricula_card: clientData.matricula_card,
+            matricula_profesional: clientData.matricula_profesional,
+          });
+        } else if (onFieldUpdate) {
+          // Fallback legacy
+          onFieldUpdate({
+            [`${fieldPrefix}_nombre`]: clientData.nombre_completo,
+            [`${fieldPrefix}_cedula`]: clientData.cedula_rnc,
+            [`${fieldPrefix}_direccion`]: clientData.direccion || "",
+            [`${fieldPrefix}_nacionalidad`]: clientData.nacionalidad || "",
+            [`${fieldPrefix}_estado_civil`]: clientData.estado_civil || "",
+            [`${fieldPrefix}_profesion`]: clientData.profesion || "",
+            [`${fieldPrefix}_provincia_id`]: clientData.provincia_id ? Number(clientData.provincia_id) : null,
+            [`${fieldPrefix}_municipio_id`]: clientData.municipio_id ? Number(clientData.municipio_id) : null,
+            [`${fieldPrefix}_sector_id`]: clientData.sector_id ? Number(clientData.sector_id) : null,
+            [`${fieldPrefix}_email`]: clientData.email || "",
+            [`${fieldPrefix}_telefono`]: clientData.telefono || "",
+          });
+        }
         
         toast({
           title: "✓ Cliente encontrado",
