@@ -59,6 +59,7 @@ const ClientMessages = lazy(() => import("./pages/ClientMessages"));
 const VirtualRoom = lazy(() => import("./pages/VirtualRoom"));
 const NotarialActs = lazy(() => import("./pages/NotarialActs"));
 const NotarialActsNew = lazy(() => import("./pages/NotarialActsNew"));
+const ActosGenerados = lazy(() => import("./pages/ActosGenerados"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // React Query Error Fallback
@@ -147,6 +148,7 @@ const App = () => (
                                 <Route path="/sala-virtual" element={<VirtualRoom />} />
                                 <Route path="/actos-notariales" element={<NotarialActsNew />} />
                                 <Route path="/actos-notariales-old" element={<NotarialActs />} />
+                                <Route path="/actos-generados" element={<ActosGenerados />} />
                                 <Route path="/security-showcase" element={<SecurityShowcase />} />
                                 <Route path="/test-hydration" element={<TestHydration />} />
                                 <Route path="/test-hydration-v2" element={<TestHydrationV2 />} />

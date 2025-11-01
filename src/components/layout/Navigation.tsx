@@ -33,6 +33,7 @@ const navItems = [
   { href: "/documentos", icon: FileText, label: "Documentos" },
   { href: "/actos-notariales", icon: Stamp, label: "Actos Notariales" },
   { href: "/generador-actos", icon: FileStack, label: "Generador de Actos" },
+  { href: "/actos-generados", icon: FileText, label: "Actos Generados" },
   { href: "/asistente-ia", icon: Bot, label: "Asistente IA" },
   { href: "/modelos-juridicos", icon: Upload, label: "Modelos Jurídicos" },
   { href: "/jurisprudencia", icon: Scale, label: "Jurisprudencia" },
