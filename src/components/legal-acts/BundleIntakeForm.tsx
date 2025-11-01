@@ -1039,6 +1039,18 @@ export function BundleIntakeForm({ actBundle }: BundleIntakeFormProps) {
         </CardContent>
       </Card>
 
+      {/* v2.0 FASE 3 - Contrapartes/Demandados */}
+      <ContraparteManager
+        contrapartes={contrapartes}
+        onChange={setContrapartes}
+      />
+
+      {/* v2.0 FASE 3 - Abogados Contrarios */}
+      <AbogadoContrarioManager
+        abogados={abogadosContrarios}
+        onChange={setAbogadosContrarios}
+      />
+
       <div className="flex justify-between">
         <Button
           variant="outline"
