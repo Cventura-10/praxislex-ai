@@ -1,94 +1,53 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { useTenant } from "@/hooks/useTenant";
-
-export type SignerRole =
-  | "arrendador"
-  | "arrendatario"
-  | "fiador"
-  | "abogado"
-  | "notario"
-  | "testigo"
-  | "comprador"
-  | "vendedor"
-  | "poderdante"
-  | "poderhabiente";
-
-export type EnvelopeStatus =
-  | "borrador"
-  | "enviado"
-  | "visto"
-  | "firmado_parcial"
-  | "firmado_total"
-  | "rechazado"
-  | "expirado";
-
-export interface Signer {
-  persona_id: string;
-  rol_firma: SignerRole;
-  orden: number;
-  email?: string;
-  whatsapp?: string;
-  verificacion: {
-    otp?: "sms" | "email" | "wa";
-    kba?: boolean;
-    adjunto_id?: string;
-  };
-  firma_completada?: boolean;
-  firma_fecha?: string;
-  firma_ip?: string;
-}
+import { useToast } from "@/hooks/use-toast";
 
 export interface SignatureEnvelope {
-  id?: string;
-  acto_slug: string;
-  documento_origen: string;
-  documento_url?: string;
-  firmantes: Signer[];
-  placeholders_firmas: Array<{
-    nombre: string;
-    pagina: string | number;
-    tipo: "firma" | "iniciales" | "sello";
-    required: boolean;
-  }>;
-  politicas: {
-    fidelidad_template: "STRICT";
-    hash_pdf: string;
-    timestamp?: string;
-    pades?: string;
-    audit_trail_embed: boolean;
-  };
-  estado: EnvelopeStatus;
-  created_by?: string;
-  created_at?: string;
-  updated_at?: string;
-  user_id?: string;
-  tenant_id?: string | null;
-  audit_trail?: Array<{
-    evento: string;
-    timestamp: string;
-    user_id?: string;
-    ip?: string;
-    detalles?: string;
-  }>;
+  id: string;
+  user_id: string;
+  tenant_id?: string;
+  document_version_id?: string;
+  generated_act_id?: string;
+  status: 'draft' | 'sent' | 'pending' | 'completed' | 'declined' | 'expired';
+  signers: any[];
+  expires_at?: string;
+  message?: string;
+  require_all_signatures: boolean;
+  sent_at?: string;
+  completed_at?: string;
+  metadata?: any;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DocumentSignature {
+  id: string;
+  envelope_id: string;
+  signer_email: string;
+  signer_name: string;
+  signer_role?: string;
+  status: 'pending' | 'signed' | 'declined';
+  signed_at?: string;
+  declined_at?: string;
+  signature_data?: string;
+  ip_address?: string;
+  user_agent?: string;
+  access_token?: string;
+  token_expires_at?: string;
+  metadata?: any;
+  created_at: string;
+  updated_at: string;
 }
 
 export function useDigitalSignature() {
+  const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { tenant } = useTenant();
 
-  const getTenantId = async () => {
-    if (tenant?.id) return tenant.id;
-    const { data } = await supabase.from("current_user_tenant").select("id").maybeSingle();
-    return data?.id || null;
-  };
-
-  const { data: envelopes, isLoading } = useQuery({
-    queryKey: ["signature-envelopes"],
+  const { data: envelopes = [], isLoading: loadingEnvelopes } = useQuery({
+    queryKey: ["signature_envelopes"],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return [];
+      if (!user) throw new Error("No autenticado");
 
       const { data, error } = await supabase
         .from("signature_envelopes")
@@ -97,41 +56,32 @@ export function useDigitalSignature() {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data || [];
+      return data as SignatureEnvelope[];
     },
   });
 
-  const createEnvelope = useMutation({
-    mutationFn: async (envelope: SignatureEnvelope) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("User not authenticated");
+  const getEnvelopeSignatures = async (envelopeId: string) => {
+    const { data, error } = await supabase
+      .from("document_signatures")
+      .select("*")
+      .eq("envelope_id", envelopeId)
+      .order("created_at", { ascending: true });
 
-      const tenantId = await getTenantId();
-      
-      const auditTrail = [
-        {
-          evento: "envelope_created",
-          timestamp: new Date().toISOString(),
-          user_id: user.id,
-          detalles: "Sobre de firma creado",
-        },
-      ];
+    if (error) throw error;
+    return data as DocumentSignature[];
+  };
+
+  const createEnvelopeMutation = useMutation({
+    mutationFn: async (envelope: Partial<SignatureEnvelope>) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("No autenticado");
 
       const { data, error } = await supabase
         .from("signature_envelopes")
-        .insert([{
-          acto_slug: envelope.acto_slug,
-          documento_origen: envelope.documento_origen,
-          documento_url: envelope.documento_url,
-          firmantes: envelope.firmantes as any,
-          placeholders_firmas: envelope.placeholders_firmas as any,
-          politicas: envelope.politicas as any,
-          estado: "borrador",
-          audit_trail: auditTrail as any,
+        .insert({
+          ...envelope,
           user_id: user.id,
-          created_by: user.id,
-          tenant_id: tenantId,
-        }])
+        })
         .select()
         .single();
 
@@ -139,126 +89,102 @@ export function useDigitalSignature() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["signature-envelopes"] });
-      toast.success("Sobre de firma creado");
+      queryClient.invalidateQueries({ queryKey: ["signature_envelopes"] });
+      toast({
+        title: "Sobre de firma creado",
+        description: "El sobre de firma ha sido creado exitosamente",
+      });
     },
-    onError: (error) => {
-      toast.error("Error al crear sobre: " + error.message);
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
     },
   });
 
-  const sendEnvelope = useMutation({
-    mutationFn: async (envelopeId: string) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      // Get current envelope to append to audit trail
-      const { data: envelope } = await supabase
-        .from("signature_envelopes")
-        .select("audit_trail")
-        .eq("id", envelopeId)
-        .single();
-
-      if (!envelope) throw new Error("Envelope not found");
-
-      const currentAuditTrail = (envelope.audit_trail as any) || [];
-      const updatedAuditTrail = [
-        ...currentAuditTrail,
-        {
-          evento: "envelope_sent",
-          timestamp: new Date().toISOString(),
-          user_id: user?.id,
-          detalles: "Sobre enviado a firmantes",
-        },
-      ];
-
-      const { data, error } = await supabase
+  const sendEnvelopeMutation = useMutation({
+    mutationFn: async ({ envelopeId, signers }: { envelopeId: string; signers: any[] }) => {
+      const { error: envError } = await supabase
         .from("signature_envelopes")
         .update({
-          estado: "enviado",
-          audit_trail: updatedAuditTrail,
+          status: 'sent',
+          sent_at: new Date().toISOString(),
+          signers,
         })
-        .eq("id", envelopeId)
-        .select()
-        .single();
+        .eq("id", envelopeId);
 
-      if (error) throw error;
+      if (envError) throw envError;
 
-      // TODO: Send emails/WhatsApp to signers
-      // This would be implemented via an edge function
+      const signatures = signers.map((signer) => ({
+        envelope_id: envelopeId,
+        signer_email: signer.email,
+        signer_name: signer.name,
+        signer_role: signer.role,
+        access_token: crypto.randomUUID(),
+        token_expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      }));
 
-      return data;
+      const { error: sigError } = await supabase
+        .from("document_signatures")
+        .insert(signatures);
+
+      if (sigError) throw sigError;
+
+      return { envelopeId, signatures };
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["signature-envelopes"] });
-      toast.success("Sobre enviado a firmantes");
+      queryClient.invalidateQueries({ queryKey: ["signature_envelopes"] });
+      toast({
+        title: "Sobre enviado",
+        description: "Los firmantes recibirán un email para firmar el documento",
+      });
     },
-    onError: (error) => {
-      toast.error("Error al enviar sobre: " + error.message);
+    onError: (error: any) => {
+      toast({
+        title: "Error al enviar",
+        description: error.message,
+        variant: "destructive",
+      });
     },
   });
 
-  const updateEnvelopeStatus = useMutation({
-    mutationFn: async ({ id, status, auditEvent }: { 
-      id: string; 
-      status: EnvelopeStatus;
-      auditEvent: string;
-    }) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      const { data: envelope } = await supabase
-        .from("signature_envelopes")
-        .select("audit_trail")
-        .eq("id", id)
-        .single();
-
-      if (!envelope) throw new Error("Envelope not found");
-
-      const currentAuditTrail = (envelope.audit_trail as any) || [];
-      const updatedAuditTrail = [
-        ...currentAuditTrail,
-        {
-          evento: auditEvent,
-          timestamp: new Date().toISOString(),
-          user_id: user?.id,
-          detalles: `Estado actualizado a ${status}`,
-        },
-      ];
-
-      const { data, error } = await supabase
-        .from("signature_envelopes")
+  const signDocumentMutation = useMutation({
+    mutationFn: async ({ signatureId, signatureData }: { signatureId: string; signatureData: string }) => {
+      const { error } = await supabase
+        .from("document_signatures")
         .update({
-          estado: status,
-          audit_trail: updatedAuditTrail,
+          status: 'signed',
+          signed_at: new Date().toISOString(),
+          signature_data: signatureData,
         })
-        .eq("id", id)
-        .select()
-        .single();
+        .eq("id", signatureId);
 
       if (error) throw error;
-      return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["signature-envelopes"] });
+      queryClient.invalidateQueries({ queryKey: ["signature_envelopes"] });
+      toast({
+        title: "Documento firmado",
+        description: "Tu firma ha sido registrada exitosamente",
+      });
     },
-    onError: (error) => {
-      toast.error("Error al actualizar estado: " + error.message);
+    onError: (error: any) => {
+      toast({
+        title: "Error al firmar",
+        description: error.message,
+        variant: "destructive",
+      });
     },
   });
 
   return {
-    envelopes: envelopes || [],
-    isLoading,
-    createEnvelope,
-    sendEnvelope,
-    updateEnvelopeStatus,
+    envelopes,
+    loadingEnvelopes,
+    getEnvelopeSignatures,
+    createEnvelope: createEnvelopeMutation.mutateAsync,
+    sendEnvelope: sendEnvelopeMutation.mutateAsync,
+    signDocument: signDocumentMutation.mutateAsync,
   };
-}
-
-// Helper para generar hash SHA-256 de documento
-export async function generateDocumentHash(file: File): Promise<string> {
-  const arrayBuffer = await file.arrayBuffer();
-  const hashBuffer = await crypto.subtle.digest("SHA-256", arrayBuffer);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  const hashHex = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
-  return hashHex;
 }
