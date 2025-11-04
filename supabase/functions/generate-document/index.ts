@@ -129,6 +129,22 @@ serve(async (req: Request) => {
       );
     }
 
+    // Check rate limit: 10/min, 100/hour
+    const { data: rateLimitOk } = await supabase.rpc('check_edge_function_rate_limit', {
+      p_user_id: user.id,
+      p_function_name: 'generate-document',
+      p_max_per_minute: 10,
+      p_max_per_hour: 100,
+    });
+    
+    if (!rateLimitOk) {
+      console.warn('[RATE-LIMIT] User exceeded rate limit:', user.id);
+      return new Response(
+        JSON.stringify({ error: 'Límite de tasa excedido. Intente más tarde.' }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Obtener datos del payload
     const actData = await req.json();
     

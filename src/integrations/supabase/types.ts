@@ -1015,6 +1015,71 @@ export type Database = {
           },
         ]
       }
+      document_signatures: {
+        Row: {
+          access_token: string | null
+          created_at: string
+          declined_at: string | null
+          envelope_id: string
+          id: string
+          ip_address: unknown
+          metadata: Json | null
+          signature_data: string | null
+          signed_at: string | null
+          signer_email: string
+          signer_name: string
+          signer_role: string | null
+          status: string
+          token_expires_at: string | null
+          updated_at: string
+          user_agent: string | null
+        }
+        Insert: {
+          access_token?: string | null
+          created_at?: string
+          declined_at?: string | null
+          envelope_id: string
+          id?: string
+          ip_address?: unknown
+          metadata?: Json | null
+          signature_data?: string | null
+          signed_at?: string | null
+          signer_email: string
+          signer_name: string
+          signer_role?: string | null
+          status?: string
+          token_expires_at?: string | null
+          updated_at?: string
+          user_agent?: string | null
+        }
+        Update: {
+          access_token?: string | null
+          created_at?: string
+          declined_at?: string | null
+          envelope_id?: string
+          id?: string
+          ip_address?: unknown
+          metadata?: Json | null
+          signature_data?: string | null
+          signed_at?: string | null
+          signer_email?: string
+          signer_name?: string
+          signer_role?: string | null
+          status?: string
+          token_expires_at?: string | null
+          updated_at?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_signatures_envelope_id_fkey"
+            columns: ["envelope_id"]
+            isOneToOne: false
+            referencedRelation: "signature_envelopes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       document_templates: {
         Row: {
           activo: boolean | null
@@ -1121,6 +1186,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      edge_function_rate_limits: {
+        Row: {
+          created_at: string
+          function_name: string
+          id: string
+          last_request_at: string
+          request_count: number
+          user_id: string
+          window_start: string
+        }
+        Insert: {
+          created_at?: string
+          function_name: string
+          id?: string
+          last_request_at?: string
+          request_count?: number
+          user_id: string
+          window_start?: string
+        }
+        Update: {
+          created_at?: string
+          function_name?: string
+          id?: string
+          last_request_at?: string
+          request_count?: number
+          user_id?: string
+          window_start?: string
+        }
+        Relationships: []
       }
       error_codes: {
         Row: {
@@ -2865,54 +2960,71 @@ export type Database = {
       }
       signature_envelopes: {
         Row: {
-          acto_slug: string
-          audit_trail: Json | null
-          created_at: string | null
-          created_by: string | null
-          documento_origen: string
-          documento_url: string | null
-          estado: string | null
-          firmantes: Json
+          completed_at: string | null
+          created_at: string
+          document_version_id: string | null
+          expires_at: string | null
+          generated_act_id: string | null
           id: string
-          placeholders_firmas: Json | null
-          politicas: Json
+          message: string | null
+          metadata: Json | null
+          require_all_signatures: boolean
+          sent_at: string | null
+          signers: Json
+          status: string
           tenant_id: string | null
-          updated_at: string | null
+          updated_at: string
           user_id: string
         }
         Insert: {
-          acto_slug: string
-          audit_trail?: Json | null
-          created_at?: string | null
-          created_by?: string | null
-          documento_origen: string
-          documento_url?: string | null
-          estado?: string | null
-          firmantes?: Json
+          completed_at?: string | null
+          created_at?: string
+          document_version_id?: string | null
+          expires_at?: string | null
+          generated_act_id?: string | null
           id?: string
-          placeholders_firmas?: Json | null
-          politicas?: Json
+          message?: string | null
+          metadata?: Json | null
+          require_all_signatures?: boolean
+          sent_at?: string | null
+          signers?: Json
+          status?: string
           tenant_id?: string | null
-          updated_at?: string | null
+          updated_at?: string
           user_id: string
         }
         Update: {
-          acto_slug?: string
-          audit_trail?: Json | null
-          created_at?: string | null
-          created_by?: string | null
-          documento_origen?: string
-          documento_url?: string | null
-          estado?: string | null
-          firmantes?: Json
+          completed_at?: string | null
+          created_at?: string
+          document_version_id?: string | null
+          expires_at?: string | null
+          generated_act_id?: string | null
           id?: string
-          placeholders_firmas?: Json | null
-          politicas?: Json
+          message?: string | null
+          metadata?: Json | null
+          require_all_signatures?: boolean
+          sent_at?: string | null
+          signers?: Json
+          status?: string
           tenant_id?: string | null
-          updated_at?: string | null
+          updated_at?: string
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "signature_envelopes_document_version_id_fkey"
+            columns: ["document_version_id"]
+            isOneToOne: false
+            referencedRelation: "document_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "signature_envelopes_generated_act_id_fkey"
+            columns: ["generated_act_id"]
+            isOneToOne: false
+            referencedRelation: "generated_acts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "signature_envelopes_tenant_id_fkey"
             columns: ["tenant_id"]
@@ -3602,6 +3714,15 @@ export type Database = {
           p_identifier: string
           p_max_requests?: number
           p_window_minutes?: number
+        }
+        Returns: boolean
+      }
+      check_edge_function_rate_limit: {
+        Args: {
+          p_function_name: string
+          p_max_per_hour?: number
+          p_max_per_minute?: number
+          p_user_id: string
         }
         Returns: boolean
       }

@@ -35,6 +35,21 @@ serve(async (req) => {
       throw new Error('User not authenticated');
     }
 
+    // Check rate limit: 5/min, 50/hour (expensive vector search)
+    const { data: rateLimitOk } = await supabaseClient.rpc('check_edge_function_rate_limit', {
+      p_user_id: user.id,
+      p_function_name: 'search-jurisprudence-rag',
+      p_max_per_minute: 5,
+      p_max_per_hour: 50,
+    });
+    
+    if (!rateLimitOk) {
+      return new Response(
+        JSON.stringify({ error: 'Límite de tasa excedido. Intente más tarde.' }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Generate embedding for query
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
