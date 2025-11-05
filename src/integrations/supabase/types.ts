@@ -967,6 +967,199 @@ export type Database = {
           },
         ]
       }
+      doc_learning_clauses: {
+        Row: {
+          body: string
+          confidence: number | null
+          created_at: string
+          frequency: number | null
+          hash: string
+          id: string
+          run_id: string
+          tenant_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          confidence?: number | null
+          created_at?: string
+          frequency?: number | null
+          hash: string
+          id?: string
+          run_id: string
+          tenant_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          confidence?: number | null
+          created_at?: string
+          frequency?: number | null
+          hash?: string
+          id?: string
+          run_id?: string
+          tenant_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "doc_learning_clauses_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "doc_learning_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      doc_learning_runs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          docs_count: number
+          error_message: string | null
+          id: string
+          metrics: Json | null
+          started_at: string
+          status: string
+          summary: Json | null
+          tenant_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          docs_count?: number
+          error_message?: string | null
+          id?: string
+          metrics?: Json | null
+          started_at?: string
+          status?: string
+          summary?: Json | null
+          tenant_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          docs_count?: number
+          error_message?: string | null
+          id?: string
+          metrics?: Json | null
+          started_at?: string
+          status?: string
+          summary?: Json | null
+          tenant_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      doc_learning_uploads: {
+        Row: {
+          checksum_sha256: string | null
+          created_at: string
+          extracted_text: string | null
+          file_name: string
+          file_size: number
+          file_type: string
+          file_url: string
+          id: string
+          ocr_used: boolean | null
+          pages: number | null
+          status: string
+          tenant_id: string
+          updated_at: string
+          user_id: string
+          warnings: Json | null
+        }
+        Insert: {
+          checksum_sha256?: string | null
+          created_at?: string
+          extracted_text?: string | null
+          file_name: string
+          file_size: number
+          file_type: string
+          file_url: string
+          id?: string
+          ocr_used?: boolean | null
+          pages?: number | null
+          status?: string
+          tenant_id: string
+          updated_at?: string
+          user_id: string
+          warnings?: Json | null
+        }
+        Update: {
+          checksum_sha256?: string | null
+          created_at?: string
+          extracted_text?: string | null
+          file_name?: string
+          file_size?: number
+          file_type?: string
+          file_url?: string
+          id?: string
+          ocr_used?: boolean | null
+          pages?: number | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+          user_id?: string
+          warnings?: Json | null
+        }
+        Relationships: []
+      }
+      doc_learning_variables: {
+        Row: {
+          confidence: number | null
+          created_at: string
+          examples: Json | null
+          id: string
+          name: string
+          pattern: string | null
+          required: boolean | null
+          run_id: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          confidence?: number | null
+          created_at?: string
+          examples?: Json | null
+          id?: string
+          name: string
+          pattern?: string | null
+          required?: boolean | null
+          run_id: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          confidence?: number | null
+          created_at?: string
+          examples?: Json | null
+          id?: string
+          name?: string
+          pattern?: string | null
+          required?: boolean | null
+          run_id?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "doc_learning_variables_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "doc_learning_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       document_citations: {
         Row: {
           cited_text: string
@@ -3074,6 +3267,65 @@ export type Database = {
         }
         Relationships: []
       }
+      style_profiles: {
+        Row: {
+          active: boolean | null
+          clause_library_json: Json
+          created_at: string
+          id: string
+          layout_json: Json
+          lexicon_json: Json
+          metrics_json: Json
+          published_at: string
+          run_id: string | null
+          tenant_id: string
+          updated_at: string
+          user_id: string
+          variable_map_json: Json
+          version: number
+        }
+        Insert: {
+          active?: boolean | null
+          clause_library_json?: Json
+          created_at?: string
+          id?: string
+          layout_json?: Json
+          lexicon_json?: Json
+          metrics_json?: Json
+          published_at?: string
+          run_id?: string | null
+          tenant_id: string
+          updated_at?: string
+          user_id: string
+          variable_map_json?: Json
+          version?: number
+        }
+        Update: {
+          active?: boolean | null
+          clause_library_json?: Json
+          created_at?: string
+          id?: string
+          layout_json?: Json
+          lexicon_json?: Json
+          metrics_json?: Json
+          published_at?: string
+          run_id?: string | null
+          tenant_id?: string
+          updated_at?: string
+          user_id?: string
+          variable_map_json?: Json
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "style_profiles_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "doc_learning_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tasadores: {
         Row: {
           cedula_encrypted: string | null
@@ -3775,6 +4027,19 @@ export type Database = {
           nombre_completo: string
           updated_at: string
           user_id: string
+        }[]
+      }
+      get_active_style_profile: {
+        Args: { p_tenant_id: string }
+        Returns: {
+          clause_library_json: Json
+          id: string
+          layout_json: Json
+          lexicon_json: Json
+          metrics_json: Json
+          published_at: string
+          variable_map_json: Json
+          version: number
         }[]
       }
       get_client_summary: {

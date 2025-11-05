@@ -150,8 +150,9 @@ const App = () => (
                                 <Route path="/actos-notariales-old" element={<NotarialActs />} />
                                 <Route path="/actos-generados" element={<ActosGenerados />} />
                                 <Route path="/security-showcase" element={<SecurityShowcase />} />
-                                <Route path="/test-hydration" element={<TestHydration />} />
-                                <Route path="/test-hydration-v2" element={<TestHydrationV2 />} />
+            <Route path="/test-hydration" element={<TestHydration />} />
+            <Route path="/test-hydration-v2" element={<TestHydrationV2 />} />
+            <Route path="/configuracion/estilo" element={<ConfiguracionEstilo />} />
                                 <Route path="*" element={<NotFound />} />
                               </Routes>
                             </Suspense>
