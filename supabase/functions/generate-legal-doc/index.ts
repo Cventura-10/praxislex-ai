@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import PizZip from "https://esm.sh/pizzip@3.1.7";
 import Docxtemplater from "https://esm.sh/docxtemplater@3.42.2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -9,6 +10,56 @@ const corsHeaders = {
 
 // Cache para plantillas (optimización de rendimiento)
 const templateCache = new Map<string, Uint8Array>();
+
+// Zod schemas para validación completa del payload
+const personaSchema = z.object({
+  cliente_id: z.string().uuid().optional(),
+  nombre_completo: z.string().min(1).max(200).optional(),
+  razon_social: z.string().min(1).max(200).optional(),
+  cedula_rnc: z.string().min(1).max(50),
+  tipo_persona: z.enum(['fisica', 'juridica']).optional(),
+  genero: z.enum(['m', 'f', 'M', 'F', '']).optional(),
+  nacionalidad: z.string().min(1).max(100).optional(),
+  estado_civil: z.string().max(50).optional(),
+  profesion: z.string().max(100).optional(),
+  ocupacion: z.string().max(100).optional(),
+  direccion: z.string().max(500).optional(),
+  sector_nombre: z.string().max(100).optional(),
+  municipio_nombre: z.string().max(100).optional(),
+  provincia_nombre: z.string().max(100).optional(),
+}).refine(
+  (data) => data.nombre_completo || data.razon_social,
+  { message: "Debe proporcionar nombre_completo o razon_social" }
+);
+
+const notarioSchema = z.object({
+  nombre_completo: z.string().min(1).max(200),
+  exequatur: z.string().min(1).max(50),
+  matricula: z.string().max(50).optional(),
+  cedula_mask: z.string().max(50).optional(),
+  oficina: z.string().max(200).optional(),
+  jurisdiccion: z.string().max(200).optional(),
+});
+
+const contratoSchema = z.object({
+  inmueble_descripcion: z.string().min(1).max(2000),
+  uso: z.string().max(100).optional(),
+  canon_monto: z.number().positive().or(z.string().transform(Number)),
+  plazo_meses: z.number().int().positive().or(z.string().transform(Number)),
+});
+
+const legalDocPayloadSchema = z.object({
+  primera_parte: personaSchema,
+  segunda_parte: personaSchema,
+  notario: notarioSchema,
+  contrato: contratoSchema,
+  numero_acto: z.string().max(100).optional(),
+  numero_acta: z.string().max(100).optional(),
+  numero_folios: z.number().int().positive().optional(),
+  ciudad: z.string().max(100).optional(),
+  fecha: z.string().or(z.date()).optional(),
+  template_slug: z.string().max(100).optional(),
+});
 
 // Conversor de números a letras en español dominicano
 function numeroALetras(n: number): string {
@@ -149,29 +200,31 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const payload = await req.json();
-    console.log("📦 Payload recibido:", JSON.stringify(payload, null, 2));
+    const rawPayload = await req.json();
+    console.log("📦 Payload recibido");
 
-    // Validaciones fail-fast
-    const reqKeys = [
-      "primera_parte.cliente_id",
-      "segunda_parte.cliente_id",
-      "notario.nombre_completo",
-      "notario.exequatur",
-      "contrato.canon_monto",
-      "contrato.plazo_meses"
-    ];
+    // Validar payload con Zod
+    const validationResult = legalDocPayloadSchema.safeParse(rawPayload);
     
-    for (const k of reqKeys) {
-      const v = k.split(".").reduce((acc: any, key) => acc?.[key], payload);
-      if (v === undefined || v === null || v === "") {
-        console.error(`❌ Falta dato requerido: ${k}`);
-        return new Response(
-          JSON.stringify({ error: `Falta dato requerido: ${k}` }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
+    if (!validationResult.success) {
+      const errors = validationResult.error.errors.map(err => ({
+        campo: err.path.join('.'),
+        error: err.message
+      }));
+      
+      console.error("❌ Validación fallida:", errors);
+      
+      return new Response(
+        JSON.stringify({ 
+          error: "Datos de entrada inválidos. Verifique los campos requeridos.",
+          detalles: errors 
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
+
+    const payload = validationResult.data;
+    console.log("✅ Payload validado correctamente");
 
     // Determinar plantilla (soporte para múltiples plantillas)
     const templateName = payload.template_slug 
