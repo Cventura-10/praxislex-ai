@@ -236,11 +236,17 @@ Para implementación completa con plantillas DOCX, se requiere:
     );
 
   } catch (error: any) {
-    console.error('Error in generate-document function:', error);
+    // Log full error details server-side for debugging
+    console.error('Error in generate-document function:', {
+      message: error?.message || 'Unknown error',
+      stack: error?.stack,
+      type: error?.constructor?.name,
+      code: error?.code
+    });
+    
     return new Response(
       JSON.stringify({ 
-        error: 'Error al generar el documento', 
-        details: error.message 
+        error: 'Error al generar el documento. Contacte soporte si el problema persiste.'
       }),
       { 
         status: 500, 

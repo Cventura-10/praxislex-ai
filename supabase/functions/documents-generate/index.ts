@@ -126,9 +126,15 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('Error en documents-generate:', error);
+    // Log full error details server-side for debugging
+    console.error('Error en documents-generate:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      type: error?.constructor?.name
+    });
+    
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Error desconocido' }),
+      JSON.stringify({ error: 'Error al generar el documento. Contacte soporte si el problema persiste.' }),
       {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

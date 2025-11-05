@@ -244,12 +244,17 @@ Deno.serve(async (req) => {
     });
     
   } catch (e: any) {
-    console.error("💥 Error generando DOCX:", e);
+    // Log full error details server-side for debugging
+    console.error("💥 Error generando DOCX:", {
+      message: e?.message || 'Unknown error',
+      stack: e?.stack,
+      type: e?.constructor?.name,
+      code: e?.code
+    });
+    
     return new Response(
       JSON.stringify({ 
-        error: "Error generando DOCX", 
-        details: e.message,
-        stack: e.stack 
+        error: "Error al generar el documento. Contacte soporte si el problema persiste."
       }),
       { 
         status: 500, 
