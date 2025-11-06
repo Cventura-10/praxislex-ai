@@ -60,6 +60,7 @@ const VirtualRoom = lazy(() => import("./pages/VirtualRoom"));
 const NotarialActs = lazy(() => import("./pages/NotarialActs"));
 const NotarialActsNew = lazy(() => import("./pages/NotarialActsNew"));
 const ActosGenerados = lazy(() => import("./pages/ActosGenerados"));
+const ConfiguracionEstilo = lazy(() => import("./pages/ConfiguracionEstilo"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // React Query Error Fallback
