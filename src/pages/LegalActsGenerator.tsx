@@ -14,7 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { LEGAL_CATEGORIES, searchLegalActs, type LegalAct, type LegalMatter } from "@/lib/legalActsData";
+import { LEGAL_CATEGORIES, searchLegalActs, type LegalAct, type LegalMatter } from "@/lib/legalActsDataFromBundle";
 import * as LucideIcons from "lucide-react";
 
 export default function LegalActsGenerator() {
