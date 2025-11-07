@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Trash2, UserPlus, Scale, ChevronDown, ChevronUp } from "lucide-react";
 import { LocationSelect } from "@/components/legal-acts/LocationSelect";
 import { z } from "zod";
+import { SimpleLocationSelect } from "@/components/legal-acts/SimpleLocationSelect";
 
 // Schema de validación mejorado para abogado contrario
 const abogadoContrarioSchema = z.object({
@@ -259,36 +260,32 @@ export function AbogadoContrarioManager({
 
                   {/* Ubicación geográfica */}
                   <div className="pt-4 border-t border-border">
-                    <LocationSelect
-                      control={{
-                        register: () => ({}),
-                        unregister: () => {},
-                        getFieldState: () => ({ invalid: false, isDirty: false, isTouched: false, error: undefined }),
-                        _subjects: { state: { next: () => {}, subscribe: () => ({ unsubscribe: () => {} }) } },
-                        _formState: { isDirty: false, isSubmitting: false, isSubmitted: false, isValid: true },
-                      } as any}
-                      setValue={(name: string, value: any) => {
+                    <SimpleLocationSelect
+                      valueProvincia={abogado.provincia_id ?? null}
+                      valueMunicipio={abogado.municipio_id ?? null}
+                      valueSector={abogado.sector_id ?? null}
+                      onChangeProvincia={(v) => {
                         const updated = [...abogados];
-                        if (name.includes('provincia_id')) {
-                          updated[index] = { ...updated[index], provincia_id: value };
-                        } else if (name.includes('municipio_id')) {
-                          updated[index] = { ...updated[index], municipio_id: value };
-                        } else if (name.includes('sector_id')) {
-                          updated[index] = { ...updated[index], sector_id: value };
-                        }
+                        updated[index] = { ...updated[index], provincia_id: v, municipio_id: null, sector_id: null };
                         onChange(updated);
                       }}
-                      nameProvincia={`abogado_${index}_provincia_id`}
-                      nameMunicipio={`abogado_${index}_municipio_id`}
-                      nameSector={`abogado_${index}_sector_id`}
-                      disabled={false}
+                      onChangeMunicipio={(v) => {
+                        const updated = [...abogados];
+                        updated[index] = { ...updated[index], municipio_id: v, sector_id: null };
+                        onChange(updated);
+                      }}
+                      onChangeSector={(v) => {
+                        const updated = [...abogados];
+                        updated[index] = { ...updated[index], sector_id: v };
+                        onChange(updated);
+                      }}
                       labels={{
                         provincia: "Provincia del bufete",
                         municipio: "Municipio del bufete",
                         sector: "Sector del bufete",
                       }}
                     />
-                  </div>
+                  </div
                 </div>
               )}
             </Card>
