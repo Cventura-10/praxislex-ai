@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, FileText, Scale, Sparkles, Edit3, ChevronRight, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -23,6 +23,16 @@ export default function LegalActsGenerator() {
   const [selectedAct, setSelectedAct] = useState<LegalAct | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [expandedMatters, setExpandedMatters] = useState<string[]>([]);
+  const [activeTab, setActiveTab] = useState<'judicial' | 'extrajudicial'>('judicial');
+
+  const currentCategoryMatterIds = useMemo(() => {
+    const cat = LEGAL_CATEGORIES.find(c => c.id === activeTab);
+    return cat ? cat.matters.map(m => m.id) : [];
+  }, [activeTab]);
+
+  useEffect(() => {
+    setExpandedMatters(currentCategoryMatterIds);
+  }, [currentCategoryMatterIds]);
 
   // Filtrado de actos por búsqueda
   const filteredResults = useMemo(() => {
@@ -135,7 +145,7 @@ export default function LegalActsGenerator() {
         </Card>
 
         {/* Tabs Navigation */}
-        <Tabs defaultValue="judicial" className="space-y-5">
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'judicial' | 'extrajudicial')} className="space-y-5">
           <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 h-11 p-1 bg-muted/50">
             <TabsTrigger value="judicial" className="gap-2 text-sm font-medium">
               <Scale className="h-4 w-4" />
