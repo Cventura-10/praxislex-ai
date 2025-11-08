@@ -285,7 +285,7 @@ export function AbogadoContrarioManager({
                         sector: "Sector del bufete",
                       }}
                     />
-                  </div
+                  </div>
                 </div>
               )}
             </Card>
