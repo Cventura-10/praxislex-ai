@@ -30,3 +30,6 @@ verify_jwt = false
 [functions.assistant-help]
 verify_jwt = true
 
+[functions.agent-memory]
+verify_jwt = true
+
