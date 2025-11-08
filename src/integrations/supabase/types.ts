@@ -187,6 +187,69 @@ export type Database = {
         }
         Relationships: []
       }
+      agent_events: {
+        Row: {
+          act_slug: string | null
+          created_at: string | null
+          event_type: string
+          id: number
+          payload: Json | null
+          summary: string | null
+          user_id: string
+        }
+        Insert: {
+          act_slug?: string | null
+          created_at?: string | null
+          event_type: string
+          id?: number
+          payload?: Json | null
+          summary?: string | null
+          user_id: string
+        }
+        Update: {
+          act_slug?: string | null
+          created_at?: string | null
+          event_type?: string
+          id?: number
+          payload?: Json | null
+          summary?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      agent_patterns: {
+        Row: {
+          act_slug: string
+          created_at: string | null
+          id: number
+          last_used_at: string | null
+          pattern_key: string
+          pattern_value: Json
+          usage_count: number
+          user_id: string
+        }
+        Insert: {
+          act_slug: string
+          created_at?: string | null
+          id?: number
+          last_used_at?: string | null
+          pattern_key: string
+          pattern_value: Json
+          usage_count?: number
+          user_id: string
+        }
+        Update: {
+          act_slug?: string
+          created_at?: string | null
+          id?: number
+          last_used_at?: string | null
+          pattern_key?: string
+          pattern_value?: Json
+          usage_count?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       ai_actions_log: {
         Row: {
           case_number: string | null
@@ -1428,6 +1491,36 @@ export type Database = {
           created_at?: string | null
           severity?: string | null
           user_message?: string
+        }
+        Relationships: []
+      }
+      error_logs: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          id: number
+          operation: string
+          origin: string
+          payload: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: number
+          operation: string
+          origin: string
+          payload?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: number
+          operation?: string
+          origin?: string
+          payload?: Json | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -4042,6 +4135,15 @@ export type Database = {
           version: number
         }[]
       }
+      get_agent_suggestions: {
+        Args: { p_act_slug: string; p_limit?: number; p_user_id: string }
+        Returns: {
+          last_used_at: string
+          pattern_key: string
+          pattern_value: Json
+          usage_count: number
+        }[]
+      }
       get_client_summary: {
         Args: { p_client_id: string }
         Returns: {
@@ -4232,6 +4334,15 @@ export type Database = {
           tribunal: string
           url_fuente: string
         }[]
+      }
+      upsert_agent_pattern: {
+        Args: {
+          p_act_slug: string
+          p_pattern_key: string
+          p_pattern_value: Json
+          p_user_id: string
+        }
+        Returns: undefined
       }
       user_belongs_to_tenant: {
         Args: { p_tenant_id: string; p_user_id: string }
