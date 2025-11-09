@@ -2,6 +2,7 @@ import { useForm, FormProvider } from 'react-hook-form';
 import { useEffect, useState } from 'react';
 import { LegalActBundle } from '@/lib/legalActsBundle';
 import { useActPartyRoles } from '@/hooks/useActPartyRoles';
+import { useAgentMemory } from '@/hooks/useAgentMemory';
 import { DynamicPartiesManager } from './DynamicPartiesManager';
 import { AbogadoContrarioManager } from './AbogadoContrarioManager';
 import { NotarioSelector } from './NotarioSelector';
@@ -79,6 +80,7 @@ interface UniversalIntakeFormProps {
  */
 export function UniversalIntakeForm({ acto, onSuccess }: UniversalIntakeFormProps) {
   const partyConfig = useActPartyRoles(acto);
+  const { suggest, remember } = useAgentMemory();
   const [isGenerating, setIsGenerating] = useState(false);
   
   const form = useForm<FormData>({
@@ -100,6 +102,26 @@ export function UniversalIntakeForm({ acto, onSuccess }: UniversalIntakeFormProp
   });
 
   const { watch, control, setValue } = form;
+
+  // Cargar sugerencias inteligentes al montar
+  useEffect(() => {
+    const loadSuggestions = async () => {
+      const suggestions = await suggest(acto.slug);
+      
+      if (suggestions?.suggestions) {
+        console.log('[UniversalIntakeForm] Applying agent suggestions:', suggestions);
+        
+        // Aplicar sugerencias con confianza > 0.5
+        Object.entries(suggestions.suggestions).forEach(([field, suggestion]) => {
+          if (suggestion.confidence > 0.5) {
+            setValue(field as any, suggestion.value);
+          }
+        });
+      }
+    };
+    
+    loadSuggestions();
+  }, [acto.slug, suggest, setValue]);
 
   // Cascada geográfica para cada rol de parte
   useEffect(() => {
@@ -173,6 +195,15 @@ export function UniversalIntakeForm({ acto, onSuccess }: UniversalIntakeFormProp
       if (row) {
         form.setValue('id', row.id);
         form.setValue('numero_acto', row.numero_acto || '');
+        
+        // Guardar patrones de uso en memoria del agente
+        await remember(acto.slug, data, {
+          act_id: row.id,
+          numero_acto: row.numero_acto,
+          materia: acto.materia,
+          naturaleza: acto.naturaleza
+        });
+        
         toast.success(`Acto generado exitosamente: ${row.numero_acto}`);
         
         if (onSuccess) {
