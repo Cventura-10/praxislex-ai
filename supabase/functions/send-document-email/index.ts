@@ -1,11 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-};
+import { sanitizeError, corsHeaders } from '../_shared/errorSanitizer.ts';
 
 // NOTA: Esta función requiere RESEND_API_KEY configurado
 // El usuario debe crear una cuenta en https://resend.com
@@ -138,12 +133,10 @@ serve(async (req) => {
       }
     );
   } catch (error: any) {
-    console.error("[send-document-email] Error:", error);
-
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message,
+        error: sanitizeError(error, 'send-document-email'),
       }),
       {
         status: 500,

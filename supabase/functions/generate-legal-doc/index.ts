@@ -2,11 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import PizZip from "https://esm.sh/pizzip@3.1.7";
 import Docxtemplater from "https://esm.sh/docxtemplater@3.42.2";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { sanitizeError, corsHeaders } from '../_shared/errorSanitizer.ts';
 
 // Cache para plantillas (optimización de rendimiento)
 const templateCache = new Map<string, Uint8Array>();
@@ -298,16 +294,9 @@ Deno.serve(async (req) => {
     
   } catch (e: any) {
     // Log full error details server-side for debugging
-    console.error("💥 Error generando DOCX:", {
-      message: e?.message || 'Unknown error',
-      stack: e?.stack,
-      type: e?.constructor?.name,
-      code: e?.code
-    });
-    
     return new Response(
       JSON.stringify({ 
-        error: "Error al generar el documento. Contacte soporte si el problema persiste."
+        error: sanitizeError(e, 'generate-legal-doc')
       }),
       { 
         status: 500, 
