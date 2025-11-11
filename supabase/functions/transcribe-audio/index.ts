@@ -2,13 +2,16 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
+import { sanitizeError, corsHeaders } from '../_shared/errorSanitizer.ts';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': Deno.env.get('ALLOWED_ORIGIN') || '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-// Note: In production, replace '*' with your specific domain for better security
+// Input validation schema
+const TranscribeAudioSchema = z.object({
+  audio: z.string().min(1, "Audio data requerido").max(25000000, "Audio demasiado grande (máx 25MB)"),
+  mimeType: z.string()
+    .regex(/^audio\/(webm|ogg|mp4|mpeg|wav|mp3)/, "Tipo de audio no soportado")
+    .optional()
+    .default('audio/webm'),
+});
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -19,7 +22,7 @@ serve(async (req) => {
     // Auth verification
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), 
+      return new Response(JSON.stringify({ error: 'No autorizado' }), 
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
@@ -31,22 +34,28 @@ serve(async (req) => {
 
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
     if (userError || !user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), 
+      return new Response(JSON.stringify({ error: 'No autorizado' }), 
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    const { audio, mimeType } = await req.json();
-
-    // Input validation
-    if (!audio || audio.length > 25000000) {
-      return new Response(JSON.stringify({ error: 'Invalid audio data' }), 
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    // Parse and validate request body
+    const requestBody = await req.json();
+    let validated;
+    
+    try {
+      validated = TranscribeAudioSchema.parse(requestBody);
+    } catch (validationError) {
+      return new Response(
+        JSON.stringify({ 
+          error: "Datos de audio inválidos",
+          details: validationError instanceof z.ZodError ? validationError.errors : []
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    if (!audio) {
-      throw new Error('No se proporcionó audio');
-    }
-
+    const { audio, mimeType } = validated;
+    
     const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
     if (!OPENAI_API_KEY) {
       throw new Error('OPENAI_API_KEY no está configurada');

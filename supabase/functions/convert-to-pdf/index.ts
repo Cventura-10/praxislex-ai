@@ -1,11 +1,16 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
+import { sanitizeError, corsHeaders } from '../_shared/errorSanitizer.ts';
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-};
+// Input validation schema
+const ConvertToPdfSchema = z.object({
+  storagePath: z.string()
+    .min(1, "Ruta de almacenamiento requerida")
+    .max(500, "Ruta demasiado larga")
+    .regex(/\.docx$/, "Solo archivos .docx son soportados"),
+  userId: z.string().uuid("ID de usuario inválido"),
+});
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -18,11 +23,24 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { storagePath, userId } = await req.json();
-
-    if (!storagePath || !userId) {
-      throw new Error("storagePath y userId son requeridos");
+    // Parse and validate request body
+    const requestBody = await req.json();
+    let validated;
+    
+    try {
+      validated = ConvertToPdfSchema.parse(requestBody);
+    } catch (validationError) {
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          error: "Datos de entrada inválidos",
+          details: validationError instanceof z.ZodError ? validationError.errors : []
+        }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
+
+    const { storagePath, userId } = validated;
 
     console.log("[convert-to-pdf] Iniciando conversión:", storagePath);
 
@@ -92,11 +110,10 @@ serve(async (req) => {
       }
     );
   } catch (error: any) {
-    console.error("[convert-to-pdf] Error:", error);
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message,
+        error: sanitizeError(error, 'convert-to-pdf'),
       }),
       {
         status: 500,

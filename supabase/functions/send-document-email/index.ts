@@ -1,10 +1,25 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import { sanitizeError, corsHeaders } from '../_shared/errorSanitizer.ts';
 
-// NOTA: Esta función requiere RESEND_API_KEY configurado
-// El usuario debe crear una cuenta en https://resend.com
-// y agregar el API key en los secrets del proyecto
+// Input validation schema
+const SendEmailSchema = z.object({
+  to: z.union([
+    z.string().email("Email de destinatario inválido").max(255),
+    z.array(z.string().email()).max(10, "Máximo 10 destinatarios")
+  ]),
+  cc: z.union([
+    z.string().email("Email CC inválido"),
+    z.array(z.string().email()).max(10, "Máximo 10 destinatarios CC")
+  ]).optional(),
+  subject: z.string().min(1, "Asunto requerido").max(200, "Asunto demasiado largo"),
+  body: z.string().min(1, "Cuerpo del mensaje requerido").max(50000, "Cuerpo demasiado largo"),
+  documentPath: z.string().max(500, "Ruta de documento demasiado larga").optional(),
+  userId: z.string().uuid("ID de usuario inválido").optional(),
+  relatedTable: z.string().max(100, "Nombre de tabla inválido").optional(),
+  relatedId: z.string().uuid("ID relacionado inválido").optional(),
+});
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -16,27 +31,31 @@ serve(async (req) => {
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
     
     if (!resendApiKey) {
-      throw new Error("RESEND_API_KEY no configurado. Crea una cuenta en https://resend.com");
+      throw new Error("RESEND_API_KEY no configurado");
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { 
-      to, 
-      cc,
-      subject, 
-      body, 
-      documentPath,
-      userId,
-      relatedTable,
-      relatedId,
-    } = await req.json();
-
-    if (!to || !subject || !body) {
-      throw new Error("to, subject y body son requeridos");
+    // Parse and validate request body
+    const requestBody = await req.json();
+    let validated;
+    
+    try {
+      validated = SendEmailSchema.parse(requestBody);
+    } catch (validationError) {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: "Datos de entrada inválidos",
+          details: validationError instanceof z.ZodError ? validationError.errors : []
+        }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
+
+    const { to, cc, subject, body, documentPath, userId, relatedTable, relatedId } = validated;
 
     console.log("[send-document-email] Enviando email a:", to);
 
