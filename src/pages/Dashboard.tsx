@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { TwoFactorWarningBanner } from "@/components/security/TwoFactorWarningBanner";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { StatsCard } from "@/components/dashboard/StatsCard";
@@ -265,6 +266,9 @@ const Dashboard = () => {
             </Button>
           </div>
         </div>
+
+        {/* Banner de advertencia 2FA */}
+        <TwoFactorWarningBanner />
 
       {loading ? (
         <div className="text-center py-8">

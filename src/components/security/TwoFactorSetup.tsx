@@ -5,8 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Shield, Smartphone, KeyRound } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Shield, Smartphone, KeyRound, AlertTriangle, CheckCircle2, Info } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 
 export function TwoFactorSetup() {
   const [isEnrolling, setIsEnrolling] = useState(false);
