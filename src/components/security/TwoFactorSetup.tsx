@@ -43,17 +43,26 @@ export function TwoFactorSetup() {
       // Primero verificar si ya existe un factor
       const { data: existingFactors } = await supabase.auth.mfa.listFactors();
       
-      // Si ya existe un factor, eliminarlo primero
+      // Si ya existe un factor, eliminarlo primero y esperar a que se complete
       if (existingFactors?.totp && existingFactors.totp.length > 0) {
+        console.log("Eliminando factores existentes:", existingFactors.totp);
         for (const factor of existingFactors.totp) {
-          await supabase.auth.mfa.unenroll({ factorId: factor.id });
+          const { error: unenrollError } = await supabase.auth.mfa.unenroll({ 
+            factorId: factor.id 
+          });
+          if (unenrollError) {
+            console.error("Error al eliminar factor:", unenrollError);
+          }
         }
+        // Esperar un momento para asegurar que la eliminación se completó
+        await new Promise(resolve => setTimeout(resolve, 500));
       }
 
-      // Crear nuevo factor con nombre único
+      // Crear nuevo factor con timestamp único para evitar conflictos
+      const factorName = `PraxisLex 2FA ${Date.now()}`;
       const { data, error } = await supabase.auth.mfa.enroll({
         factorType: "totp",
-        friendlyName: `PraxisLex 2FA ${new Date().toISOString().split('T')[0]}`,
+        friendlyName: factorName,
       });
 
       if (error) throw error;
@@ -69,7 +78,7 @@ export function TwoFactorSetup() {
       console.error("Error enrolling 2FA:", error);
       toast({
         title: "Error",
-        description: error.message || "No se pudo iniciar 2FA",
+        description: error.message || "No se pudo iniciar 2FA. Intenta de nuevo.",
         variant: "destructive",
       });
       setIsEnrolling(false);
