@@ -40,7 +40,7 @@ export function TwoFactorWarningBanner() {
   };
 
   const handleSetup = () => {
-    navigate('/security', { replace: false });
+    navigate('/seguridad', { replace: false });
   };
 
   if (!show || dismissed || isEnabled) {
