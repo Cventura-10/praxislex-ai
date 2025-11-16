@@ -14,6 +14,7 @@ export function TwoFactorSetup() {
   const [isEnrolling, setIsEnrolling] = useState(false);
   const [qrCode, setQrCode] = useState<string | null>(null);
   const [secret, setSecret] = useState<string | null>(null);
+  const [enrolledFactorId, setEnrolledFactorId] = useState<string | null>(null);
   const [verifyCode, setVerifyCode] = useState("");
   const [isEnabled, setIsEnabled] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
@@ -69,6 +70,7 @@ export function TwoFactorSetup() {
 
       setQrCode(data.totp.qr_code);
       setSecret(data.totp.secret);
+      setEnrolledFactorId(data.id);
       
       toast({
         title: "2FA Iniciado",
@@ -96,23 +98,36 @@ export function TwoFactorSetup() {
     }
 
     try {
-      const factors = await supabase.auth.mfa.listFactors();
-      if (factors.data?.totp?.[0]) {
-        const { error } = await supabase.auth.mfa.challengeAndVerify({
-          factorId: factors.data.totp[0].id,
-          code: verifyCode,
-        });
-
-        if (error) throw error;
-
-        setIsEnabled(true);
-        setIsEnrolling(false);
-        
-        toast({
-          title: "✅ 2FA Activado",
-          description: "Tu cuenta ahora está protegida con autenticación de dos factores",
-        });
+      // Usar el factor creado en esta sesión si existe; si no, tomar el primero disponible
+      let factorId = enrolledFactorId as string | null;
+      if (!factorId) {
+        const factors = await supabase.auth.mfa.listFactors();
+        factorId = factors.data?.totp?.[0]?.id ?? null;
       }
+
+      if (!factorId) {
+        throw new Error("No hay un factor TOTP disponible para verificar");
+      }
+
+      const { data: challengeData, error: challengeError } = await supabase.auth.mfa.challenge({
+        factorId,
+      });
+      if (challengeError) throw challengeError;
+
+      const { error: verifyError } = await supabase.auth.mfa.verify({
+        factorId,
+        challengeId: challengeData.id,
+        code: verifyCode,
+      });
+      if (verifyError) throw verifyError;
+
+      setIsEnabled(true);
+      setIsEnrolling(false);
+      
+      toast({
+        title: "✅ 2FA Activado",
+        description: "Tu cuenta ahora está protegida con autenticación de dos factores",
+      });
     } catch (error: any) {
       console.error("Error verifying 2FA:", error);
       toast({
@@ -136,6 +151,7 @@ export function TwoFactorSetup() {
         setIsEnabled(false);
         setQrCode(null);
         setSecret(null);
+        setEnrolledFactorId(null);
         
         toast({
           title: "2FA Desactivado",
@@ -241,6 +257,7 @@ export function TwoFactorSetup() {
                   setQrCode(null);
                   setSecret(null);
                   setVerifyCode("");
+                  setEnrolledFactorId(null);
                 }}
               >
                 Cancelar
