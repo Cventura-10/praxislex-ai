@@ -185,20 +185,32 @@ export function TwoFactorSetup() {
         ) : null}
 
         {isEnrolling && qrCode && (
-          <div className="space-y-4">
-            <div className="flex justify-center p-4 bg-white rounded-lg">
+          <div className="space-y-6">
+            <Alert>
+              <Info className="h-4 w-4" />
+              <AlertTitle>Paso 1: Escanea el código QR</AlertTitle>
+              <AlertDescription>
+                Abre tu app de autenticación y escanea este código QR
+              </AlertDescription>
+            </Alert>
+
+            <div className="flex justify-center p-6 bg-card border border-border rounded-lg">
               <img src={qrCode} alt="QR Code for 2FA" className="w-48 h-48" />
             </div>
             
             <div className="space-y-2">
-              <Label>Código secreto (manual)</Label>
-              <code className="block p-2 bg-muted rounded text-sm break-all">
-                {secret}
-              </code>
+              <Label className="text-sm font-semibold">Paso 2: O ingresa el código manualmente</Label>
+              <div className="p-3 bg-muted/50 border border-border rounded-md">
+                <code className="block text-sm break-all font-mono text-center">
+                  {secret}
+                </code>
+              </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="verify-code">Código de verificación</Label>
+              <Label htmlFor="verify-code" className="text-sm font-semibold">
+                Paso 3: Ingresa el código de 6 dígitos
+              </Label>
               <Input
                 id="verify-code"
                 type="text"
@@ -206,11 +218,20 @@ export function TwoFactorSetup() {
                 maxLength={6}
                 value={verifyCode}
                 onChange={(e) => setVerifyCode(e.target.value.replace(/\D/g, ""))}
+                className="text-center text-lg tracking-widest font-mono"
               />
+              <p className="text-xs text-muted-foreground">
+                Ingresa el código que aparece en tu app de autenticación
+              </p>
             </div>
 
             <div className="flex gap-2">
-              <Button onClick={verifyAndEnable} className="flex-1">
+              <Button 
+                onClick={verifyAndEnable} 
+                className="flex-1"
+                disabled={verifyCode.length !== 6}
+              >
+                <CheckCircle2 className="mr-2 h-4 w-4" />
                 Verificar y Activar
               </Button>
               <Button 
@@ -219,6 +240,7 @@ export function TwoFactorSetup() {
                   setIsEnrolling(false);
                   setQrCode(null);
                   setSecret(null);
+                  setVerifyCode("");
                 }}
               >
                 Cancelar
