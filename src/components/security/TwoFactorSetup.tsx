@@ -98,31 +98,23 @@ export function TwoFactorSetup() {
     }
 
     try {
-      // Usar el factor creado en esta sesión si existe; si no, tomar el primero disponible
-      let factorId = enrolledFactorId as string | null;
-      if (!factorId) {
-        const factors = await supabase.auth.mfa.listFactors();
-        factorId = factors.data?.totp?.[0]?.id ?? null;
-      }
-
+      // Usar el factor creado en esta sesión
+      const factorId = enrolledFactorId;
       if (!factorId) {
         throw new Error("No hay un factor TOTP disponible para verificar");
       }
 
-      const { data: challengeData, error: challengeError } = await supabase.auth.mfa.challenge({
+      // Para activar 2FA por primera vez, usar challengeAndVerify
+      const { error } = await supabase.auth.mfa.challengeAndVerify({
         factorId,
-      });
-      if (challengeError) throw challengeError;
-
-      const { error: verifyError } = await supabase.auth.mfa.verify({
-        factorId,
-        challengeId: challengeData.id,
         code: verifyCode,
       });
-      if (verifyError) throw verifyError;
+
+      if (error) throw error;
 
       setIsEnabled(true);
       setIsEnrolling(false);
+      setVerifyCode("");
       
       toast({
         title: "✅ 2FA Activado",
@@ -131,8 +123,8 @@ export function TwoFactorSetup() {
     } catch (error: any) {
       console.error("Error verifying 2FA:", error);
       toast({
-        title: "Error",
-        description: error.message || "Código de verificación incorrecto",
+        title: "Error al verificar",
+        description: error.message || "Código incorrecto. Genera un nuevo código en tu app y vuelve a intentar.",
         variant: "destructive",
       });
     }
