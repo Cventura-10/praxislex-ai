@@ -280,6 +280,59 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_os_session_analytics: {
+        Row: {
+          agent_name: string | null
+          confidence: number | null
+          conversation_id: string | null
+          created_at: string | null
+          error_message: string | null
+          id: string
+          intent: string
+          metadata: Json | null
+          response_time_ms: number | null
+          success: boolean | null
+          tenant_id: string
+          user_id: string
+        }
+        Insert: {
+          agent_name?: string | null
+          confidence?: number | null
+          conversation_id?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          intent: string
+          metadata?: Json | null
+          response_time_ms?: number | null
+          success?: boolean | null
+          tenant_id: string
+          user_id: string
+        }
+        Update: {
+          agent_name?: string | null
+          confidence?: number | null
+          conversation_id?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          intent?: string
+          metadata?: Json | null
+          response_time_ms?: number | null
+          success?: boolean | null
+          tenant_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_os_session_analytics_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "chat_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_usage: {
         Row: {
           cost_usd: number | null
@@ -312,6 +365,51 @@ export type Database = {
           request_metadata?: Json | null
           response_metadata?: Json | null
           tokens_used?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ai_user_patterns: {
+        Row: {
+          accepted: boolean | null
+          created_at: string | null
+          frequency: number
+          id: string
+          last_occurred_at: string | null
+          last_suggested_at: string | null
+          occurrences: number | null
+          pattern_data: Json
+          pattern_type: string
+          tenant_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          accepted?: boolean | null
+          created_at?: string | null
+          frequency?: number
+          id?: string
+          last_occurred_at?: string | null
+          last_suggested_at?: string | null
+          occurrences?: number | null
+          pattern_data: Json
+          pattern_type: string
+          tenant_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          accepted?: boolean | null
+          created_at?: string | null
+          frequency?: number
+          id?: string
+          last_occurred_at?: string | null
+          last_suggested_at?: string | null
+          occurrences?: number | null
+          pattern_data?: Json
+          pattern_type?: string
+          tenant_id?: string
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
@@ -4141,6 +4239,16 @@ export type Database = {
         }[]
       }
       actualizar_estado_plazos: { Args: never; Returns: number }
+      analyze_classification_performance: {
+        Args: { p_days?: number; p_user_id: string }
+        Returns: {
+          avg_confidence: number
+          avg_response_time_ms: number
+          intent: string
+          success_rate: number
+          total_attempts: number
+        }[]
+      }
       calcular_plazo_procesal: {
         Args: {
           p_fecha_inicio: string
@@ -4219,6 +4327,14 @@ export type Database = {
         Returns: string
       }
       decrypt_cedula: { Args: { p_encrypted_cedula: string }; Returns: string }
+      detect_user_pattern: {
+        Args: {
+          p_pattern_data: Json
+          p_pattern_type: string
+          p_user_id: string
+        }
+        Returns: string
+      }
       encrypt_cedula: { Args: { p_cedula: string }; Returns: string }
       generate_case_number: { Args: never; Returns: string }
       generate_invoice_number: { Args: never; Returns: string }
@@ -4253,6 +4369,10 @@ export type Database = {
           pattern_value: Json
           usage_count: number
         }[]
+      }
+      get_ai_os_metrics: {
+        Args: { p_days?: number; p_user_id: string }
+        Returns: Json
       }
       get_client_summary: {
         Args: { p_client_id: string }
@@ -4331,6 +4451,10 @@ export type Database = {
           p_user_id: string
         }
         Returns: string
+      }
+      get_proactive_suggestions: {
+        Args: { p_limit?: number; p_user_id: string }
+        Returns: Json
       }
       get_security_validation: {
         Args: never
