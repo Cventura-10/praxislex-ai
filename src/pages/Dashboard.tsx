@@ -7,6 +7,7 @@ import { ActionDrawer } from "@/components/dashboard/ActionDrawer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   AlertTriangle,
   Calendar,
@@ -15,11 +16,14 @@ import {
   Clock,
   FileText,
   ArrowRight,
+  MessageSquare,
+  BarChart3,
 } from "lucide-react";
 import { CaseStatusBadge } from "@/components/cases/CaseStatusBadge";
 import { useToast } from "@/hooks/use-toast";
 import { dashboardNavigate } from "@/lib/dashboardNavigation";
 import { PortalJudicialAccess } from "@/components/portal-judicial/PortalJudicialAccess";
+import { ChatGlobalPraxisLex } from "@/components/ai/ChatGlobalPraxisLex";
 
 const Dashboard = () => {
   const { toast } = useToast();
@@ -311,7 +315,30 @@ const Dashboard = () => {
             />
           </div>
 
-          <div className="grid gap-6 md:grid-cols-2">
+          {/* FASE 1: TABS CON CHAT AI-OS COMO PRINCIPAL */}
+          <Tabs defaultValue="chat" className="w-full">
+            <TabsList className="grid w-full max-w-md grid-cols-2">
+              <TabsTrigger value="chat" className="gap-2">
+                <MessageSquare className="h-4 w-4" />
+                Chat IA
+              </TabsTrigger>
+              <TabsTrigger value="overview" className="gap-2">
+                <BarChart3 className="h-4 w-4" />
+                Resumen
+              </TabsTrigger>
+            </TabsList>
+
+            {/* TAB 1: Chat AI-OS (Nueva interfaz principal) */}
+            <TabsContent value="chat" className="mt-6">
+              <ChatGlobalPraxisLex 
+                contextType="general"
+                className="h-[600px]"
+              />
+            </TabsContent>
+
+            {/* TAB 2: Vista tradicional de dashboard */}
+            <TabsContent value="overview" className="mt-6">
+              <div className="grid gap-6 md:grid-cols-2">
             {/* Notifications Panel */}
             {notifications.length > 0 && (
               <Card className="shadow-medium border-l-4 border-l-warning md:col-span-2">
@@ -532,6 +559,9 @@ const Dashboard = () => {
               )}
             </CardContent>
           </Card>
+          </div>
+          </TabsContent>
+          </Tabs>
         </>
       )}
       </div>

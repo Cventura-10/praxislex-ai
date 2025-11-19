@@ -649,6 +649,116 @@ export type Database = {
           },
         ]
       }
+      chat_conversations: {
+        Row: {
+          context_id: string | null
+          context_type: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          last_message_at: string | null
+          summary: string | null
+          tags: string[] | null
+          tenant_id: string
+          title: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          context_id?: string | null
+          context_type?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_message_at?: string | null
+          summary?: string | null
+          tags?: string[] | null
+          tenant_id: string
+          title?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          context_id?: string | null
+          context_type?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_message_at?: string | null
+          summary?: string | null
+          tags?: string[] | null
+          tenant_id?: string
+          title?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_conversation_tenant"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "current_user_tenant"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_conversation_tenant"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_messages: {
+        Row: {
+          agent_name: string | null
+          confidence: number | null
+          content: string
+          conversation_id: string
+          created_at: string | null
+          id: string
+          intent_detected: string | null
+          metadata: Json | null
+          role: string
+          tool_calls: Json | null
+          tool_results: Json | null
+        }
+        Insert: {
+          agent_name?: string | null
+          confidence?: number | null
+          content: string
+          conversation_id: string
+          created_at?: string | null
+          id?: string
+          intent_detected?: string | null
+          metadata?: Json | null
+          role: string
+          tool_calls?: Json | null
+          tool_results?: Json | null
+        }
+        Update: {
+          agent_name?: string | null
+          confidence?: number | null
+          content?: string
+          conversation_id?: string
+          created_at?: string | null
+          id?: string
+          intent_detected?: string | null
+          metadata?: Json | null
+          role?: string
+          tool_calls?: Json | null
+          tool_results?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_message_conversation"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "chat_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_credits: {
         Row: {
           case_number: string | null
@@ -4214,6 +4324,14 @@ export type Database = {
         }[]
       }
       get_next_document_version: { Args: { p_act_id: string }; Returns: number }
+      get_or_create_active_conversation: {
+        Args: {
+          p_context_id?: string
+          p_context_type?: string
+          p_user_id: string
+        }
+        Returns: string
+      }
       get_security_validation: {
         Args: never
         Returns: {
