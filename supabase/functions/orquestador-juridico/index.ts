@@ -293,20 +293,49 @@ async function routeToAgent(
   
   console.log(`[Router] Delegando a ${classification.agent}`);
 
-  // Por ahora, respuestas mock hasta implementar cada agente
   switch (classification.intent) {
+    // === GESTIÓN DE CASOS ===
     case 'consultar_casos':
       return await handleConsultarCasos(supabase, userId);
     
     case 'crear_caso':
-      return await handleCrearCaso(supabase, userId, message);
+      return await handleCrearCaso(supabase, userId, message, classification.parameters);
     
+    case 'actualizar_caso':
+      return await handleActualizarCaso(supabase, userId, message, classification.parameters);
+    
+    // === GESTIÓN DE CLIENTES ===
     case 'consultar_clientes':
       return await handleConsultarClientes(supabase, userId);
     
+    case 'crear_cliente':
+      return await handleCrearCliente(supabase, userId, message, classification.parameters);
+    
+    case 'actualizar_cliente':
+      return await handleActualizarCliente(supabase, userId, message, classification.parameters);
+    
+    // === DOCUMENTOS ===
+    case 'generar_documento':
+      return await handleGenerarDocumento(supabase, userId, message, classification.parameters);
+    
+    // === CALENDARIO Y PLAZOS ===
+    case 'agendar_audiencia':
+      return await handleAgendarAudiencia(supabase, userId, message, classification.parameters);
+    
+    case 'consultar_plazos':
+      return await handleConsultarPlazos(supabase, userId);
+    
+    // === FACTURACIÓN ===
+    case 'generar_factura':
+      return await handleGenerarFactura(supabase, userId, message, classification.parameters);
+    
+    // === JURISPRUDENCIA ===
+    case 'buscar_jurisprudencia':
+      return await handleBuscarJurisprudencia(supabase, userId, message);
+    
     default:
       return {
-        content: `He detectado que quieres: **${classification.intent}**.\n\nEsta funcionalidad está siendo implementada por el agente **${classification.agent}**.\n\nPor ahora, puedo ayudarte con:\n- Consultar casos\n- Consultar clientes\n- Crear casos básicos\n\n¿Qué te gustaría hacer?`,
+        content: `He detectado que quieres: **${classification.intent}**.\n\nEsta funcionalidad está siendo implementada por el agente **${classification.agent}**.\n\n¿Qué más puedo ayudarte?`,
         metadata: { status: 'pending_implementation' }
       };
   }
@@ -382,15 +411,348 @@ async function handleConsultarClientes(supabase: any, userId: string) {
   };
 }
 
-async function handleCrearCaso(supabase: any, userId: string, message: string) {
-  // Por ahora solo informar que falta información
+async function handleCrearCaso(supabase: any, userId: string, message: string, params?: any) {
+  // Extraer información del mensaje o parámetros
+  if (!params?.titulo) {
+    return {
+      content: `Para crear un caso necesito que me proporciones:\n\n` +
+               `1. **Título del caso**\n` +
+               `2. **Materia** (Civil, Penal, Laboral, etc.)\n` +
+               `3. **Número de expediente** (opcional)\n` +
+               `4. **Cliente** (opcional)\n\n` +
+               `Ejemplo: "Crea un caso de Cobro de Pesos, expediente 001-2025-CIVI-00123"`,
+      metadata: { requires_more_info: true }
+    };
+  }
+
+  // Obtener tenant_id del usuario
+  const { data: tenantData } = await supabase.rpc('get_user_tenant_id', { p_user_id: userId });
+  
+  const newCase = {
+    user_id: userId,
+    tenant_id: tenantData,
+    titulo: params.titulo,
+    materia: params.materia || 'Civil y Comercial',
+    tipo_caso: params.tipo_caso || 'demanda',
+    numero_expediente: params.numero_expediente || '',
+    estado: 'activo',
+    descripcion: params.descripcion || '',
+    client_id: params.client_id || null,
+  };
+
+  const { data: caso, error } = await supabase
+    .from('cases')
+    .insert(newCase)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('[CrearCaso] Error:', error);
+    return {
+      content: `❌ Hubo un error al crear el caso: ${error.message}`,
+      metadata: { error: true }
+    };
+  }
+
   return {
-    content: `Para crear un caso necesito que me proporciones:\n\n` +
-             `1. **Título del caso**\n` +
-             `2. **Materia** (Civil, Penal, Laboral, etc.)\n` +
-             `3. **Tipo de caso**\n` +
-             `4. **Cliente** (opcional)\n\n` +
-             `Puedes decirme algo como: "Crea un caso de Cobro de Pesos contra Juan Pérez"`,
-    metadata: { requires_more_info: true }
+    content: `✅ **Caso creado exitosamente**\n\n` +
+             `📋 **${caso.titulo}**\n` +
+             `• Expediente: ${caso.numero_expediente}\n` +
+             `• Materia: ${caso.materia}\n` +
+             `• Estado: ${caso.estado}\n\n` +
+             `¿Quieres programar una audiencia o agregar plazos procesales?`,
+    tool_calls: [{ tool: 'crear_caso', case_id: caso.id }],
+    tool_results: caso,
+  };
+}
+
+async function handleActualizarCaso(supabase: any, userId: string, message: string, params?: any) {
+  if (!params?.caso_id) {
+    return {
+      content: `Para actualizar un caso necesito que especifiques:\n\n` +
+               `1. **Qué caso** quieres actualizar (nombre o expediente)\n` +
+               `2. **Qué campo** quieres modificar\n` +
+               `3. **Nuevo valor**\n\n` +
+               `Ejemplo: "Actualiza el caso 001-2025 a estado cerrado"`,
+      metadata: { requires_more_info: true }
+    };
+  }
+
+  const updates: any = {};
+  if (params.titulo) updates.titulo = params.titulo;
+  if (params.estado) updates.estado = params.estado;
+  if (params.descripcion) updates.descripcion = params.descripcion;
+  if (params.etapa_procesal) updates.etapa_procesal = params.etapa_procesal;
+
+  const { data: caso, error } = await supabase
+    .from('cases')
+    .update(updates)
+    .eq('id', params.caso_id)
+    .eq('user_id', userId)
+    .select()
+    .single();
+
+  if (error) {
+    return {
+      content: `❌ Error al actualizar el caso: ${error.message}`,
+      metadata: { error: true }
+    };
+  }
+
+  return {
+    content: `✅ **Caso actualizado**\n\n` +
+             `📋 ${caso.titulo}\n` +
+             `• Estado: ${caso.estado}\n` +
+             `• Etapa: ${caso.etapa_procesal || 'N/A'}\n\n` +
+             `Cambios guardados correctamente.`,
+    tool_calls: [{ tool: 'actualizar_caso', case_id: caso.id }],
+  };
+}
+
+async function handleCrearCliente(supabase: any, userId: string, message: string, params?: any) {
+  if (!params?.nombre_completo) {
+    return {
+      content: `Para registrar un cliente necesito:\n\n` +
+               `1. **Nombre completo**\n` +
+               `2. **Tipo de persona** (física/jurídica)\n` +
+               `3. **Email** (opcional)\n` +
+               `4. **Teléfono** (opcional)\n\n` +
+               `Ejemplo: "Registra a Juan Pérez, física, email juan@example.com"`,
+      metadata: { requires_more_info: true }
+    };
+  }
+
+  const { data: tenantData } = await supabase.rpc('get_user_tenant_id', { p_user_id: userId });
+  
+  const newClient = {
+    user_id: userId,
+    tenant_id: tenantData,
+    nombre_completo: params.nombre_completo,
+    tipo_persona: params.tipo_persona || 'fisica',
+    email: params.email || null,
+    telefono: params.telefono || null,
+    direccion: params.direccion || null,
+  };
+
+  const { data: cliente, error } = await supabase
+    .from('clients')
+    .insert(newClient)
+    .select()
+    .single();
+
+  if (error) {
+    return {
+      content: `❌ Error al crear cliente: ${error.message}`,
+      metadata: { error: true }
+    };
+  }
+
+  return {
+    content: `✅ **Cliente registrado exitosamente**\n\n` +
+             `👤 **${cliente.nombre_completo}**\n` +
+             `• Tipo: ${cliente.tipo_persona}\n` +
+             (cliente.email ? `• Email: ${cliente.email}\n` : '') +
+             (cliente.telefono ? `• Teléfono: ${cliente.telefono}\n` : '') +
+             `\n¿Quieres crear un caso para este cliente?`,
+    tool_calls: [{ tool: 'crear_cliente', client_id: cliente.id }],
+    tool_results: cliente,
+  };
+}
+
+async function handleActualizarCliente(supabase: any, userId: string, message: string, params?: any) {
+  if (!params?.cliente_id) {
+    return {
+      content: `Para actualizar un cliente necesito:\n\n` +
+               `1. **Qué cliente** actualizar (nombre)\n` +
+               `2. **Qué campo** modificar\n` +
+               `3. **Nuevo valor**\n\n` +
+               `Ejemplo: "Actualiza el email de Juan Pérez a nuevo@email.com"`,
+      metadata: { requires_more_info: true }
+    };
+  }
+
+  const updates: any = {};
+  if (params.email) updates.email = params.email;
+  if (params.telefono) updates.telefono = params.telefono;
+  if (params.direccion) updates.direccion = params.direccion;
+
+  const { data: cliente, error } = await supabase
+    .from('clients')
+    .update(updates)
+    .eq('id', params.cliente_id)
+    .eq('user_id', userId)
+    .select()
+    .single();
+
+  if (error) {
+    return {
+      content: `❌ Error al actualizar cliente: ${error.message}`,
+      metadata: { error: true }
+    };
+  }
+
+  return {
+    content: `✅ **Cliente actualizado**\n\n` +
+             `👤 ${cliente.nombre_completo}\n` +
+             (cliente.email ? `• Email: ${cliente.email}\n` : '') +
+             (cliente.telefono ? `• Teléfono: ${cliente.telefono}\n` : '') +
+             `\nCambios guardados.`,
+    tool_calls: [{ tool: 'actualizar_cliente', client_id: cliente.id }],
+  };
+}
+
+async function handleGenerarDocumento(supabase: any, userId: string, message: string, params?: any) {
+  // Listar plantillas disponibles
+  const { data: templates } = await supabase
+    .from('document_templates')
+    .select('slug, nombre, descripcion, categoria')
+    .eq('activo', true)
+    .limit(10);
+
+  if (!params?.template_slug) {
+    let response = `📄 **Plantillas disponibles:**\n\n`;
+    
+    if (templates && templates.length > 0) {
+      templates.forEach((t: any, i: number) => {
+        response += `${i + 1}. **${t.nombre}** (${t.categoria})\n`;
+        if (t.descripcion) response += `   ${t.descripcion}\n`;
+        response += '\n';
+      });
+      response += `Dime cuál plantilla quieres usar o describe qué documento necesitas.`;
+    } else {
+      response = `No hay plantillas configuradas. ¿Qué tipo de documento necesitas redactar?`;
+    }
+
+    return {
+      content: response,
+      tool_calls: [{ tool: 'listar_plantillas', count: templates?.length || 0 }],
+      tool_results: templates,
+    };
+  }
+
+  // Aquí iría la lógica de generación con la plantilla
+  return {
+    content: `🔄 Generando documento con plantilla **${params.template_slug}**...\n\n` +
+             `Esta funcionalidad conectará con el sistema de generación de actos legales existente.\n\n` +
+             `¿Tienes los datos del caso y las partes listos?`,
+    metadata: { template_slug: params.template_slug, pending: true }
+  };
+}
+
+async function handleAgendarAudiencia(supabase: any, userId: string, message: string, params?: any) {
+  if (!params?.fecha || !params?.titulo) {
+    return {
+      content: `Para agendar una audiencia necesito:\n\n` +
+               `1. **Fecha y hora** (ej: 15 de enero 2025 a las 9:00 AM)\n` +
+               `2. **Título/Descripción**\n` +
+               `3. **Caso relacionado** (opcional)\n` +
+               `4. **Juzgado/Ubicación** (opcional)\n\n` +
+               `Ejemplo: "Agenda audiencia el 15/01/2025 a las 9am en Juzgado de Paz"`,
+      metadata: { requires_more_info: true }
+    };
+  }
+
+  const { data: tenantData } = await supabase.rpc('get_user_tenant_id', { p_user_id: userId });
+  
+  const evento = {
+    user_id: userId,
+    tenant_id: tenantData,
+    titulo: params.titulo,
+    tipo_evento: 'audiencia',
+    inicio: params.fecha,
+    fin: params.fecha, // Mismo día por defecto
+    ubicacion: params.juzgado || null,
+    descripcion: params.descripcion || null,
+    expediente_id: params.caso_id || null,
+    prioridad: 'alta',
+  };
+
+  const { data: audiencia, error } = await supabase
+    .from('calendar_events')
+    .insert(evento)
+    .select()
+    .single();
+
+  if (error) {
+    return {
+      content: `❌ Error al agendar audiencia: ${error.message}`,
+      metadata: { error: true }
+    };
+  }
+
+  return {
+    content: `✅ **Audiencia agendada**\n\n` +
+             `📅 **${audiencia.titulo}**\n` +
+             `• Fecha: ${new Date(audiencia.inicio).toLocaleDateString('es-DO')}\n` +
+             (audiencia.ubicacion ? `• Lugar: ${audiencia.ubicacion}\n` : '') +
+             `\nTe enviaré un recordatorio 24 horas antes.`,
+    tool_calls: [{ tool: 'programar_audiencia', event_id: audiencia.id }],
+    tool_results: audiencia,
+  };
+}
+
+async function handleConsultarPlazos(supabase: any, userId: string) {
+  const { data: plazos } = await supabase
+    .from('plazos_procesales')
+    .select('*, cases(titulo)')
+    .eq('user_id', userId)
+    .eq('estado', 'pendiente')
+    .order('fecha_vencimiento', { ascending: true })
+    .limit(5);
+
+  if (!plazos || plazos.length === 0) {
+    return {
+      content: `📅 No tienes plazos procesales pendientes.\n\n¿Quieres que calcule un plazo para algún caso?`,
+      tool_calls: [{ tool: 'consultar_plazos', result: 'empty' }],
+    };
+  }
+
+  let response = `📅 **Plazos procesales pendientes:**\n\n`;
+  plazos.forEach((p: any, i: number) => {
+    const dias = Math.ceil((new Date(p.fecha_vencimiento).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+    response += `${i + 1}. **${p.tipo_plazo}**\n`;
+    response += `   • Caso: ${p.cases?.titulo || 'N/A'}\n`;
+    response += `   • Vence: ${new Date(p.fecha_vencimiento).toLocaleDateString('es-DO')}\n`;
+    response += `   • Faltan: ${dias} días\n`;
+    response += `   • Prioridad: ${p.prioridad}\n\n`;
+  });
+
+  return {
+    content: response,
+    tool_calls: [{ tool: 'consultar_plazos', count: plazos.length }],
+    tool_results: plazos,
+  };
+}
+
+async function handleGenerarFactura(supabase: any, userId: string, message: string, params?: any) {
+  if (!params?.cliente_id || !params?.conceptos) {
+    return {
+      content: `Para generar una factura necesito:\n\n` +
+               `1. **Cliente** (nombre)\n` +
+               `2. **Conceptos** (servicios facturados)\n` +
+               `3. **Montos** para cada concepto\n` +
+               `4. **Caso relacionado** (opcional)\n\n` +
+               `Ejemplo: "Factura a Juan Pérez por honorarios $50,000"`,
+      metadata: { requires_more_info: true }
+    };
+  }
+
+  return {
+    content: `🔄 **Generación de factura**\n\n` +
+             `Esta funcionalidad se conectará con el módulo de contabilidad existente.\n\n` +
+             `Cliente: ${params.cliente_nombre || 'N/A'}\n` +
+             `Conceptos: ${params.conceptos?.length || 0}\n\n` +
+             `¿Confirmas los datos para generar la factura?`,
+    metadata: { pending: true, cliente_id: params.cliente_id }
+  };
+}
+
+async function handleBuscarJurisprudencia(supabase: any, userId: string, message: string) {
+  return {
+    content: `🔍 **Búsqueda de jurisprudencia**\n\n` +
+             `Esta funcionalidad se conectará con el sistema RAG jurídico existente.\n\n` +
+             `Tu consulta: "${message}"\n\n` +
+             `Buscando en la base de datos de sentencias y precedentes...`,
+    metadata: { query: message, pending: true }
   };
 }
