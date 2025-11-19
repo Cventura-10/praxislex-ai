@@ -104,17 +104,28 @@ export function TwoFactorSetup() {
         throw new Error("No hay un factor TOTP disponible para verificar");
       }
 
-      // Para activar 2FA por primera vez, usar challengeAndVerify
-      const { error } = await supabase.auth.mfa.challengeAndVerify({
+      // CORRECTO: Para ENROLLAR 2FA por primera vez:
+      // 1. Crear un challenge
+      const { data: challengeData, error: challengeError } = await supabase.auth.mfa.challenge({
         factorId,
+      });
+
+      if (challengeError) throw challengeError;
+
+      // 2. Verificar el código contra el challenge
+      const { error: verifyError } = await supabase.auth.mfa.verify({
+        factorId,
+        challengeId: challengeData.id,
         code: verifyCode,
       });
 
-      if (error) throw error;
+      if (verifyError) throw verifyError;
 
       setIsEnabled(true);
       setIsEnrolling(false);
       setVerifyCode("");
+      setQrCode(null);
+      setSecret(null);
       
       toast({
         title: "✅ 2FA Activado",
@@ -124,7 +135,7 @@ export function TwoFactorSetup() {
       console.error("Error verifying 2FA:", error);
       toast({
         title: "Error al verificar",
-        description: error.message || "Código incorrecto. Genera un nuevo código en tu app y vuelve a intentar.",
+        description: error.message || "Código incorrecto. Asegúrate de usar el código actual de tu app autenticadora.",
         variant: "destructive",
       });
     }
