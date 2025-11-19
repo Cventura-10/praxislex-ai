@@ -339,227 +339,227 @@ const Dashboard = () => {
             {/* TAB 2: Vista tradicional de dashboard */}
             <TabsContent value="overview" className="mt-6">
               <div className="grid gap-6 md:grid-cols-2">
-            {/* Notifications Panel */}
-            {notifications.length > 0 && (
-              <Card className="shadow-medium border-l-4 border-l-warning md:col-span-2">
-                <CardHeader className="flex flex-row items-center justify-between pb-3">
-                  <CardTitle className="flex items-center gap-2">
-                    <AlertTriangle className="h-5 w-5 text-warning" />
-                    Notificaciones importantes
-                  </CardTitle>
-                  <Badge variant="destructive">{notifications.length}</Badge>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                     {notifications.slice(0, 5).map((notif) => (
-                      <div
-                        key={notif.id}
-                        className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer ${
-                          notif.priority === 'high' 
-                            ? 'bg-destructive/5 border-destructive/20' 
-                            : 'bg-card'
-                        } hover:bg-accent/5 transition-base`}
-                        onClick={() => handleItemClick(notif.id)}
-                      >
-                        <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
-                          notif.priority === 'high' ? 'bg-destructive/10' : 'bg-primary/10'
-                        }`}>
-                          {notif.type === 'deadline' ? (
-                            <Clock className={`h-4 w-4 ${notif.priority === 'high' ? 'text-destructive' : 'text-primary'}`} />
-                          ) : (
-                            <Calendar className={`h-4 w-4 ${notif.priority === 'high' ? 'text-destructive' : 'text-primary'}`} />
-                          )}
-                        </div>
-                        <div className="flex-1">
-                          <p className={`font-medium text-sm ${notif.priority === 'high' ? 'text-destructive' : 'text-foreground'}`}>
-                            {notif.title}
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {notif.message}
-                          </p>
-                        </div>
+                {/* Notifications Panel */}
+                {notifications.length > 0 && (
+                  <Card className="shadow-medium border-l-4 border-l-warning md:col-span-2">
+                    <CardHeader className="flex flex-row items-center justify-between pb-3">
+                      <CardTitle className="flex items-center gap-2">
+                        <AlertTriangle className="h-5 w-5 text-warning" />
+                        Notificaciones importantes
+                      </CardTitle>
+                      <Badge variant="destructive">{notifications.length}</Badge>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        {notifications.slice(0, 5).map((notif) => (
+                          <div
+                            key={notif.id}
+                            className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer ${
+                              notif.priority === 'high' 
+                                ? 'bg-destructive/5 border-destructive/20' 
+                                : 'bg-card'
+                            } hover:bg-accent/5 transition-base`}
+                            onClick={() => handleItemClick(notif.id)}
+                          >
+                            <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
+                              notif.priority === 'high' ? 'bg-destructive/10' : 'bg-primary/10'
+                            }`}>
+                              {notif.type === 'deadline' ? (
+                                <Clock className={`h-4 w-4 ${notif.priority === 'high' ? 'text-destructive' : 'text-primary'}`} />
+                              ) : (
+                                <Calendar className={`h-4 w-4 ${notif.priority === 'high' ? 'text-destructive' : 'text-primary'}`} />
+                              )}
+                            </div>
+                            <div className="flex-1">
+                              <p className={`font-medium text-sm ${notif.priority === 'high' ? 'text-destructive' : 'text-foreground'}`}>
+                                {notif.title}
+                              </p>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {notif.message}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            <Card className="shadow-medium">
-              <CardHeader className="flex flex-row items-center justify-between pb-3">
-                <CardTitle className="flex items-center gap-2">
-                  <AlertTriangle className="h-5 w-5 text-warning" />
-                  Vencimientos próximos
-                </CardTitle>
-                <Button variant="ghost" size="sm" className="gap-1" onClick={() => navigate("/audiencias")}>
-                  Ver todos
-                  <ArrowRight className="h-3 w-3" />
-                </Button>
-              </CardHeader>
-              <CardContent>
-                {deadlines.length === 0 ? (
-                  <div className="text-center py-6">
-                    <AlertTriangle className="h-10 w-10 text-muted-foreground mx-auto mb-2 opacity-50" />
-                    <p className="text-sm text-muted-foreground mb-3">
-                      No hay vencimientos próximos
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Cuando tengas plazos pendientes aparecerán aquí
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                     {deadlines.map((item) => {
-                      const daysLeft = getDaysLeft(item.fecha_vencimiento);
-                      const priority = getPriority(daysLeft);
-                      return (
-                        <div
-                          key={item.id}
-                          className="flex items-start justify-between p-3 rounded-lg border bg-card hover:bg-accent/5 transition-base cursor-pointer"
-                          onClick={() => handleItemClick(`deadline-${item.id}`)}
-                        >
-                          <div className="flex-1">
-                            <p className="font-medium text-sm">{item.caso}</p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {item.tipo}
-                            </p>
-                          </div>
-                          <div className="flex flex-col items-end gap-1">
-                            <Badge
-                              variant={
-                                priority === "high"
-                                  ? "destructive"
-                                  : priority === "medium"
-                                  ? "default"
-                                  : "secondary"
-                              }
-                              className="text-xs"
-                            >
-                              {daysLeft === 0 ? 'HOY' : daysLeft === 1 ? 'Mañana' : `${daysLeft} días`}
-                            </Badge>
-                            <span className="text-xs text-muted-foreground">
-                              {new Date(item.fecha_vencimiento).toLocaleDateString('es-DO')}
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                    </CardContent>
+                  </Card>
                 )}
-              </CardContent>
-            </Card>
 
-            <Card className="shadow-medium">
-              <CardHeader className="flex flex-row items-center justify-between pb-3">
-                <CardTitle className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5 text-info" />
-                  Audiencias próximas
-                </CardTitle>
-                <Button variant="ghost" size="sm" className="gap-1" onClick={() => navigate("/audiencias")}>
-                  Ver calendario
-                  <ArrowRight className="h-3 w-3" />
-                </Button>
-              </CardHeader>
-              <CardContent>
-                {hearings.length === 0 ? (
-                  <div className="text-center py-6">
-                    <Calendar className="h-10 w-10 text-muted-foreground mx-auto mb-2 opacity-50" />
-                    <p className="text-sm text-muted-foreground mb-3">
-                      No hay audiencias programadas
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Programa una audiencia desde la sección de Audiencias
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                     {hearings.map((item) => (
-                      <div
-                        key={item.id}
-                        className="flex items-start gap-3 p-3 rounded-lg border bg-card hover:bg-accent/5 transition-base cursor-pointer"
-                        onClick={() => handleItemClick(`hearing-${item.id}`)}
-                      >
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                          <Clock className="h-5 w-5 text-primary" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-sm">{item.caso}</p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {item.juzgado}
-                          </p>
-                          <p className="text-xs font-medium text-primary mt-1">
-                            {new Date(item.fecha).toLocaleDateString('es-DO')} • {item.hora}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* v1.4.5 - Portal Judicial SCJ */}
-            <div className="md:col-span-2">
-              <PortalJudicialAccess defaultPath="/login" />
-            </div>
-          </div>
-
-          <Card className="shadow-medium">
-            <CardHeader className="flex flex-row items-center justify-between pb-3">
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5 text-primary" />
-                Casos recientes
-              </CardTitle>
-              <Button variant="ghost" size="sm" className="gap-1" onClick={() => navigate("/casos")}>
-                Ver todos
-                <ArrowRight className="h-3 w-3" />
-              </Button>
-            </CardHeader>
-            <CardContent>
-              {recentCases.length === 0 ? (
-                <div className="text-center py-8">
-                  <Briefcase className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-                  <p className="text-sm text-muted-foreground mb-4">
-                    No hay casos creados aún
-                  </p>
-                  <Button onClick={handleNewCase} size="sm">
-                    Crear primer caso
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {recentCases.map((item) => (
-                    <div
-                      key={item.id}
-                      className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-accent/5 transition-base cursor-pointer"
-                      onClick={() => handleViewCase(item.id)}
-                    >
-                      <div className="flex items-center gap-4 flex-1">
-                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                          <Briefcase className="h-6 w-6 text-primary" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <p className="font-medium text-sm">{item.titulo}</p>
-                            <CaseStatusBadge status={item.estado} />
-                          </div>
-                          <p className="text-xs text-muted-foreground">
-                            Cliente: {item.clients?.nombre_completo || "Sin cliente"} • {item.materia}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="text-right">
+                <Card className="shadow-medium">
+                  <CardHeader className="flex flex-row items-center justify-between pb-3">
+                    <CardTitle className="flex items-center gap-2">
+                      <AlertTriangle className="h-5 w-5 text-warning" />
+                      Vencimientos próximos
+                    </CardTitle>
+                    <Button variant="ghost" size="sm" className="gap-1" onClick={() => navigate("/audiencias")}>
+                      Ver todos
+                      <ArrowRight className="h-3 w-3" />
+                    </Button>
+                  </CardHeader>
+                  <CardContent>
+                    {deadlines.length === 0 ? (
+                      <div className="text-center py-6">
+                        <AlertTriangle className="h-10 w-10 text-muted-foreground mx-auto mb-2 opacity-50" />
+                        <p className="text-sm text-muted-foreground mb-3">
+                          No hay vencimientos próximos
+                        </p>
                         <p className="text-xs text-muted-foreground">
-                          {new Date(item.created_at).toLocaleDateString('es-DO')}
+                          Cuando tengas plazos pendientes aparecerán aquí
                         </p>
                       </div>
-                    </div>
-                  ))}
+                    ) : (
+                      <div className="space-y-3">
+                        {deadlines.map((item) => {
+                          const daysLeft = getDaysLeft(item.fecha_vencimiento);
+                          const priority = getPriority(daysLeft);
+                          return (
+                            <div
+                              key={item.id}
+                              className="flex items-start justify-between p-3 rounded-lg border bg-card hover:bg-accent/5 transition-base cursor-pointer"
+                              onClick={() => handleItemClick(`deadline-${item.id}`)}
+                            >
+                              <div className="flex-1">
+                                <p className="font-medium text-sm">{item.caso}</p>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  {item.tipo}
+                                </p>
+                              </div>
+                              <div className="flex flex-col items-end gap-1">
+                                <Badge
+                                  variant={
+                                    priority === "high"
+                                      ? "destructive"
+                                      : priority === "medium"
+                                      ? "default"
+                                      : "secondary"
+                                  }
+                                  className="text-xs"
+                                >
+                                  {daysLeft === 0 ? 'HOY' : daysLeft === 1 ? 'Mañana' : `${daysLeft} días`}
+                                </Badge>
+                                <span className="text-xs text-muted-foreground">
+                                  {new Date(item.fecha_vencimiento).toLocaleDateString('es-DO')}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                <Card className="shadow-medium">
+                  <CardHeader className="flex flex-row items-center justify-between pb-3">
+                    <CardTitle className="flex items-center gap-2">
+                      <Calendar className="h-5 w-5 text-info" />
+                      Audiencias próximas
+                    </CardTitle>
+                    <Button variant="ghost" size="sm" className="gap-1" onClick={() => navigate("/audiencias")}>
+                      Ver calendario
+                      <ArrowRight className="h-3 w-3" />
+                    </Button>
+                  </CardHeader>
+                  <CardContent>
+                    {hearings.length === 0 ? (
+                      <div className="text-center py-6">
+                        <Calendar className="h-10 w-10 text-muted-foreground mx-auto mb-2 opacity-50" />
+                        <p className="text-sm text-muted-foreground mb-3">
+                          No hay audiencias programadas
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Programa una audiencia desde la sección de Audiencias
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {hearings.map((item) => (
+                          <div
+                            key={item.id}
+                            className="flex items-start gap-3 p-3 rounded-lg border bg-card hover:bg-accent/5 transition-base cursor-pointer"
+                            onClick={() => handleItemClick(`hearing-${item.id}`)}
+                          >
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                              <Clock className="h-5 w-5 text-primary" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-sm">{item.caso}</p>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {item.juzgado}
+                              </p>
+                              <p className="text-xs font-medium text-primary mt-1">
+                                {new Date(item.fecha).toLocaleDateString('es-DO')} • {item.hora}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* v1.4.5 - Portal Judicial SCJ */}
+                <div className="md:col-span-2">
+                  <PortalJudicialAccess defaultPath="/login" />
                 </div>
-              )}
-            </CardContent>
-          </Card>
-          </TabsContent>
+              </div>
+
+              <Card className="shadow-medium md:col-span-2">
+                <CardHeader className="flex flex-row items-center justify-between pb-3">
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5 text-primary" />
+                    Casos recientes
+                  </CardTitle>
+                  <Button variant="ghost" size="sm" className="gap-1" onClick={() => navigate("/casos")}>
+                    Ver todos
+                    <ArrowRight className="h-3 w-3" />
+                  </Button>
+                </CardHeader>
+                <CardContent>
+                  {recentCases.length === 0 ? (
+                    <div className="text-center py-8">
+                      <Briefcase className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                      <p className="text-sm text-muted-foreground mb-4">
+                        No hay casos creados aún
+                      </p>
+                      <Button onClick={handleNewCase} size="sm">
+                        Crear primer caso
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {recentCases.map((item) => (
+                        <div
+                          key={item.id}
+                          className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-accent/5 transition-base cursor-pointer"
+                          onClick={() => handleViewCase(item.id)}
+                        >
+                          <div className="flex items-center gap-4 flex-1">
+                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                              <Briefcase className="h-6 w-6 text-primary" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <p className="font-medium text-sm">{item.titulo}</p>
+                                <CaseStatusBadge status={item.estado} />
+                              </div>
+                              <p className="text-xs text-muted-foreground">
+                                Cliente: {item.clients?.nombre_completo || "Sin cliente"} • {item.materia}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-xs text-muted-foreground">
+                              {new Date(item.created_at).toLocaleDateString('es-DO')}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
           </Tabs>
         </>
       )}
