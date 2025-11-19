@@ -20,6 +20,7 @@ import {
   MessageSquare,
   Video,
   Stamp,
+  Brain,
 } from "lucide-react";
 
 const navItems = [
@@ -42,6 +43,7 @@ const navItems = [
   { href: "/facturacion", icon: CreditCard, label: "Facturación" },
   { href: "/seguridad", icon: Shield, label: "Seguridad" },
   { href: "/analytics", icon: BarChart3, label: "Analítica" },
+  { href: "/ai-analytics", icon: Brain, label: "Analytics IA" },
 ];
 
 export function Navigation() {

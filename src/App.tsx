@@ -50,6 +50,7 @@ const Settings = lazy(() => import("./pages/Settings"));
 const Upgrade = lazy(() => import("./pages/Upgrade"));
 const Security = lazy(() => import("./pages/Security"));
 const Analytics = lazy(() => import("./pages/Analytics"));
+const AIAnalytics = lazy(() => import("./pages/AIAnalytics"));
 const LegalModels = lazy(() => import("./pages/LegalModels"));
 // Eager load for legal acts generator to prevent 404
 import LegalActsGenerator from "./pages/LegalActsGenerator";
@@ -140,6 +141,7 @@ const App = () => (
                                 <Route path="/upgrade" element={<Upgrade />} />
                                 <Route path="/seguridad" element={<Security />} />
                                 <Route path="/analytics" element={<Analytics />} />
+                                <Route path="/ai-analytics" element={<AIAnalytics />} />
                                 <Route path="/modelos-juridicos" element={<LegalModels />} />
                                 <Route path="/generador-actos" element={<LegalActsGenerator />} />
                                 <Route path="/redaccion-ia" element={<LegalActWizard />} />
