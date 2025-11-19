@@ -152,7 +152,7 @@ serve(async (req) => {
 });
 
 // ============================================================
-// CLASIFICADOR DE INTENCIONES (usando Lovable AI)
+// CLASIFICADOR DE INTENCIONES CON EXTRACCIÓN DE PARÁMETROS
 // ============================================================
 async function classifyIntent(
   message: string, 
@@ -164,44 +164,101 @@ async function classifyIntent(
     throw new Error('LOVABLE_API_KEY no configurada');
   }
 
-  // Prompt de clasificación
-  const systemPrompt = `Eres un clasificador de intenciones para un sistema jurídico.
-Analiza el mensaje del usuario y clasifica su intención en UNA de estas categorías:
+  // Definir herramientas para extracción de parámetros
+  const tools = [
+    {
+      type: "function",
+      function: {
+        name: "clasificar_con_parametros",
+        description: "Clasifica la intención del usuario y extrae parámetros estructurados",
+        parameters: {
+          type: "object",
+          properties: {
+            intent: {
+              type: "string",
+              enum: [
+                "consultar_casos", "crear_caso", "actualizar_caso",
+                "consultar_clientes", "crear_cliente", "actualizar_cliente",
+                "generar_documento", "buscar_jurisprudencia",
+                "agendar_audiencia", "consultar_plazos",
+                "generar_factura", "ayuda_general"
+              ],
+              description: "La intención principal detectada"
+            },
+            confidence: {
+              type: "number",
+              description: "Nivel de confianza entre 0 y 1"
+            },
+            agent: {
+              type: "string",
+              enum: [
+                "AgenteGestiónCasos", "AgenteGestiónClientes",
+                "AgenteDocumentosRedacción", "AgenteJurisprudencia",
+                "AgenteAudienciasCalendario", "AgenteFacturación",
+                "AgenteAyudaGeneral"
+              ],
+              description: "Agente especializado que debe manejar la solicitud"
+            },
+            parameters: {
+              type: "object",
+              description: "Parámetros extraídos del mensaje",
+              properties: {
+                // Parámetros para casos
+                titulo_caso: { type: "string", description: "Título descriptivo del caso" },
+                materia: { 
+                  type: "string",
+                  enum: ["Civil y Comercial", "Penal", "Laboral", "Familia", "Administrativo", "Comercial"],
+                  description: "Materia jurídica"
+                },
+                numero_expediente: { type: "string", description: "Número de expediente si se menciona" },
+                tipo_caso: { type: "string", description: "Tipo específico del caso" },
+                
+                // Parámetros para clientes
+                cliente_nombre: { type: "string", description: "Nombre del cliente mencionado" },
+                tipo_persona: { 
+                  type: "string",
+                  enum: ["fisica", "juridica"],
+                  description: "Tipo de persona"
+                },
+                email: { type: "string", description: "Email del cliente" },
+                telefono: { type: "string", description: "Teléfono del cliente" },
+                
+                // Parámetros para audiencias
+                fecha_audiencia: { type: "string", description: "Fecha de la audiencia en formato ISO" },
+                hora_audiencia: { type: "string", description: "Hora de la audiencia" },
+                juzgado: { type: "string", description: "Juzgado o ubicación" },
+                
+                // Parámetros para documentos
+                template_slug: { type: "string", description: "Slug de la plantilla de documento" },
+                tipo_documento: { type: "string", description: "Tipo de documento a generar" },
+                
+                // Parámetros generales
+                descripcion: { type: "string", description: "Descripción adicional" },
+                busqueda_texto: { type: "string", description: "Texto de búsqueda" }
+              }
+            }
+          },
+          required: ["intent", "confidence", "agent"]
+        }
+      }
+    }
+  ];
 
-INTENCIONES DISPONIBLES:
-- consultar_casos: Ver, buscar o listar casos/expedientes
-- crear_caso: Crear un nuevo caso o expediente
-- actualizar_caso: Modificar datos de un caso existente
-- consultar_clientes: Ver o buscar clientes
-- crear_cliente: Registrar un nuevo cliente
-- generar_documento: Redactar un documento jurídico
-- buscar_jurisprudencia: Buscar precedentes, sentencias, doctrina
-- agendar_audiencia: Crear o consultar audiencias/citas
-- consultar_plazos: Ver plazos procesales pendientes
-- generar_factura: Crear una factura o consultar facturación
-- ayuda_general: Preguntas generales sobre el sistema
+  const systemPrompt = `Eres un clasificador de intenciones para un sistema jurídico dominicano.
+Analiza el mensaje del usuario y:
+1. Clasifica su intención principal
+2. Extrae TODOS los parámetros relevantes mencionados
+3. Asigna el agente especializado correcto
 
-Responde SOLO con un JSON en este formato (sin markdown):
-{
-  "intent": "nombre_de_la_intencion",
-  "confidence": 0.95,
-  "agent": "nombre_del_agente",
-  "parameters": {}
-}
+Ejemplos:
+- "Crea un caso de cobro de pesos contra Juan Pérez" → intent: crear_caso, parameters: {titulo_caso: "Cobro de pesos", cliente_nombre: "Juan Pérez", materia: "Civil y Comercial"}
+- "Registra a María López, jurídica, email maria@empresa.com" → intent: crear_cliente, parameters: {cliente_nombre: "María López", tipo_persona: "juridica", email: "maria@empresa.com"}
+- "Tengo audiencia el 15 de enero a las 9am en el Juzgado de Paz" → intent: agendar_audiencia, parameters: {fecha_audiencia: "2025-01-15", hora_audiencia: "09:00", juzgado: "Juzgado de Paz"}
 
-Agentes disponibles:
-- AgenteGestiónCasos
-- AgenteGestiónClientes
-- AgenteDocumentosRedacción
-- AgenteJurisprudencia
-- AgenteAudienciasCalendario
-- AgenteFacturación
-- AgenteAyudaGeneral`;
+Usa la función clasificar_con_parametros para responder.`;
 
-  const userPrompt = `Contexto actual: ${context_type}
-Mensaje del usuario: "${message}"
-
-Clasifica la intención:`;
+  const userPrompt = `Contexto: ${context_type}
+Mensaje: "${message}"`;
 
   try {
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -216,7 +273,8 @@ Clasifica la intención:`;
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
         ],
-        temperature: 0.3, // Baja temperatura para clasificación consistente
+        tools: tools,
+        tool_choice: { type: "function", function: { name: "clasificar_con_parametros" } }
       }),
     });
 
@@ -231,17 +289,28 @@ Clasifica la intención:`;
     }
 
     const data = await response.json();
-    const content = data.choices[0].message.content;
+    const message = data.choices[0].message;
     
-    // Extraer JSON del contenido (por si viene con markdown)
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    const classification = jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(content);
+    // Extraer de tool_calls
+    if (message.tool_calls && message.tool_calls.length > 0) {
+      const toolCall = message.tool_calls[0];
+      const args = JSON.parse(toolCall.function.arguments);
+      
+      console.log('[Clasificador] Parámetros extraídos:', args.parameters);
+      
+      return {
+        intent: args.intent,
+        confidence: args.confidence,
+        agent: args.agent,
+        parameters: args.parameters || {}
+      };
+    }
 
-    return classification;
+    // Fallback si no hay tool_calls
+    return fallbackClassification(message, context_type);
 
   } catch (error) {
     console.error('[Clasificador] Error:', error);
-    // Fallback: clasificación por palabras clave
     return fallbackClassification(message, context_type);
   }
 }
@@ -288,10 +357,36 @@ async function routeToAgent(
   classification: IntentClassification,
   message: string,
   context_type: string,
-  context_id?: string
+  context_id?: string,
+  previousMessage?: any
 ): Promise<{ content: string; tool_calls?: any[]; tool_results?: any[]; metadata?: any }> {
   
-  console.log(`[Router] Delegando a ${classification.agent}`);
+  console.log(`[Router] Delegando a ${classification.agent}`, classification.parameters);
+
+  // === MANEJO DE CONFIRMACIONES ===
+  if (previousMessage?.metadata?.requires_confirmation) {
+    const confirmWords = ['sí', 'si', 'confirmar', 'confirmo', 'adelante', 'ok'];
+    const cancelWords = ['no', 'cancelar', 'cancela', 'mejor no'];
+    
+    const messageLower = message.toLowerCase();
+    const isConfirm = confirmWords.some(word => messageLower.includes(word));
+    const isCancel = cancelWords.some(word => messageLower.includes(word));
+    
+    if (isConfirm && previousMessage.metadata.pending_action) {
+      const action = previousMessage.metadata.pending_action;
+      console.log('[Router] Ejecutando acción confirmada:', action.intent);
+      classification.intent = action.intent;
+      classification.parameters = { ...action.params, confirmed: true };
+    } else if (isCancel) {
+      return {
+        content: '✅ Acción cancelada. ¿En qué más puedo ayudarte?',
+        metadata: { cancelled: true }
+      };
+    }
+  }
+
+  // === MANEJO DE ESTADO MULTI-TURN ===
+  const conversationState = previousMessage?.metadata?.state;
 
   switch (classification.intent) {
     // === GESTIÓN DE CASOS ===
@@ -299,7 +394,7 @@ async function routeToAgent(
       return await handleConsultarCasos(supabase, userId);
     
     case 'crear_caso':
-      return await handleCrearCaso(supabase, userId, message, classification.parameters);
+      return await handleCrearCaso(supabase, userId, message, classification.parameters, conversationState);
     
     case 'actualizar_caso':
       return await handleActualizarCaso(supabase, userId, message, classification.parameters);
@@ -411,28 +506,118 @@ async function handleConsultarClientes(supabase: any, userId: string) {
   };
 }
 
-async function handleCrearCaso(supabase: any, userId: string, message: string, params?: any) {
-  // Extraer información del mensaje o parámetros
-  if (!params?.titulo) {
-    return {
-      content: `Para crear un caso necesito que me proporciones:\n\n` +
-               `1. **Título del caso**\n` +
-               `2. **Materia** (Civil, Penal, Laboral, etc.)\n` +
-               `3. **Número de expediente** (opcional)\n` +
-               `4. **Cliente** (opcional)\n\n` +
-               `Ejemplo: "Crea un caso de Cobro de Pesos, expediente 001-2025-CIVI-00123"`,
-      metadata: { requires_more_info: true }
-    };
+async function handleCrearCaso(supabase: any, userId: string, message: string, params?: any, conversationState?: any) {
+  // === FLUJO MULTI-TURN ===
+  if (conversationState?.intent === 'crear_caso') {
+    const collected = conversationState.collected_params || {};
+    
+    // Paso 1: Recolectar título
+    if (!collected.titulo && conversationState.step === 1) {
+      collected.titulo = params?.titulo_caso || extractTituloFromMessage(message);
+      
+      if (collected.titulo) {
+        return {
+          content: `Perfecto, título: "${collected.titulo}". ¿De qué materia es? (Civil, Penal, Laboral, Familia, Administrativo)`,
+          metadata: {
+            state: {
+              intent: 'crear_caso',
+              collected_params: collected,
+              step: 2
+            }
+          }
+        };
+      }
+    }
+    
+    // Paso 2: Recolectar materia
+    if (collected.titulo && !collected.materia && conversationState.step === 2) {
+      collected.materia = params?.materia || extractMateriaFromMessage(message);
+      
+      if (collected.materia) {
+        // Buscar cliente si se mencionó
+        const clienteNombre = params?.cliente_nombre || conversationState.collected_params?.cliente_nombre;
+        
+        if (clienteNombre) {
+          const cliente = await buscarClientePorNombre(supabase, userId, clienteNombre);
+          if (cliente) {
+            collected.client_id = cliente.id;
+          }
+        }
+        
+        // Ya tenemos suficiente información, crear caso
+        return await crearCasoFinal(supabase, userId, collected);
+      }
+    }
   }
 
-  // Obtener tenant_id del usuario
+  // === CREACIÓN DIRECTA CON PARÁMETROS COMPLETOS ===
+  if (params?.titulo_caso && params?.materia) {
+    const collected: any = {
+      titulo: params.titulo_caso,
+      materia: params.materia,
+      tipo_caso: params.tipo_caso || 'demanda',
+      numero_expediente: params.numero_expediente || '',
+      descripcion: params.descripcion || ''
+    };
+
+    // Buscar cliente si se mencionó
+    if (params.cliente_nombre) {
+      const cliente = await buscarClientePorNombre(supabase, userId, params.cliente_nombre);
+      
+      if (cliente === null) {
+        return {
+          content: `No encontré un cliente llamado "${params.cliente_nombre}".\n\n¿Quieres que lo registre primero?`,
+          metadata: {
+            suggest_create_client: { nombre: params.cliente_nombre },
+            pending_case_params: collected
+          }
+        };
+      } else if (cliente.ambiguous) {
+        return {
+          content: `Encontré varios clientes con ese nombre:\n\n` +
+                   cliente.candidates.map((c: any, i: number) => 
+                     `${i + 1}. ${c.nombre_completo}${c.email ? ` (${c.email})` : ''}`
+                   ).join('\n') +
+                   `\n\n¿A cuál te refieres? (número)`,
+          metadata: {
+            pending_selection: {
+              type: 'cliente',
+              candidates: cliente.candidates,
+              next_action: 'crear_caso',
+              case_params: collected
+            }
+          }
+        };
+      } else {
+        collected.client_id = cliente.id;
+      }
+    }
+
+    return await crearCasoFinal(supabase, userId, collected);
+  }
+
+  // === INICIAR FLUJO MULTI-TURN ===
+  return {
+    content: `Perfecto, vamos a crear un caso. ¿Cuál es el título del caso?`,
+    metadata: {
+      state: {
+        intent: 'crear_caso',
+        collected_params: params || {},
+        step: 1
+      }
+    }
+  };
+}
+
+// === FUNCIÓN AUXILIAR: Crear caso final ===
+async function crearCasoFinal(supabase: any, userId: string, params: any) {
   const { data: tenantData } = await supabase.rpc('get_user_tenant_id', { p_user_id: userId });
   
   const newCase = {
     user_id: userId,
     tenant_id: tenantData,
     titulo: params.titulo,
-    materia: params.materia || 'Civil y Comercial',
+    materia: params.materia,
     tipo_caso: params.tipo_caso || 'demanda',
     numero_expediente: params.numero_expediente || '',
     estado: 'activo',
@@ -449,7 +634,7 @@ async function handleCrearCaso(supabase: any, userId: string, message: string, p
   if (error) {
     console.error('[CrearCaso] Error:', error);
     return {
-      content: `❌ Hubo un error al crear el caso: ${error.message}`,
+      content: `❌ Error al crear el caso: ${error.message}`,
       metadata: { error: true }
     };
   }
@@ -459,11 +644,121 @@ async function handleCrearCaso(supabase: any, userId: string, message: string, p
              `📋 **${caso.titulo}**\n` +
              `• Expediente: ${caso.numero_expediente}\n` +
              `• Materia: ${caso.materia}\n` +
-             `• Estado: ${caso.estado}\n\n` +
-             `¿Quieres programar una audiencia o agregar plazos procesales?`,
+             `• Estado: ${caso.estado}\n` +
+             (caso.client_id ? `• Cliente: Asignado\n` : '') +
+             `\n¿Quieres programar una audiencia o agregar plazos procesales?`,
     tool_calls: [{ tool: 'crear_caso', case_id: caso.id }],
     tool_results: caso,
   };
+}
+
+// === FUNCIÓN AUXILIAR: Buscar cliente por nombre ===
+async function buscarClientePorNombre(supabase: any, userId: string, nombre: string) {
+  // Búsqueda exacta primero
+  const { data: cliente } = await supabase
+    .from('clients')
+    .select('*')
+    .eq('user_id', userId)
+    .ilike('nombre_completo', `%${nombre}%`)
+    .limit(1)
+    .maybeSingle();
+
+  if (cliente) return cliente;
+
+  // Búsqueda fuzzy
+  const { data: clientes } = await supabase
+    .from('clients')
+    .select('*')
+    .eq('user_id', userId)
+    .limit(20);
+
+  if (!clientes || clientes.length === 0) return null;
+
+  const candidatos = clientes
+    .map((c: any) => ({
+      ...c,
+      similitud: calcularSimilitud(nombre.toLowerCase(), c.nombre_completo.toLowerCase())
+    }))
+    .filter((c: any) => c.similitud > 0.5)
+    .sort((a: any, b: any) => b.similitud - a.similitud);
+
+  if (candidatos.length === 1) return candidatos[0];
+  if (candidatos.length > 1) {
+    return { ambiguous: true, candidates: candidatos.slice(0, 5) };
+  }
+
+  return null;
+}
+
+// === FUNCIÓN AUXILIAR: Calcular similitud (Levenshtein simplificado) ===
+function calcularSimilitud(s1: string, s2: string): number {
+  const longer = s1.length > s2.length ? s1 : s2;
+  const shorter = s1.length > s2.length ? s2 : s1;
+  
+  if (longer.length === 0) return 1.0;
+  if (longer.includes(shorter)) return 0.9;
+  
+  const editDistance = levenshteinDistance(longer, shorter);
+  return (longer.length - editDistance) / longer.length;
+}
+
+function levenshteinDistance(s1: string, s2: string): number {
+  const costs: number[] = [];
+  for (let i = 0; i <= s1.length; i++) {
+    let lastValue = i;
+    for (let j = 0; j <= s2.length; j++) {
+      if (i === 0) {
+        costs[j] = j;
+      } else if (j > 0) {
+        let newValue = costs[j - 1];
+        if (s1.charAt(i - 1) !== s2.charAt(j - 1)) {
+          newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
+        }
+        costs[j - 1] = lastValue;
+        lastValue = newValue;
+      }
+    }
+    if (i > 0) costs[s2.length] = lastValue;
+  }
+  return costs[s2.length];
+}
+
+// === FUNCIONES AUXILIARES: Extracción de texto ===
+function extractTituloFromMessage(message: string): string {
+  // Patrones comunes: "caso de X", "demanda de X", "X contra Y"
+  const patterns = [
+    /caso de (.+)/i,
+    /demanda de (.+)/i,
+    /(.+) contra (.+)/i,
+    /"(.+)"/,
+  ];
+  
+  for (const pattern of patterns) {
+    const match = message.match(pattern);
+    if (match) return match[1].trim();
+  }
+  
+  return message.trim();
+}
+
+function extractMateriaFromMessage(message: string): string | null {
+  const materias: Record<string, string[]> = {
+    'Civil y Comercial': ['civil', 'comercial', 'contrato', 'cobro', 'pesos'],
+    'Penal': ['penal', 'criminal', 'delito'],
+    'Laboral': ['laboral', 'trabajo', 'despido', 'empleado'],
+    'Familia': ['familia', 'divorcio', 'custodia', 'pension'],
+    'Administrativo': ['administrativo', 'estado', 'gobierno']
+  };
+  
+  const messageLower = message.toLowerCase();
+  
+  for (const [materia, keywords] of Object.entries(materias)) {
+    if (keywords.some(kw => messageLower.includes(kw))) {
+      return materia;
+    }
+  }
+  
+  return null;
 }
 
 async function handleActualizarCaso(supabase: any, userId: string, message: string, params?: any) {
