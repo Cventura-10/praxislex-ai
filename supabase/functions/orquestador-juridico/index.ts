@@ -29,6 +29,8 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const startTime = Date.now();
+
   try {
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -126,6 +128,33 @@ serve(async (req) => {
       tool_results: agentResponse.tool_results || [],
       metadata: agentResponse.metadata || {},
     });
+
+    // ============================================================
+    // PASO 6: Registrar métricas de la sesión
+    // ============================================================
+    const endTime = Date.now();
+    const responseTime = endTime - startTime;
+    const success = !agentResponse.content.toLowerCase().includes('error') && 
+                    !agentResponse.content.toLowerCase().includes('no pudo');
+
+    const tenantId = user.user_metadata?.tenant_id;
+    if (tenantId) {
+      await supabaseClient.from('ai_os_session_analytics').insert({
+        conversation_id: activeConversationId,
+        user_id: user.id,
+        tenant_id: tenantId,
+        intent: classification.intent,
+        agent_name: classification.agent,
+        confidence: classification.confidence,
+        response_time_ms: responseTime,
+        success: success,
+        metadata: {
+          context_type: context_type,
+          context_id: context_id,
+          message_length: message.length,
+        }
+      });
+    }
 
     return new Response(
       JSON.stringify({
