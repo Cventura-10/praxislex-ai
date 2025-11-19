@@ -897,41 +897,117 @@ async function handleActualizarCliente(supabase: any, userId: string, message: s
 }
 
 async function handleGenerarDocumento(supabase: any, userId: string, message: string, params?: any) {
-  // Listar plantillas disponibles
-  const { data: templates } = await supabase
-    .from('document_templates')
-    .select('slug, nombre, descripcion, categoria')
-    .eq('activo', true)
-    .limit(10);
+  console.log('[Herramienta] Generar documento DOCX:', params);
+  
+  try {
+    // Extraer parámetros necesarios
+    const { 
+      tipo_acto, 
+      cliente_id, 
+      titulo,
+      primera_parte,
+      segunda_parte,
+      notario,
+      contrato,
+      ciudad = 'Santo Domingo'
+    } = params || {};
 
-  if (!params?.template_slug) {
-    let response = `📄 **Plantillas disponibles:**\n\n`;
+    if (!tipo_acto && !params?.template_slug) {
+      // Listar plantillas disponibles
+      const { data: templates } = await supabase
+        .from('document_templates')
+        .select('slug, nombre, descripcion, categoria')
+        .eq('activo', true)
+        .limit(10);
+
+      let response = `📄 **Plantillas disponibles:**\n\n`;
+      
+      if (templates && templates.length > 0) {
+        templates.forEach((t: any, i: number) => {
+          response += `${i + 1}. **${t.nombre}** (${t.categoria})\n`;
+          if (t.descripcion) response += `   ${t.descripcion}\n`;
+          response += '\n';
+        });
+        response += `Dime cuál plantilla quieres usar o describe qué documento necesitas.`;
+      } else {
+        response = `No hay plantillas configuradas. ¿Qué tipo de documento necesitas redactar?`;
+      }
+
+      return {
+        content: response,
+        tool_calls: [{ tool: 'listar_plantillas', count: templates?.length || 0 }],
+        tool_results: templates,
+      };
+    }
+
+    const templateSlug = tipo_acto || params?.template_slug;
+
+    // Preparar payload para generate-legal-doc
+    const payload: any = {
+      template_slug: templateSlug,
+      ciudad,
+      fecha: new Date().toISOString(),
+    };
+
+    // Agregar partes si están disponibles
+    if (primera_parte) payload.primera_parte = primera_parte;
+    if (segunda_parte) payload.segunda_parte = segunda_parte;
+    if (notario) payload.notario = notario;
+    if (contrato) payload.contrato = contrato;
+
+    // Llamar al edge function generate-legal-doc
+    const { data: docData, error: docError } = await supabase.functions.invoke('generate-legal-doc', {
+      body: payload
+    });
+
+    if (docError) {
+      console.error('[Error] generate-legal-doc:', docError);
+      return {
+        content: `❌ Error al generar documento: ${docError.message}`,
+        metadata: { error: true },
+      };
+    }
+
+    // Guardar en generated_acts
+    const { data: tenantData } = await supabase.rpc('get_user_tenant_id', { p_user_id: userId });
     
-    if (templates && templates.length > 0) {
-      templates.forEach((t: any, i: number) => {
-        response += `${i + 1}. **${t.nombre}** (${t.categoria})\n`;
-        if (t.descripcion) response += `   ${t.descripcion}\n`;
-        response += '\n';
-      });
-      response += `Dime cuál plantilla quieres usar o describe qué documento necesitas.`;
-    } else {
-      response = `No hay plantillas configuradas. ¿Qué tipo de documento necesitas redactar?`;
+    const { data: actData, error: actError } = await supabase.from('generated_acts').insert({
+      user_id: userId,
+      tenant_id: tenantData,
+      tipo_acto: templateSlug,
+      titulo: titulo || `Documento ${templateSlug}`,
+      contenido: 'Generado vía AI',
+      materia: 'Civil y Comercial',
+      ciudad,
+      fecha_actuacion: new Date().toISOString(),
+      client_id: cliente_id || null,
+      documento_url: docData.file_url || null,
+    }).select().single();
+
+    if (actError) {
+      console.error('[Error] Guardar acto:', actError);
     }
 
     return {
-      content: response,
-      tool_calls: [{ tool: 'listar_plantillas', count: templates?.length || 0 }],
-      tool_results: templates,
+      content: `✅ **Documento generado exitosamente**\n\n` +
+               `📄 **${titulo || 'Documento'}**\n` +
+               `• Tipo: ${templateSlug}\n` +
+               `• Ciudad: ${ciudad}\n\n` +
+               `El documento DOCX está listo para descarga.`,
+      tool_calls: [{ tool: 'generar_documento', file_url: docData.file_url }],
+      tool_results: [{
+        file_url: docData.file_url,
+        acto_id: actData?.id,
+        template_slug: templateSlug,
+      }],
+    };
+  } catch (error: any) {
+    console.error('[Error] handleGenerarDocumento:', error);
+    return {
+      content: `❌ Error al generar documento: ${error.message}`,
+      metadata: { error: true },
     };
   }
-
-  // Aquí iría la lógica de generación con la plantilla
-  return {
-    content: `🔄 Generando documento con plantilla **${params.template_slug}**...\n\n` +
-             `Esta funcionalidad conectará con el sistema de generación de actos legales existente.\n\n` +
-             `¿Tienes los datos del caso y las partes listos?`,
-    metadata: { template_slug: params.template_slug, pending: true }
-  };
 }
 
 async function handleAgendarAudiencia(supabase: any, userId: string, message: string, params?: any) {
@@ -1042,12 +1118,83 @@ async function handleGenerarFactura(supabase: any, userId: string, message: stri
   };
 }
 
-async function handleBuscarJurisprudencia(supabase: any, userId: string, message: string) {
-  return {
-    content: `🔍 **Búsqueda de jurisprudencia**\n\n` +
-             `Esta funcionalidad se conectará con el sistema RAG jurídico existente.\n\n` +
-             `Tu consulta: "${message}"\n\n` +
-             `Buscando en la base de datos de sentencias y precedentes...`,
-    metadata: { query: message, pending: true }
-  };
+async function handleBuscarJurisprudencia(supabase: any, userId: string, message: string, params?: any) {
+  console.log('[Herramienta] Buscar jurisprudencia RAG:', params);
+  
+  try {
+    const { 
+      query, 
+      materia = null, 
+      limit = 5, 
+      threshold = 0.7 
+    } = params || {};
+
+    const searchQuery = query || message;
+
+    if (!searchQuery || searchQuery.trim() === '') {
+      return {
+        content: '❌ Debes proporcionar un texto de búsqueda (ej: "prescripción acción civil", "nulidad matrimonio")',
+        metadata: { error: true },
+      };
+    }
+
+    // Llamar al edge function search-jurisprudence-rag
+    const { data: searchData, error: searchError } = await supabase.functions.invoke('search-jurisprudence-rag', {
+      body: {
+        query: searchQuery,
+        materia,
+        limit,
+        threshold,
+      }
+    });
+
+    if (searchError) {
+      console.error('[Error] search-jurisprudence-rag:', searchError);
+      return {
+        content: `❌ Error al buscar jurisprudencia: ${searchError.message}`,
+        metadata: { error: true },
+      };
+    }
+
+    const results = searchData?.results || [];
+
+    if (results.length === 0) {
+      return {
+        content: `🔍 No encontré jurisprudencia relevante para: "${searchQuery}"\n\nIntenta con términos más generales o diferentes palabras clave.`,
+        tool_calls: [{ tool: 'buscar_jurisprudencia', query: searchQuery, results: 0 }],
+        tool_results: [],
+      };
+    }
+
+    // Formatear resultados
+    let content = `🔍 **Jurisprudencia encontrada** (${results.length} resultados)\n\n`;
+    content += `📝 Búsqueda: "${searchQuery}"\n`;
+    if (materia) content += `📂 Materia: ${materia}\n`;
+    content += `\n`;
+
+    results.forEach((r: any, idx: number) => {
+      content += `**${idx + 1}. ${r.titulo || 'Sin título'}**\n`;
+      if (r.sentencia_numero) content += `• Sentencia: ${r.sentencia_numero}\n`;
+      if (r.fecha_sentencia) content += `• Fecha: ${r.fecha_sentencia}\n`;
+      if (r.materia) content += `• Materia: ${r.materia}\n`;
+      if (r.similarity) content += `• Relevancia: ${(r.similarity * 100).toFixed(0)}%\n`;
+      if (r.contenido) {
+        const preview = r.contenido.substring(0, 200);
+        content += `• Extracto: ${preview}...\n`;
+      }
+      content += `\n`;
+    });
+
+    return {
+      content,
+      tool_calls: [{ tool: 'buscar_jurisprudencia', query: searchQuery, results: results.length }],
+      tool_results: results,
+    };
+  } catch (error: any) {
+    console.error('[Error] handleBuscarJurisprudencia:', error);
+    return {
+      content: `❌ Error al buscar jurisprudencia: ${error.message}`,
+      metadata: { error: true },
+    };
+  }
 }
